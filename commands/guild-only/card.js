@@ -59,7 +59,6 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('edit')
         .setDescription('Edit an existing card')
-        .addStringOption(opt => opt.setName('code').setDescription('Exact card code'))
         .addStringOption(opt => opt.setName('cardcode').setDescription('Comma-separated cardCodes'))
         .addStringOption(opt => opt.setName('name').setDescription('Comma-separated card names'))
         .addStringOption(opt => opt.setName('category').setDescription('Comma-separated categories'))
@@ -67,6 +66,7 @@ module.exports = {
         .addStringOption(opt => opt.setName('era').setDescription('Comma-separated eras'))
         .addStringOption(opt => opt.setName('group').setDescription('Comma-separated groups'))
         .addStringOption(opt => opt.setName('batch').setDescription('Comma-separated batch codes'))
+        .addStringOption(opt => opt.setName('setcardcode').setDescription('Set new card code'))
         .addStringOption(opt => opt.setName('setname').setDescription('New name'))
         .addStringOption(opt => opt.setName('setcategory').setDescription('New category'))
         .addStringOption(opt => opt.setName('setversion').setDescription('New version'))

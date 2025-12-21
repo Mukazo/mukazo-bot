@@ -9,6 +9,7 @@ const {
 
 const Card = require('../../../models/Card');
 const Batch = require('../../../models/Batch');
+const CardInventory = require('../../../models/CardInventory');
 const { safeReply } = require('../../../utils/safeReply');
 const generateVersion = require('../../../utils/generateVersion');
 const axios = require('axios');
@@ -26,7 +27,6 @@ module.exports = {
     }
 
     const filters = {};
-    if (interaction.options.getString('code')) filters.cardCode = interaction.options.getString('code');
     if (multiStr('cardcode')) filters.cardCode = multiStr('cardcode');
     if (multiStr('name')) filters.name = multiStr('name');
     if (multiStr('category')) filters.category = multiStr('category');
@@ -47,6 +47,10 @@ module.exports = {
     if (interaction.options.getString('setemoji')) updates.emoji = interaction.options.getString('setemoji');
     if (interaction.options.getString('setgroup')) updates.group = interaction.options.getString('setgroup');
     if (interaction.options.getString('setera')) updates.era = interaction.options.getString('setera');
+    if (interaction.options.getString('setcardcode')) {
+  updates.cardCode = interaction.options.getString('setcardcode');
+}
+
 
     const qty = interaction.options.getInteger('availablequantity');
     if (qty !== null) updates.availableQuantity = qty;
@@ -178,12 +182,26 @@ module.exports = {
       } else if (btn.customId === 'prev') {
         currentPage--;
       } else if (btn.customId === 'confirm') {
-        const res = await Card.updateMany(filters, { $set: updates });
-        return interaction.editReply({
-          content: `✅ Updated ${res.modifiedCount} card${res.modifiedCount !== 1 ? 's' : ''}.`,
-          embeds: [],
-          components: []
-        });
+  // Save old cardCodes BEFORE updating
+  const oldCodes = cards.map(c => c.cardCode);
+
+  // Update cards
+  const res = await Card.updateMany(filters, { $set: updates });
+
+  // If cardCode was changed, update inventories too
+  if (updates.cardCode) {
+    await CardInventory.updateMany(
+      { cardCode: { $in: oldCodes } },
+      { $set: { cardCode: updates.cardCode } }
+    );
+  }
+
+  return interaction.editReply({
+    content: `Updated ${res.modifiedCount} card${res.modifiedCount !== 1 ? 's' : ''}.`,
+    embeds: [],
+    components: []
+  });
+
       } else if (btn.customId === 'cancel') {
         return interaction.editReply({ content: '❌ Edit cancelled.', embeds: [], components: [] });
       }
