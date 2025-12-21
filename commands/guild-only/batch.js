@@ -14,8 +14,8 @@ module.exports = {
         .setDescription('Create a new batch')
         .addStringOption(opt => opt.setName('code').setDescription('Unique batch code').setRequired(true))
         .addStringOption(opt => opt.setName('name').setDescription('Batch name').setRequired(true))
-        .addStringOption(opt => opt.setName('description').setDescription('Optional description'))
         .addStringOption(opt => opt.setName('releaseat').setDescription('Release date (YYYY-MM-DD)').setRequired(true))
+        .addStringOption(opt => opt.setName('description').setDescription('Optional description'))
     )
 
     // LIST
