@@ -47,10 +47,18 @@ module.exports = {
       const attachment = opts.getAttachment('image');
       const ext = path.extname(attachment.name || '.png');
       const localFilename = `${cardCode}${ext}`;
-      const localPath = path.join(__dirname, '..', 'images', localFilename);
 
-      const imageResp = await axios.get(attachment.url, { responseType: 'arraybuffer' });
-      fs.writeFileSync(localPath, imageResp.data);
+      // Ensure the images folder exists
+      const imageDir = path.join(__dirname, '..', 'images');
+      if (!fs.existsSync(imageDir)) {
+        fs.mkdirSync(imageDir, { recursive: true });
+      }
+
+      const localPath = path.join(imageDir, localFilename);
+
+        // Download and save the image
+        const imageResp = await axios.get(attachment.url, { responseType: 'arraybuffer' });
+        fs.writeFileSync(localPath, imageResp.data);
 
       // STEP 1: Show Batch Select Menu
       const batches = await Batch.find({}).sort({ releaseAt: -1 }).lean();

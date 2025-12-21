@@ -42,6 +42,8 @@ module.exports = {
       opt.setName('designer').setDescription('initial designer').setRequired(true))
       .addBooleanOption(opt =>
       opt.setName('active').setDescription('card droppable and currently active?').setRequired(true))
+      .addAttachmentOption(opt =>
+      opt.setName('image').setDescription('upload the card image').setRequired(true))
       .addStringOption(opt =>
       opt.setName('era').setDescription('era of card').setRequired(false))
       .addStringOption(opt =>
@@ -52,8 +54,12 @@ module.exports = {
       opt.setName('designer3').setDescription('optional third designer').setRequired(false))
       .addIntegerOption(opt =>
       opt.setName('availablequantity').setDescription('limited quantity').setRequired(false))
-      .addAttachmentOption(opt =>
-      opt.setName('image').setDescription('upload the card image').setRequired(false))
+      .addStringOption(opt =>
+      opt.setName('batch')
+      .setDescription('Batch code to assign this card to')
+      .setRequired(false)
+)
+
 
     )
     .addSubcommand(sub =>
