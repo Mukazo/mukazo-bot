@@ -20,11 +20,19 @@ const Canvas = require('canvas');
 module.exports = {
   async execute(interaction) {
     function multiStr(name) {
-      const raw = interaction.options.getString(name);
-      if (!raw) return null;
-      const split = raw.split(',').map(e => e.trim()).filter(Boolean);
-      return split.length === 1 ? split[0] : { $in: split };
-    }
+  const raw = interaction.options.getString(name);
+  if (!raw) return null;
+
+  const values = raw
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean)
+    .map(v => new RegExp(`^${v}$`, 'i')); // exact + case-insensitive
+
+  return values.length === 1 ? values[0] : { $in: values };
+}
+
+let finished = false;
 
     const filters = {};
     if (multiStr('cardcode')) filters.cardCode = multiStr('cardcode');
@@ -182,6 +190,7 @@ module.exports = {
       } else if (btn.customId === 'prev') {
         currentPage--;
       } else if (btn.customId === 'confirm') {
+        finished = true;
   // Save old cardCodes BEFORE updating
   const oldCodes = cards.map(c => c.cardCode);
 
@@ -203,7 +212,8 @@ module.exports = {
   });
 
       } else if (btn.customId === 'cancel') {
-        return interaction.editReply({ content: '❌ Edit cancelled.', embeds: [], components: [] });
+        finished = true;
+        return interaction.editReply({ content: 'Edit cancelled.', embeds: [], components: [] });
       }
 
       const data = await generatePreviewEmbed(currentPage);
@@ -211,7 +221,9 @@ module.exports = {
     });
 
     collector.on('end', () => {
-      interaction.editReply({ components: components(true) }).catch(() => {});
-    });
+  if (!finished) {
+    interaction.editReply({ components: components(true) }).catch(() => {});
+  }
+});
   }
 };
