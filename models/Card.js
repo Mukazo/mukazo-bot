@@ -17,6 +17,7 @@ releaseAt: {
   type: Date,
   default: null
 },
+deactivateAt: { type: Date, default: null },
 availableQuantity: { type: Number, default: null }, // max times pullable
 timesPulled: { type: Number, default: 0 },          // counter
   localImagePath: { type: String},

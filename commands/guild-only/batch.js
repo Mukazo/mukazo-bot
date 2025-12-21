@@ -16,6 +16,8 @@ module.exports = {
         .addStringOption(opt => opt.setName('name').setDescription('Batch name').setRequired(true))
         .addStringOption(opt => opt.setName('releaseat').setDescription('Release date (YYYY-MM-DD)').setRequired(true))
         .addStringOption(opt => opt.setName('description').setDescription('Optional description'))
+        .addStringOption(opt => opt.setName('deactivateat').setDescription('Date to deactivate cards (YYYY-MM-DD)').setRequired(false))
+
     )
 
     // LIST
@@ -33,6 +35,17 @@ module.exports = {
         .addStringOption(opt => opt.setName('description').setDescription('New description'))
         .addStringOption(opt => opt.setName('releaseat').setDescription('New release date (YYYY-MM-DD)'))
         .addBooleanOption(opt => opt.setName('releasenow').setDescription('Release this batch immediately'))
+        .addStringOption(opt => opt.setName('deactivateat').setDescription('Date to deactivate cards (YYYY-MM-DD)').setRequired(false))
+        .addBooleanOption(opt =>
+  opt.setName('active')
+    .setDescription('Force set active true/false')
+    .setRequired(false)
+)
+.addStringOption(opt =>
+  opt.setName('until')
+    .setDescription('Set a new deactivateAt date (YYYY-MM-DD)')
+    .setRequired(false)
+)
     ),
 
   async execute(interaction) {

@@ -9,15 +9,23 @@ async function getRandomCardByVersion(version, userId) {
 
   // ✅ Step 1: Unbatch cards from released batches
   const now = new Date();
-  const releasedBatches = await Batch.find({ releaseAt: { $lte: now } }).lean();
-  const releasedCodes = releasedBatches.map(b => b.code);
 
-  if (releasedCodes.length > 0) {
-    await Card.updateMany(
-      { batch: { $in: releasedCodes } },
-      { $set: { batch: null } }
-    );
-  }
+// Auto-activate cards from released batches
+const releasedBatches = await Batch.find({ releaseAt: { $lte: now } }).lean();
+const releasedCodes = releasedBatches.map(b => b.code);
+if (releasedCodes.length > 0) {
+  await Card.updateMany(
+    { batch: { $in: releasedCodes }, active: false },
+    { $set: { active: true } }
+  );
+}
+
+// Auto-deactivate cards by time
+await Card.updateMany(
+  { deactivateAt: { $lte: now }, active: true },
+  { $set: { active: false } }
+);
+
 
   // ✅ Step 2: Prepare user preferences
   const alwaysInclude = ['monthlies', 'events', 'specials'];

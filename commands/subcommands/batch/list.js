@@ -36,6 +36,7 @@ module.exports = {
             `**${b.name}** \`(${b.code})\`
 > ${new Date(b.releaseAt).toDateString()}
 > Cards: \`${b.count}\`
+> Deactivates: ${b.deactivateCardsAt ? new Date(b.deactivateCardsAt).toDateString() : '*None*'}
 ${b.description || '*No description*'}`
           ).join('\n\n')
         );

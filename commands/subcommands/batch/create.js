@@ -14,12 +14,24 @@ async execute(interaction) {
         return interaction.reply({ content: 'Invalid date format. Use YYYY-MM-DD.', flags: 1 << 6 });
       }
 
+      const deactivateStr = interaction.options.getString('deactivateat');
+        let deactivateCardsAt = null;
+
+        if (deactivateStr) {
+        const parsed = new Date(deactivateStr);
+        if (isNaN(parsed)) {
+            return interaction.reply({ content: 'Invalid deactivate date. Use YYYY-MM-DD.', ephemeral: true });
+        }
+        deactivateCardsAt = parsed;
+        }
+
+
       const existing = await Batch.findOne({ code });
       if (existing) {
         return interaction.reply({ content: `Batch with code \`${code}\` already exists.`, flags: 1 << 6 });
       }
 
-      await Batch.create({ code, name, description, releaseAt });
+      await Batch.create({ code, name, description, releaseAt, deactivateCardsAt });
       return interaction.reply({ content: `Batch \`${name}\` created!`});
     }
   };

@@ -151,21 +151,27 @@ module.exports = {
             const selectedBatch = sel.values[0] === 'null' ? null : sel.values[0];
             batchSelected = true;
 
+            const batchInfo = selectedBatch
+            ? await Batch.findOne({ code: selectedBatch }).lean()
+            : null;
+
             await Card.create({
-              cardCode,
-              name,
-              category,
-              version: versionInput,
-              emoji,
-              designerIds,
-              localImagePath: localPath,
-              active,
-              availableQuantity,
-              timesPulled: 0,
-              group,
-              era,
-              batch: selectedBatch
+            cardCode,
+            name,
+            category,
+            version: versionInput,
+            emoji,
+            designerIds,
+            localImagePath: localPath,
+            active,
+            availableQuantity,
+            timesPulled: 0,
+            group,
+            era,
+            batch: selectedBatch,
+            deactivateAt: batchInfo?.deactivateCardsAt ?? null
             });
+
 
             return sel.editReply({
               content: `\`${cardCode}\` created and assigned to batch: \`${selectedBatch || 'None'}\`!`,

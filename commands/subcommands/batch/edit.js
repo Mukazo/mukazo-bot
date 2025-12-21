@@ -9,6 +9,8 @@ const code = interaction.options.getString('code').toLowerCase();
       const description = interaction.options.getString('description');
       const releaseStr = interaction.options.getString('releaseat');
       const releaseNow = interaction.options.getBoolean('releasenow');
+      const deactivateStr = interaction.options.getString('deactivateat');
+
 
       const batch = await Batch.findOne({ code });
       if (!batch) {
@@ -26,6 +28,42 @@ const code = interaction.options.getString('code').toLowerCase();
         }
         updates.releaseAt = parsed;
       }
+
+if (deactivateStr) {
+  const parsed = new Date(deactivateStr);
+  if (isNaN(parsed)) {
+    return interaction.reply({ content: 'Invalid deactivate date format.', ephemeral: true });
+  }
+  updates.deactivateCardsAt = parsed;
+
+  // 🔁 Retroactively update all cards in this batch
+  await Card.updateMany(
+    { batch: code },
+    { $set: { deactivateAt: parsed } }
+  );
+}
+    const active = interaction.options.getBoolean('active');
+const untilStr = interaction.options.getString('until');
+
+if (active !== null || untilStr) {
+  const updateCards = {};
+
+  if (active !== null) {
+    updateCards.active = active;
+  }
+
+  if (untilStr) {
+    const parsed = new Date(untilStr);
+    if (isNaN(parsed)) {
+      return interaction.reply({ content: 'Invalid until date.', ephemeral: true });
+    }
+    updateCards.deactivateAt = parsed;
+    updates.deactivateCardsAt = parsed; // batch model
+  }
+
+  await Card.updateMany({ batch: code }, { $set: updateCards });
+}
+
 
       if (releaseNow === true) {
         updates.releaseAt = new Date();

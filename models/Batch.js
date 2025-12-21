@@ -5,6 +5,8 @@ const batchSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, default: '' },
   releaseAt: { type: Date, required: true, index: true },
+  deactivateCardsAt: { type: Date, default: null },
+
 }, {
   timestamps: true
 });

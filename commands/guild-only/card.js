@@ -1,7 +1,7 @@
 // commands/guild-only/card.js
 const { SlashCommandBuilder } = require('discord.js');
 const createCard = require('../subcommands/card/create.js');
-// const editCard = require('../../subcommands/card/edit.js');
+const editCard = require('../subcommands/card/edit.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -59,8 +59,26 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('edit')
         .setDescription('Edit an existing card')
-        .addStringOption(opt => opt.setName('card_id').setDescription('Card ID').setRequired(true))
-        .addStringOption(opt => opt.setName('name').setDescription('New name'))
+        .addStringOption(opt => opt.setName('code').setDescription('Exact card code'))
+        .addStringOption(opt => opt.setName('cardcode').setDescription('Comma-separated cardCodes'))
+        .addStringOption(opt => opt.setName('name').setDescription('Comma-separated card names'))
+        .addStringOption(opt => opt.setName('category').setDescription('Comma-separated categories'))
+        .addStringOption(opt => opt.setName('version').setDescription('Exact version'))
+        .addStringOption(opt => opt.setName('era').setDescription('Comma-separated eras'))
+        .addStringOption(opt => opt.setName('group').setDescription('Comma-separated groups'))
+        .addStringOption(opt => opt.setName('batch').setDescription('Comma-separated batch codes'))
+        .addStringOption(opt => opt.setName('setname').setDescription('New name'))
+        .addStringOption(opt => opt.setName('setcategory').setDescription('New category'))
+        .addStringOption(opt => opt.setName('setversion').setDescription('New version'))
+        .addStringOption(opt => opt.setName('setemoji').setDescription('New emoji override'))
+        .addStringOption(opt => opt.setName('setgroup').setDescription('New group'))
+        .addStringOption(opt => opt.setName('setera').setDescription('New era'))
+        .addStringOption(opt => opt.setName('setbatch').setDescription('New batch or "null" to remove'))
+        .addIntegerOption(opt => opt.setName('availablequantity').setDescription('Set card pull limit (or null)'))
+        .addBooleanOption(opt => opt.setName('active').setDescription('Set active?'))
+        .addStringOption(opt => opt.setName('until').setDescription('Deactivate date (YYYY-MM-DD)'))
+        .addAttachmentOption(opt => opt.setName('image').setDescription('Replace image')),
+
     ),
 
   async execute(interaction) {
