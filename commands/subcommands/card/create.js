@@ -72,7 +72,7 @@ module.exports = {
           { name: 'Category', value: category, inline: true },
           { name: 'Group', value: group || '—', inline: true },
           { name: 'Era', value: era || '—', inline: true },
-          { name: 'Version', value: versionDisplay, inline: true },
+          { name: 'Version', value: emoji || versionDisplay || '—', inline: true },
           {
             name: 'Designer(s)',
             value: (designerIds.length ? designerIds.map(id => `<@${id}>`).join(', ') : 'None'),
@@ -195,11 +195,11 @@ module.exports = {
         if (btn.customId === 'cancel') {
           collector.stop('cancelled');
           await safeDefer();
-          return btn.update({
-            content: 'Creation cancelled.',
-            embeds: [],
-            components: []
-          });
+          return btn.editReply({
+  content: 'Creation cancelled.',
+  embeds: [],
+  components: []
+});
         }
       });
 
