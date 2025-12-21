@@ -63,9 +63,9 @@ module.exports = {
       });
 
       const previewEmbed = new EmbedBuilder()
-        .setTitle('# Card Creation')
         .setColor('Blurple')
         .setImage(`attachment://${localFilename}`)
+        .setDescription('# Card Creation')
         .addFields(
           { name: 'Name', value: name, inline: true },
           { name: 'Code', value: cardCode, inline: true },
@@ -81,8 +81,8 @@ module.exports = {
           { name: 'Active', value: String(active), inline: true }
         );
 
-      const confirmBtn = new ButtonBuilder().setCustomId('confirm').setLabel('✅ Confirm').setStyle(ButtonStyle.Success);
-      const cancelBtn = new ButtonBuilder().setCustomId('cancel').setLabel('❌ Cancel').setStyle(ButtonStyle.Danger);
+      const confirmBtn = new ButtonBuilder().setCustomId('confirm').setLabel('Confirm').setStyle(ButtonStyle.Success);
+      const cancelBtn = new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger);
       const row = new ActionRowBuilder().addComponents(confirmBtn, cancelBtn);
 
       await safeReply(interaction, {
@@ -99,7 +99,7 @@ module.exports = {
 
       collector.on('collect', async btn => {
         if (btn.user.id !== interaction.user.id) {
-          return btn.reply({ content: 'Only the command invoker can use these buttons.', ephemeral: true });
+          return btn.reply({ content: 'Only the command invoker can use these buttons.', flags: 1 << 6 });
         }
 
         const safeDefer = async () => {
@@ -140,13 +140,16 @@ module.exports = {
             time: 30000
           });
 
+          let batchSelected = false;
+
           batchCollector.on('collect', async sel => {
             if (sel.user.id !== interaction.user.id) {
-              return sel.reply({ content: 'Only the command invoker can select a batch.', ephemeral: true });
+              return sel.reply({ content: 'Only the command invoker can select a batch.', flags: 1 << 6 });
             }
 
             await sel.deferUpdate();
             const selectedBatch = sel.values[0] === 'null' ? null : sel.values[0];
+            batchSelected = true;
 
             await Card.create({
               cardCode,
@@ -172,11 +175,11 @@ module.exports = {
           });
 
           batchCollector.on('end', async (_, reason) => {
-            if (reason !== 'selected') {
+            if (batchSelected) {
               try {
                 await interaction.followUp({
                   content: 'Batch selection timed out. Card was not created.',
-                  ephemeral: true
+                  flags: 1 << 6
                 });
               } catch {}
             }

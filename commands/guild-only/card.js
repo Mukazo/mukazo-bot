@@ -54,12 +54,6 @@ module.exports = {
       opt.setName('designer3').setDescription('optional third designer').setRequired(false))
       .addIntegerOption(opt =>
       opt.setName('availablequantity').setDescription('limited quantity').setRequired(false))
-      .addStringOption(opt =>
-      opt.setName('batch')
-      .setDescription('Batch code to assign this card to')
-      .setRequired(false)
-)
-
 
     )
     .addSubcommand(sub =>
