@@ -4,7 +4,7 @@ const { weightedPick } = require('./weightedPick');
 const Card = require('../models/Card');
 const User = require('../models/User');
 
-async function getRandomCardByRarity(rarity, userId) {
+async function getRandomCardByVersion(version, userId) {
   const user = await User.findOne({ userId });
 
   const alwaysInclude = ['monthlies', 'events', 'specials'];
@@ -14,10 +14,17 @@ async function getRandomCardByRarity(rarity, userId) {
     : undefined; // undefined = allow all
 
   const filter = {
-    rarity,
-    pullable: true,
-    ...(categories ? { category: { $in: categories } } : {})
-  };
+  version,
+  active: true,
+  batch: null, // only non-batch cards
+  releaseAt: { $lte: new Date() }, // released
+  $or: [
+    { availableQuantity: null },               // unlimited
+    { $expr: { $lt: ["$timesPulled", "$availableQuantity"] } } // under limit
+  ],
+  ...(categories ? { category: { $in: categories } } : {})
+};
+
 
   const cards = await Card.find(filter).lean();
   if (!cards.length) return null;
@@ -40,4 +47,4 @@ async function getRandomCardByRarity(rarity, userId) {
   return await Card.findById(picked._id); // hydrate
 }
 
-module.exports = getRandomCardByRarity;
+module.exports = getRandomCardByVersion;

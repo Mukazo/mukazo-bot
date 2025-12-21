@@ -15,7 +15,7 @@ async function loadCommands() {
   const guildCommands = [];
 
   const loadFromFolder = (folder, collector) => {
-    const cmdDir = path.join(__dirname, '..', 'commands', folder);
+    const cmdDir = path.join(__dirname, 'commands', folder);
     if (!fs.existsSync(cmdDir)) return;
     const files = fs.readdirSync(cmdDir).filter(file => file.endsWith('.js'));
 

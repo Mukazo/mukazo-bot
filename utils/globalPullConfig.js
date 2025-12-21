@@ -1,7 +1,7 @@
 // utils/globalPullConfig.js
 
 // Hardcoded rarity weights
-const RARITY_WEIGHTS = {
+const VERSION_WEIGHTS = {
   '1S': 36,
   '2S': 29.55,
   '3S': 20.45,
@@ -22,7 +22,7 @@ const MAX_WEIGHT = 10000;
 
 function getGlobalPullConfig() {
   return {
-    rarityWeights: RARITY_WEIGHTS,
+    versionWeights: VERSION_WEIGHTS,
     eraMultipliers: ERA_MULTIPLIERS,
     codeMultipliers: CODE_MULTIPLIERS,
     minWeight: MIN_WEIGHT,
