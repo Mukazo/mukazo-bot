@@ -20,6 +20,6 @@ async execute(interaction) {
       }
 
       await Batch.create({ code, name, description, releaseAt });
-      return interaction.reply({ content: `Batch \`${name}\` created!`, flags: 1 << 6 });
+      return interaction.reply({ content: `Batch \`${name}\` created!`});
     }
   };

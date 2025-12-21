@@ -1,4 +1,7 @@
 const Batch = require('../../../models/Batch');
+const {
+  EmbedBuilder,
+} = require('discord.js');
 
 module.exports = {
 async execute(interaction) {
