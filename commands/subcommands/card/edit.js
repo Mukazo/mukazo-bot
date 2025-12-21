@@ -34,6 +34,21 @@ module.exports = {
 
 let finished = false;
 
+function formatFilters(filters) {
+  const out = {};
+  for (const [key, value] of Object.entries(filters)) {
+    if (typeof value === 'object' && value.$in) {
+      out[key] = value.$in.map(v => v instanceof RegExp ? v.source.replace(/^\^|\$$/g, '') : v);
+    } else if (value instanceof RegExp) {
+      out[key] = value.source.replace(/^\^|\$$/g, '');
+    } else {
+      out[key] = value;
+    }
+  }
+  return JSON.stringify(out);
+}
+
+
     const filters = {};
     if (multiStr('cardcode')) filters.cardCode = multiStr('cardcode');
     if (multiStr('name')) filters.name = multiStr('name');
@@ -143,7 +158,7 @@ let finished = false;
             .setTitle(`Confirm Edit (${cards.length} match${cards.length !== 1 ? 'es' : ''})`)
             .setColor('Gold')
             .setDescription([
-  `**Filters:** \`${JSON.stringify(filters)}\``,
+  `**Filters:** \`${formatFilters(filters)}\``,
   `**Updates:** \`${JSON.stringify(updates)}\``,
   '',
   ...cards.slice(page * 5, page * 5 + 5).map(card => {
