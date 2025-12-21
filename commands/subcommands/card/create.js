@@ -174,8 +174,8 @@ module.exports = {
             });
           });
 
-          batchCollector.on('end', async (_, reason) => {
-            if (batchSelected) {
+          batchCollector.on('end', async () => {
+            if (!batchSelected) {
               try {
                 await interaction.followUp({
                   content: 'Batch selection timed out. Card was not created.',
