@@ -48,71 +48,22 @@ module.exports = {
       const ext = path.extname(attachment.name || '.png');
       const localFilename = `${cardCode}${ext}`;
 
-      // Ensure the images folder exists
       const imageDir = path.join(__dirname, '..', 'images');
       if (!fs.existsSync(imageDir)) {
         fs.mkdirSync(imageDir, { recursive: true });
       }
 
       const localPath = path.join(imageDir, localFilename);
+      const imageResp = await axios.get(attachment.url, { responseType: 'arraybuffer' });
+      fs.writeFileSync(localPath, imageResp.data);
 
-        // Download and save the image
-        const imageResp = await axios.get(attachment.url, { responseType: 'arraybuffer' });
-        fs.writeFileSync(localPath, imageResp.data);
-
-      // STEP 1: Show Batch Select Menu
-      const batches = await Batch.find({}).sort({ releaseAt: -1 }).lean();
-      const batchOptions = batches.map(b => ({
-        label: b.name,
-        description: `Code: ${b.code}`,
-        value: b.code
-      }));
-
-      batchOptions.unshift({ label: 'No Batch', description: 'Do not assign to a batch', value: 'null' });
-
-      const batchSelect = new StringSelectMenuBuilder()
-        .setCustomId('batch-select')
-        .setPlaceholder('Select a batch (or No Batch)')
-        .addOptions(batchOptions);
-
-      const batchRow = new ActionRowBuilder().addComponents(batchSelect);
-
-      await safeReply(interaction, {
-        content: 'Select a batch for this card:',
-        components: [batchRow]
-      });
-
-      const selectMsg = await interaction.fetchReply();
-      const selectCollector = selectMsg.createMessageComponentCollector({
-        componentType: ComponentType.StringSelect,
-        time: 30000
-      });
-
-      let selectedBatch = null;
-      await new Promise(resolve => {
-        selectCollector.on('collect', async sel => {
-          if (sel.user.id !== interaction.user.id) {
-            return sel.reply({ content: 'Only the command invoker can choose the batch.', ephemeral: true });
-          }
-          await sel.deferUpdate();
-          selectedBatch = sel.values[0] === 'null' ? null : sel.values[0];
-          selectCollector.stop('selected');
-          resolve();
-        });
-
-        selectCollector.on('end', (_, reason) => {
-          if (reason !== 'selected') resolve(); // fallback
-        });
-      });
-
-      // STEP 2: Create preview embed
       const versionDisplay = generateVersion({
         version: versionInput,
         overrideEmoji: emoji || undefined
       });
 
       const previewEmbed = new EmbedBuilder()
-        .setTitle(versionDisplay)
+        .setTitle('# Card Creation')
         .setColor('Blurple')
         .setImage(`attachment://${localFilename}`)
         .addFields(
@@ -121,7 +72,7 @@ module.exports = {
           { name: 'Category', value: category, inline: true },
           { name: 'Group', value: group || '—', inline: true },
           { name: 'Era', value: era || '—', inline: true },
-          { name: 'Batch', value: selectedBatch || '—', inline: true },
+          { name: 'Version', value: versionDisplay, inline: true },
           {
             name: 'Designer(s)',
             value: (designerIds.length ? designerIds.map(id => `<@${id}>`).join(', ') : 'None'),
@@ -161,33 +112,81 @@ module.exports = {
           collector.stop('confirmed');
           await safeDefer();
 
-          await Card.create({
-            cardCode,
-            name,
-            category,
-            version: versionInput,
-            emoji,
-            designerIds,
-            localImagePath: localPath,
-            active,
-            availableQuantity,
-            timesPulled: 0,
-            group,
-            era,
-            batch: selectedBatch
+          // Fetch batches
+          const batches = await Batch.find({}).sort({ releaseAt: -1 }).lean();
+          const batchOptions = batches.map(b => ({
+            label: b.name,
+            description: `Code: ${b.code}`,
+            value: b.code
+          }));
+          batchOptions.unshift({ label: 'No Batch', description: 'Do not assign to a batch', value: 'null' });
+
+          const batchSelect = new StringSelectMenuBuilder()
+            .setCustomId('batch-select')
+            .setPlaceholder('Select a batch (or No Batch)')
+            .addOptions(batchOptions);
+
+          const batchRow = new ActionRowBuilder().addComponents(batchSelect);
+          await btn.editReply({
+            content: 'Confirmed! Now select a batch:',
+            embeds: [],
+            components: [batchRow],
+            files: []
           });
 
-          return interaction.editReply({
-            content: `\`${cardCode}\` successfully created.`,
-            embeds: [],
-            components: []
+          const batchMsg = await btn.fetchReply();
+          const batchCollector = batchMsg.createMessageComponentCollector({
+            componentType: ComponentType.StringSelect,
+            time: 30000
+          });
+
+          batchCollector.on('collect', async sel => {
+            if (sel.user.id !== interaction.user.id) {
+              return sel.reply({ content: 'Only the command invoker can select a batch.', ephemeral: true });
+            }
+
+            await sel.deferUpdate();
+            const selectedBatch = sel.values[0] === 'null' ? null : sel.values[0];
+
+            await Card.create({
+              cardCode,
+              name,
+              category,
+              version: versionInput,
+              emoji,
+              designerIds,
+              localImagePath: localPath,
+              active,
+              availableQuantity,
+              timesPulled: 0,
+              group,
+              era,
+              batch: selectedBatch
+            });
+
+            return sel.editReply({
+              content: `\`${cardCode}\` created and assigned to batch: \`${selectedBatch || 'None'}\`!`,
+              components: [],
+              embeds: []
+            });
+          });
+
+          batchCollector.on('end', async (_, reason) => {
+            if (reason !== 'selected') {
+              try {
+                await interaction.followUp({
+                  content: 'Batch selection timed out. Card was not created.',
+                  ephemeral: true
+                });
+              } catch {}
+            }
           });
         }
 
         if (btn.customId === 'cancel') {
           collector.stop('cancelled');
           await safeDefer();
-          return interaction.editReply({
+          return btn.update({
             content: 'Creation cancelled.',
             embeds: [],
             components: []
@@ -198,15 +197,12 @@ module.exports = {
       collector.on('end', async (_, reason) => {
         if (!['confirmed', 'cancelled'].includes(reason)) {
           try {
-            const reply = await interaction.fetchReply();
-            if (!reply.ephemeral && !reply.deleted) {
-              await safeReply(interaction, {
-                content: 'Command timed out with no action.',
-                embeds: [],
-                components: []
-              });
-            }
-          } catch { }
+            await interaction.editReply({
+              content: 'Creation timed out.',
+              embeds: [],
+              components: []
+            });
+          } catch {}
         }
       });
     } catch (err) {
