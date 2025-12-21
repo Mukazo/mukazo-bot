@@ -1,4 +1,5 @@
 const Batch = require('../../../models/Batch');
+const Card = require('../../../models/Card');
 const {
   EmbedBuilder,
 } = require('discord.js');
