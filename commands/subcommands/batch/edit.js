@@ -1,5 +1,5 @@
-const Batch = require('../../models/Batch');
-const Card = require('../../models/Card');
+const Batch = require('../../../models/Batch');
+const Card = require('../../../models/Card');
 
 module.exports = {
 async execute(interaction) {

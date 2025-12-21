@@ -1,4 +1,4 @@
-const Batch = require('../../models/Batch');
+const Batch = require('../../../models/Batch');
 
 module.exports = {
 async execute(interaction) {
