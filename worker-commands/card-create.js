@@ -12,9 +12,9 @@ const {
   StringSelectMenuBuilder
 } = require('discord.js');
 
-const Card = require('../../../models/Card');
-const Batch = require('../../../models/Batch');
-const generateVersion = require('../../../utils/generateVersion');
+const Card = require('../../models/Card');
+const Batch = require('../../models/Batch');
+const generateVersion = require('../../utils/generateVersion');
 
 console.log('[LOAD] 🔁 card-create.js module loaded');
 
