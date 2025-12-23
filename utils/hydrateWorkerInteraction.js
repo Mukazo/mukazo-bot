@@ -4,19 +4,19 @@ const getOrCreateUser = require('./getOrCreateUser');
 function makeRolesCache(roleIds = []) {
   const set = new Set(roleIds);
   return {
-    has: (id) => set.has(id),
-    forEach: (fn) => { for (const id of set) fn({ id }, id); },
+    has(id) { return set.has(id); },
+    forEach(fn) { for (const id of set) fn({ id }, id); },
     get size() { return set.size; }
   };
 }
 
 async function hydrateGuildMember(interaction) {
   if (!interaction.guildId || !interaction.user?.id) return null;
+
   try {
-    const rest = new REST({ version: '10' }).setToken(interaction.token); // now uses job token
+    const rest = new REST({ version: '10' }).setToken(interaction.token);
     const data = await rest.get(Routes.guildMember(interaction.guildId, interaction.user.id));
-    const cache = makeRolesCache(data.roles || []);
-    interaction.member = { user: interaction.user, roles: { cache } };
+    interaction.member = { user: interaction.user, roles: { cache: makeRolesCache(data.roles || []) } };
     return interaction.member;
   } catch {
     interaction.member = { user: interaction.user, roles: { cache: makeRolesCache([]) } };
@@ -24,34 +24,33 @@ async function hydrateGuildMember(interaction) {
   }
 }
 
-function addShims(interaction) {
-  if (!interaction.inGuild) interaction.inGuild = function () { return !!this.guildId; };
-  if (!interaction.inCachedGuild) interaction.inCachedGuild = function () { return !!this.guildId; };
-  if (!interaction.isRepliable) interaction.isRepliable = () => true;
-}
-
 function attachResponseMethods(interaction) {
   const rest = new REST({ version: '10' }).setToken(interaction.token);
-  const applicationId = interaction.applicationId || interaction.appId;
-const webhookRoute = Routes.webhook(applicationId, interaction.token);
 
+  const applicationId = interaction.applicationId ?? interaction.appId;
+  if (!applicationId) {
+    console.error('[hydrate] ⚠️ Missing applicationId on interaction!', interaction);
+  }
+
+  const webhookBase = Routes.webhook(applicationId, interaction.token);
 
   interaction.deferReply = (options = {}) =>
-    rest.post(`${webhookRoute}/messages/@original`, {
+    rest.post(`${webhookBase}/messages/@original`, {
       body: { ...options, type: 5 } // DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
     });
 
   interaction.editReply = (data) =>
-    rest.patch(`${webhookRoute}/messages/@original`, { body: data });
+    rest.patch(`${webhookBase}/messages/@original`, { body: data });
 
   interaction.followUp = (data) =>
-    rest.post(`${webhookRoute}`, { body: data });
+    rest.post(`${webhookBase}`, { body: data });
 }
 
 async function hydrateWorkerInteraction(interaction) {
-  addShims(interaction);
+  // Attach REST response methods
   attachResponseMethods(interaction);
 
+  // Attempt to fetch member info
   try {
     interaction.userData = await getOrCreateUser(interaction);
   } catch (e) {
@@ -59,6 +58,7 @@ async function hydrateWorkerInteraction(interaction) {
   }
 
   await hydrateGuildMember(interaction);
+
   return interaction;
 }
 
