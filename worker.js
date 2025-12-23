@@ -91,6 +91,7 @@ new Worker(
   'mukazo-jobs',
   async (job) => {
     const d = job.data;
+    console.log('[worker] incoming job payload:', d);
     console.log(`[worker] job -> /${d.command} user=${d.userId}`);
 
     let interaction = Object.assign(
