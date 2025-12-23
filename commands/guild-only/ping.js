@@ -6,6 +6,6 @@ module.exports = {
     .setDescription('Test command'),
 
   async execute(interaction) {
-    await interaction.reply('🏓 Pong!');
+    await interaction.editReply('🏓 Pong!');
   }
 };
