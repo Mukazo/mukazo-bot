@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const { enqueueInteraction } = require('./queue'); // if index.js is inside src/
-const RUN_LOCAL = new Set(['createcard', 'card-edit', 'batch-create', 'batch-edit']); // tiny/fast ones only
+const RUN_LOCAL = new Set(['card-create', 'card-edit', 'batch-create', 'batch-edit']); // tiny/fast ones only
 
 // --- Setup Bot ---
 const client = new Client({
@@ -32,10 +32,14 @@ for (const file of commandFiles) {
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  if (!RUN_LOCAL.has(interaction.commandName)) {
-        await enqueueInteraction(interaction);         // worker will send the ONLY visible message
-        return;                                        // do NOT send any local message
-      }
+  const commandName = interaction.commandName;
+const subcommandName = interaction.options.getSubcommand(false); // safe even if none
+const fullKey = subcommandName ? `${commandName}-${subcommandName}` : commandName;
+
+if (!RUN_LOCAL.has(fullKey)) {
+  await enqueueInteraction(interaction);
+  return;
+}
 
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
