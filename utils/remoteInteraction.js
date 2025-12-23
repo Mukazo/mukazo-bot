@@ -1,4 +1,3 @@
-// utils/remoteInteraction.js
 const { WebhookClient } = require('discord.js');
 const { buildOptionsProxy } = require('./optionsProxy');
 
@@ -14,35 +13,52 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     guild: guildId ? { id: guildId } : null,
     user: userSnap || { id: '0' },
 
-    // d.js helpers your utils expect
     inGuild() { return !!this.guildId; },
     inCachedGuild() { return !!this.guildId; },
     isRepliable: () => true,
+    isChatInputCommand: () => true, // makes interaction.isChatInputCommand() work
 
-    // reflect "already deferred": first send should EDIT
+    deferred: false,
     replied: false,
 
-    // ✅ EDIT the original interaction response (single message)
-    async editReply(data = {}) {
+    async reply(data = {}) {
       const { ephemeral, ...rest } = data;
       const flags = ephemeral ? EPH_FLAG : rest.flags;
-      return wh.editMessage('@original', { flags, ...rest });
+      this.replied = true;
+      return wh.send({ flags, ...rest });
     },
 
-    // New messages
+    async deferReply({ ephemeral } = {}) {
+      const flags = ephemeral ? EPH_FLAG : undefined;
+      this.deferred = true;
+      return wh.send({ content: '⏳ Processing...', flags });
+    },
+
     async followUp(data = {}) {
       const { ephemeral, ...rest } = data;
       const flags = ephemeral ? EPH_FLAG : rest.flags;
       return wh.send({ flags, ...rest });
     },
 
-    // Optional helper for code that calls fetchReply()
+    async editReply(data = {}) {
+      const { ephemeral, ...rest } = data;
+      const flags = ephemeral ? EPH_FLAG : rest.flags;
+      return wh.editMessage('@original', { flags, ...rest });
+    },
+
     async fetchReply() {
       try { return await wh.fetchMessage('@original'); } catch { return null; }
     },
 
-    channel: { send: (data) => wh.send(data) },
-    options: buildOptionsProxy(optionsSnap || { subcommand:null, subcommandGroup:null, byName:{} }),
+    options: buildOptionsProxy(optionsSnap || {
+      subcommand: null,
+      subcommandGroup: null,
+      byName: {}
+    }),
+
+    channel: {
+      send: (data) => wh.send(data)
+    }
   };
 }
 
