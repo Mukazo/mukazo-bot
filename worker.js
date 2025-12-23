@@ -32,7 +32,7 @@ preloadModels();
     // 🔽 ensure indexes for models you care about
     const CardInventory = require('./models/CardInventory');
     await CardInventory.syncIndexes();
-    console.log('✅ Worker synced InventoryItem indexes');
+    console.log('✅ Worker synced CardInventory indexes');
 
     // You can add others too if needed
     // const UserRecord = require('./models/UserRecord');
@@ -86,7 +86,7 @@ function loadCommands() {
 loadCommands();
 
 new Worker(
-  'huntrix-jobs',
+  'mukazo-jobs',
   async (job) => {
     const d = job.data;
     console.log(`[worker] job -> /${d.command} user=${d.userId}`);

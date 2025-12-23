@@ -3,6 +3,8 @@ const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
+const { enqueueInteraction } = require('./queue'); // if index.js is inside src/
+const RUN_LOCAL = new Set(['card create', 'card edit', 'batch create', 'batch edit']); // tiny/fast ones only
 
 // --- Setup Bot ---
 const client = new Client({
@@ -29,6 +31,11 @@ for (const file of commandFiles) {
 // --- Handle Slash Commands ---
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
+
+  if (!RUN_LOCAL.has(interaction.commandName)) {
+        await enqueueInteraction(interaction);         // worker will send the ONLY visible message
+        return;                                        // do NOT send any local message
+      }
 
   const command = client.commands.get(interaction.commandName);
   if (!command) return;

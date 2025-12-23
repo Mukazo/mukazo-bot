@@ -8,7 +8,7 @@ const connection = {
   tls: process.env.REDIS_TLS === '1' ? {} : undefined
 };
 
-const q = new Queue('huntrix-jobs', { connection });
+const q = new Queue('mukazo-jobs', { connection });
 
 function snapshotOptions(interaction) {
   const root = { subcommandGroup: null, subcommand: null, byName: {} };
