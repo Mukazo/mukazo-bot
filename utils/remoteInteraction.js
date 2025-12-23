@@ -18,45 +18,65 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
 
     replied: false,
     deferred: false,
+    invalidWebhook: false,
 
-    inGuild() { return !!this.guildId; },
-    isChatInputCommand() { return true; },
+    inGuild() {
+      return !!this.guildId;
+    },
+
+    isChatInputCommand() {
+      return true;
+    },
 
     async deferReply({ ephemeral } = {}) {
-  this.deferred = true;
-  const flags = ephemeral ? EPH_FLAG : undefined;
+      this.deferred = true;
+      const flags = ephemeral ? EPH_FLAG : undefined;
 
-  try {
-    await rest.request({
-      method: 'POST',
-      path: Routes.interactionCallback(applicationId, token),
-      body: {
-        type: 5,
-        data: { flags }
+      if (!applicationId || !token) {
+        console.warn('[remoteInteraction.deferReply] Missing applicationId or token');
+        this.invalidWebhook = true;
+        return false;
       }
-    });
-    return true;
-  } catch (err) {
-    if (err.code === 10015) {
-      console.warn('[Webhook] ❌ Unknown Webhook — expired token');
-      this.invalidWebhook = true;
-      return false;
-    }
-    throw err;
-  }
-},
 
+      try {
+        await rest.request({
+          method: 'POST',
+          path: Routes.interactionCallback(applicationId, token),
+          body: {
+            type: 5,
+            data: { flags }
+          }
+        });
+        return true;
+      } catch (err) {
+        if (err.code === 10015) {
+          console.warn('[Webhook] ❌ Unknown Webhook — expired token');
+          this.invalidWebhook = true;
+          return false;
+        }
+        throw err;
+      }
+    },
 
     async reply(data = {}) {
       const { ephemeral, ...restData } = data;
       const flags = ephemeral ? EPH_FLAG : restData.flags;
       this.replied = true;
 
+      if (!applicationId || !token) {
+        console.error('[remoteInteraction.reply] ❌ Missing applicationId or token', {
+          applicationId,
+          token
+        });
+        return false;
+      }
+
       await rest.request({
         method: 'POST',
         path: Routes.webhook(applicationId, token),
         body: { flags, ...restData }
       });
+
       return true;
     },
 
@@ -64,11 +84,20 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
       const { ephemeral, ...restData } = data;
       const flags = ephemeral ? EPH_FLAG : restData.flags;
 
+      if (!applicationId || !token) {
+        console.error('[remoteInteraction.editReply] ❌ Missing applicationId or token', {
+          applicationId,
+          token
+        });
+        return false;
+      }
+
       await rest.request({
         method: 'PATCH',
         path: Routes.webhookMessage(applicationId, token, '@original'),
         body: { flags, ...restData }
       });
+
       return true;
     },
 
@@ -76,31 +105,50 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
       const { ephemeral, ...restData } = data;
       const flags = ephemeral ? EPH_FLAG : restData.flags;
 
+      if (!applicationId || !token) {
+        console.error('[remoteInteraction.followUp] ❌ Missing applicationId or token', {
+          applicationId,
+          token
+        });
+        return false;
+      }
+
       await rest.request({
         method: 'POST',
         path: Routes.webhook(applicationId, token),
         body: { flags, ...restData }
       });
+
       return true;
     },
 
     async fetchReply() {
+      if (!applicationId || !token) {
+        console.error('[remoteInteraction.fetchReply] ❌ Missing applicationId or token', {
+          applicationId,
+          token
+        });
+        return null;
+      }
+
       try {
         await rest.request({
           method: 'GET',
           path: Routes.webhookMessage(applicationId, token, '@original')
         });
-      return true;
+        return true;
       } catch {
         return null;
       }
     },
 
-    options: buildOptionsProxy(optionsSnap || {
-      subcommand: null,
-      subcommandGroup: null,
-      byName: {}
-    })
+    options: buildOptionsProxy(
+      optionsSnap || {
+        subcommand: null,
+        subcommandGroup: null,
+        byName: {}
+      }
+    )
   };
 }
 
