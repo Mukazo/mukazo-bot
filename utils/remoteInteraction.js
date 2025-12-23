@@ -1,10 +1,12 @@
+// utils/remoteInteraction.js
 const { REST, Routes } = require('discord.js');
 const { buildOptionsProxy } = require('./optionsProxy');
 
 const EPH_FLAG = 1 << 6;
 
 function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap, userSnap }) {
-  const rest = new REST({ version: '10' }).setToken(token); // ✅ token from payload
+  // Token must be the interaction token
+  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
   return {
     applicationId: appId,
@@ -25,47 +27,57 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
       const flags = ephemeral ? EPH_FLAG : undefined;
       this.deferred = true;
 
-      // ✅ Use Routes.webhookMessage for @original
-      return rest.post(
-        Routes.webhookMessage(appId, token, '@original'),
-        { body: { content: '⏳ Processing...', flags } }
-      );
+      return rest.request({
+        method: 'POST',
+        path: Routes.interactionCallback(this.applicationId, token),
+        body: {
+          type: 5, // DEFERRED_RESPONSE
+          data: { flags }
+        }
+      });
     },
 
     async reply(data = {}) {
-      const { ephemeral, ...rest } = data;
-      const flags = ephemeral ? EPH_FLAG : rest.flags;
+      const { ephemeral, ...restData } = data;
+      const flags = ephemeral ? EPH_FLAG : restData.flags;
+
       this.replied = true;
 
-      return rest.post(
-        Routes.webhook(appId, token),
-        { body: { flags, ...rest } }
-      );
+      return rest.request({
+        method: 'POST',
+        path: Routes.webhook(this.applicationId, token),
+        body: { flags, ...restData }
+      });
     },
 
     async editReply(data = {}) {
-      const { ephemeral, ...rest } = data;
-      const flags = ephemeral ? EPH_FLAG : rest.flags;
+      const { ephemeral, ...restData } = data;
+      const flags = ephemeral ? EPH_FLAG : restData.flags;
 
-      return rest.patch(
-        Routes.webhookMessage(appId, token, '@original'),
-        { body: { flags, ...rest } }
-      );
+      return rest.request({
+        method: 'PATCH',
+        path: Routes.webhookMessage(this.applicationId, token, '@original'),
+        body: { flags, ...restData }
+      });
     },
 
     async followUp(data = {}) {
-      const { ephemeral, ...rest } = data;
-      const flags = ephemeral ? EPH_FLAG : rest.flags;
+      const { ephemeral, ...restData } = data;
+      const flags = ephemeral ? EPH_FLAG : restData.flags;
 
-      return rest.post(
-        Routes.webhook(appId, token),
-        { body: { flags, ...rest } }
-      );
+      return rest.request({
+        method: 'POST',
+        path: Routes.webhook(this.applicationId, token),
+        body: { flags, ...restData }
+      });
     },
 
     async fetchReply() {
       try {
-        return await rest.get(Routes.webhookMessage(appId, token, '@original'));
+        return rest.request({
+          method: 'GET',
+          path: Routes.webhookMessage(this.applicationId, token, '@original'),
+        });
       } catch {
         return null;
       }
@@ -74,8 +86,8 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     options: buildOptionsProxy(optionsSnap || {
       subcommand: null,
       subcommandGroup: null,
-      byName: {},
-    }),
+      byName: {}
+    })
   };
 }
 
