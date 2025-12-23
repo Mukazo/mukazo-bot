@@ -16,6 +16,8 @@ const Card = require('../../../models/Card');
 const Batch = require('../../../models/Batch');
 const generateVersion = require('../../../utils/generateVersion');
 
+console.log('[LOAD] 🔁 card-create.js module loaded');
+
 module.exports = {
   data: { name: 'card-create' },
 

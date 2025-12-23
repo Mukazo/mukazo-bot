@@ -124,6 +124,8 @@ const cmd = commands.get(key);
     try {
   interaction = await hydrateWorkerInteraction(interaction);
   console.log('[WORKER] ⚙️ Hydrated interaction');
+
+  console.log('[WORKER] 🧠 Command loaded for execution:', key, typeof cmd?.execute);
   
   await cmd.execute(interaction);
   console.log('[WORKER] ✅ Executed command:', key);
