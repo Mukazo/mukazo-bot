@@ -29,6 +29,22 @@ module.exports = {
     // ✅ Hydrate the interaction before using it
     await hydrateWorkerInteraction(interaction);
 
+    if (interaction.invalidWebhook) {
+  console.warn('[CARD-CREATE] ⚠️ Webhook was expired — skipping execution');
+  return;
+}
+
+const safeEdit = async (data) => {
+  if (interaction.invalidWebhook) return;
+  return interaction.editReply(data);
+};
+
+const safeFollowUp = async (data) => {
+  if (interaction.invalidWebhook) return;
+  return interaction.followUp(data);
+};
+
+
     try {
 
   if (interaction.invalidWebhook) {
@@ -44,7 +60,7 @@ module.exports = {
 
 
     try {
-      await interaction.editReply({ content: '✅ Worker response successful!' });
+      await safeEdit({ content: '✅ Worker response successful!' });
     } catch (e) {
       console.error('[CARD-CREATE] ❌ Failed to editReply:', e);
     }
@@ -52,7 +68,7 @@ module.exports = {
 
     const allowedRole = process.env.CARD_CREATOR_ROLE_ID;
     if (!interaction.member.roles?.cache?.has(allowedRole)) {
-      return interaction.editReply({ content: 'You do not have permission to use this command.', ephemeral: true });
+      return safeEdit({ content: 'You do not have permission...', ephemeral: true });
     }
 
     const opts = interaction.options;
@@ -72,7 +88,7 @@ module.exports = {
     const designerIds = [d1, d2, d3].filter(Boolean).map(u => u.id);
 
     if (await Card.findOne({ cardCode })) {
-      return interaction.editReply({ content: `A card with code \`${cardCode}\` already exists.`, ephemeral: true });
+      return safeEdit({ content: `A card with code \`${cardCode}\` already exists.`, ephemeral: true });
     }
 
     const attachment = opts.getAttachment('image');
@@ -111,7 +127,7 @@ module.exports = {
       new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.editReply({
+    await safeEdit({
       embeds: [previewEmbed],
       components: [row],
       files: [new AttachmentBuilder(localPath, { name: localFilename })]
@@ -122,14 +138,14 @@ module.exports = {
 
     collector.on('collect', async btn => {
       if (btn.user.id !== interaction.user.id) {
-        return btn.reply({ content: 'Only the command invoker can use these buttons.', ephemeral: true });
+        return safeEdit({ content: 'Only the command invoker can use these buttons.', ephemeral: true });
       }
 
       await btn.deferUpdate();
 
       if (btn.customId === 'cancel') {
         collector.stop('cancelled');
-        return btn.editReply({ content: 'Creation cancelled.', embeds: [], components: [] });
+        return safeEdit({ content: 'Creation cancelled.', embeds: [], components: [] });
       }
 
       if (btn.customId === 'confirm') {
@@ -151,7 +167,7 @@ module.exports = {
             .addOptions(batchOptions)
         );
 
-        await btn.editReply({
+        await safeEdit({
           content: 'Confirmed! Now select a batch:',
           embeds: [],
           components: [batchRow],
@@ -166,7 +182,7 @@ module.exports = {
 
         batchCollector.on('collect', async sel => {
           if (sel.user.id !== interaction.user.id) {
-            return sel.reply({ content: 'Only the command invoker can select a batch.', ephemeral: true });
+            return safeEdit({ content: 'Only the command invoker can select a batch.', ephemeral: true });
           }
 
           await sel.deferUpdate();
@@ -192,7 +208,7 @@ module.exports = {
             deactivateAt: batchInfo?.deactivateCardsAt ?? null
           });
 
-          await sel.editReply({
+          await safeEdit({
             content: `✅ \`${cardCode}\` created and assigned to batch: \`${selectedBatch || 'None'}\`!`,
             components: [],
             embeds: []
@@ -201,7 +217,7 @@ module.exports = {
 
         batchCollector.on('end', async (_, reason) => {
           if (reason !== 'limit' && !msg.replied) {
-            await interaction.followUp({
+            await safeFollowUp({
               content: 'Batch selection timed out. Card was not created.',
               ephemeral: true
             });
@@ -212,7 +228,7 @@ module.exports = {
 
     collector.on('end', async (_, reason) => {
       if (!['confirmed', 'cancelled'].includes(reason)) {
-        await interaction.editReply({
+        await safeEdit({
           content: 'Creation timed out.',
           embeds: [],
           components: []
