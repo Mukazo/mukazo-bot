@@ -72,7 +72,7 @@ module.exports = {
     const designerIds = [d1, d2, d3].filter(Boolean).map(u => u.id);
 
     if (await Card.findOne({ cardCode })) {
-      return interaction.reply({ content: `A card with code \`${cardCode}\` already exists.`, ephemeral: true });
+      return interaction.editReply({ content: `A card with code \`${cardCode}\` already exists.`, ephemeral: true });
     }
 
     const attachment = opts.getAttachment('image');
