@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const { enqueueInteraction } = require('./queue'); // if index.js is inside src/
-const RUN_LOCAL = new Set(['card-create', 'card-edit', 'batch-create', 'batch-edit']); // tiny/fast ones only
+const RUN_LOCAL = new Set(['batch-create', 'batch-edit', 'ping']); // tiny/fast ones only
 
 // --- Setup Bot ---
 const client = new Client({
