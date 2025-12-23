@@ -23,20 +23,29 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     isChatInputCommand() { return true; },
 
     async deferReply({ ephemeral } = {}) {
-      this.deferred = true;
-      this.deferred = true;
-      const flags = ephemeral ? EPH_FLAG : undefined;
+  this.deferred = true;
+  const flags = ephemeral ? EPH_FLAG : undefined;
 
-      await rest.request({
-        method: 'POST',
-        path: Routes.interactionCallback(applicationId, token),
-        body: {
-          type: 5,
-          data: { flags }
-        }
-      });
-      return true;
-    },
+  try {
+    await rest.request({
+      method: 'POST',
+      path: Routes.interactionCallback(applicationId, token),
+      body: {
+        type: 5,
+        data: { flags }
+      }
+    });
+    return true;
+  } catch (err) {
+    if (err.code === 10015) {
+      console.warn('[Webhook] ❌ Unknown Webhook — expired token');
+      this.invalidWebhook = true;
+      return false;
+    }
+    throw err;
+  }
+},
+
 
     async reply(data = {}) {
       const { ephemeral, ...restData } = data;

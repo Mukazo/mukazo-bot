@@ -30,12 +30,19 @@ module.exports = {
     await hydrateWorkerInteraction(interaction);
 
     try {
-      await interaction.deferReply();
-      console.log('[CARD-CREATE] 🟢 Deferred reply');
-    } catch (e) {
-      console.error('[CARD-CREATE] ❌ Failed to deferReply:', e);
-      return;
-    }
+  await interaction.deferReply();
+
+  if (interaction.invalidWebhook) {
+    console.warn('[CARD-CREATE] ⚠️ Webhook was expired — skipping execution');
+    return;
+  }
+
+  console.log('[CARD-CREATE] 🟢 Deferred reply');
+} catch (e) {
+  console.error('[CARD-CREATE] ❌ Failed to deferReply:', e);
+  return;
+}
+
 
     try {
       await interaction.editReply({ content: '✅ Worker response successful!' });
