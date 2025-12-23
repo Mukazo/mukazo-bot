@@ -6,6 +6,8 @@ module.exports = {
     name: 'create',
   },
   async execute(interaction) {
+
+    await interaction.deferReply();
     await enqueueInteraction(interaction);
   }
 };
