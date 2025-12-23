@@ -32,7 +32,9 @@ function addShims(interaction) {
 
 function attachResponseMethods(interaction) {
   const rest = new REST({ version: '10' }).setToken(interaction.token);
-  const webhookRoute = Routes.webhook(interaction.appId || interaction.applicationId, interaction.token);
+  const applicationId = interaction.applicationId || interaction.appId;
+const webhookRoute = Routes.webhook(applicationId, interaction.token);
+
 
   interaction.deferReply = (options = {}) =>
     rest.post(`${webhookRoute}/messages/@original`, {
