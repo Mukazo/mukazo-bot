@@ -118,7 +118,7 @@ new Worker(
 
     try {
       interaction = await hydrateWorkerInteraction(interaction);
-      await interaction.deferReply();
+    
       await cmd.execute(interaction);
 
 await pub.publish('worker:result', JSON.stringify({
