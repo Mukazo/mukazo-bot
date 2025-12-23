@@ -118,6 +118,13 @@ new Worker(
     try {
       await hydrateWorkerInteraction(interaction);
       await cmd.execute(interaction);
+      const { pub } = require('./utils/pubsub'); // if not already
+
+await pub.publish('worker:result', JSON.stringify({
+  token: interaction.token,
+  content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`
+}));
+
     } catch (err) {
       console.error(`[worker] error in /${d.command}:`, err);
       await interaction.followUp({

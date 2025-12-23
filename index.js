@@ -72,3 +72,22 @@ client.once(Events.ClientReady, async () => {
 
 // --- Login Bot ---
 client.login(process.env.TOKEN);
+
+const { sub } = require('./utils/pubsub');
+const { Routes } = require('discord.js');
+const { REST } = require('@discordjs/rest');
+
+const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
+sub.subscribe('worker:result', async (message) => {
+  const data = JSON.parse(message);
+
+  try {
+    await rest.patch(
+      Routes.webhookMessage(process.env.CLIENT_ID, data.token, '@original'),
+      { body: { content: data.content } }
+    );
+  } catch (err) {
+    console.error('[Redis Result Reply Failed]', err.message);
+  }
+});
