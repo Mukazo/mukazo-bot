@@ -1,5 +1,5 @@
 const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord.js');
+const { Routes, RouteBases } = require('discord.js');
 const { buildOptionsProxy } = require('./optionsProxy');
 
 const EPH_FLAG = 1 << 6;
@@ -7,8 +7,8 @@ const EPH_FLAG = 1 << 6;
 function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap, userSnap }) {
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-  const route = Routes.webhookMessage(appId, token, '@original');
-  const sendRoute = Routes.webhook(appId, token);
+  const messageUrl = `${RouteBases.api}/webhooks/${appId}/${token}/messages/@original`;
+  const webhookUrl = `${RouteBases.api}/webhooks/${appId}/${token}`;
 
   return {
     applicationId: appId,
@@ -28,28 +28,43 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
       const { ephemeral, ...rest } = data;
       const flags = ephemeral ? EPH_FLAG : rest.flags;
       this.replied = true;
-      return rest.send
-        ? rest.send({ flags, ...rest })
-        : rest.send = await rest.post(sendRoute, { body: { flags, ...rest } });
+
+      return rest.post(webhookUrl, {
+        body: { flags, ...rest },
+      });
     },
 
     async editReply(data = {}) {
       const { ephemeral, ...rest } = data;
       const flags = ephemeral ? EPH_FLAG : rest.flags;
-      return rest.patch(route, { body: { flags, ...rest } });
+
+      return rest.patch(messageUrl, {
+        body: { flags, ...rest },
+      });
     },
 
     async followUp(data = {}) {
       const { ephemeral, ...rest } = data;
       const flags = ephemeral ? EPH_FLAG : rest.flags;
-      return rest.post(sendRoute, { body: { flags, ...rest } });
+
+      return rest.post(webhookUrl, {
+        body: { flags, ...rest },
+      });
     },
 
     async fetchReply() {
-      try { return await rest.get(route); } catch { return null; }
+      try {
+        return await rest.get(messageUrl);
+      } catch {
+        return null;
+      }
     },
 
-    options: buildOptionsProxy(optionsSnap || { subcommand:null, subcommandGroup:null, byName:{} }),
+    options: buildOptionsProxy(optionsSnap || {
+      subcommand: null,
+      subcommandGroup: null,
+      byName: {},
+    }),
   };
 }
 
