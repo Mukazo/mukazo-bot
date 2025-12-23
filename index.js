@@ -45,7 +45,6 @@ if (!RUN_LOCAL.has(fullKey)) {
   if (!command) return;
 
   await interaction.deferReply(); // ✅ THIS is valid here
-  await enqueueInteraction(interaction); // pass to worker
 
   try {
     await command.execute(interaction);

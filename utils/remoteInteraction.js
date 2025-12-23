@@ -29,7 +29,7 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
 
       return rest.request({
         method: 'POST',
-        path: Routes.interactionCallback(this.applicationId, token),
+        path: Routes.interactionCallback(this.applicationId, this.token),
         body: {
           type: 5,
           data: { flags }
@@ -44,7 +44,7 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
 
       return rest.request({
         method: 'POST',
-        path: Routes.webhook(this.applicationId, token),
+        path: Routes.webhook(this.applicationId, this.token),
         body: { flags, ...restData }
       });
     },
@@ -55,7 +55,7 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
 
       return rest.request({
         method: 'PATCH',
-        path: Routes.webhookMessage(this.applicationId, token, '@original'),
+        path: Routes.webhookMessage(this.applicationId, this.token, '@original'),
         body: { flags, ...restData }
       });
     },
@@ -66,7 +66,7 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
 
       return rest.request({
         method: 'POST',
-        path: Routes.webhook(this.applicationId, token),
+        path: Routes.webhook(this.applicationId, this.token),
         body: { flags, ...restData }
       });
     },
@@ -75,7 +75,7 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
       try {
         return rest.request({
           method: 'GET',
-          path: Routes.webhookMessage(this.applicationId, token, '@original')
+          path: Routes.webhookMessage(this.applicationId, this.token, '@original')
         });
       } catch {
         return null;
