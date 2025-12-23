@@ -8,6 +8,7 @@ const { Worker } = require('bullmq');
 const mongoose = require('mongoose');
 const { createRemoteInteraction } = require('./utils/remoteInteraction');
 const { hydrateWorkerInteraction } = require('./utils/hydrateWorkerInteraction');
+const { pub } = require('./utils/pubsub'); // if not already
 
 function preloadModels() {
   const files = glob.sync(path.join(__dirname, 'models/**/*.js'), { nodir: true });
@@ -91,7 +92,7 @@ new Worker(
     const d = job.data;
     console.log(`[worker] job -> /${d.command} user=${d.userId}`);
 
-    const interaction = Object.assign(
+    let interaction = Object.assign(
       createRemoteInteraction({
         appId: d.appId,
         token: d.token,
@@ -118,7 +119,6 @@ new Worker(
     try {
       interaction = await hydrateWorkerInteraction(interaction);
       await cmd.execute(interaction);
-      const { pub } = require('./utils/pubsub'); // if not already
 
 await pub.publish('worker:result', JSON.stringify({
   token: interaction.token,
