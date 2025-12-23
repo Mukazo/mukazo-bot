@@ -1,5 +1,4 @@
 const { REST } = require('@discordjs/rest');
-const { Routes, RouteBases } = require('discord.js');
 const { buildOptionsProxy } = require('./optionsProxy');
 
 const EPH_FLAG = 1 << 6;
@@ -7,8 +6,9 @@ const EPH_FLAG = 1 << 6;
 function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap, userSnap }) {
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-  const messageUrl = `${RouteBases.api}/webhooks/${appId}/${token}/messages/@original`;
-  const webhookUrl = `${RouteBases.api}/webhooks/${appId}/${token}`;
+  // Base URLs
+  const baseWebhook = `/webhooks/${appId}/${token}`;
+  const originalMessage = `${baseWebhook}/messages/@original`;
 
   return {
     applicationId: appId,
@@ -23,38 +23,58 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     inGuild() { return !!this.guildId; },
     inCachedGuild() { return !!this.guildId; },
     isRepliable: () => true,
+    isChatInputCommand: () => true,
+
+    async deferReply({ ephemeral } = {}) {
+      const flags = ephemeral ? EPH_FLAG : undefined;
+      this.deferred = true;
+      return rest.request({
+        method: 'POST',
+        path: baseWebhook,
+        body: {
+          content: '⏳ Processing...',
+          flags,
+        },
+      });
+    },
 
     async reply(data = {}) {
-      const { ephemeral, ...rest } = data;
-      const flags = ephemeral ? EPH_FLAG : rest.flags;
+      const { ephemeral, ...restData } = data;
+      const flags = ephemeral ? EPH_FLAG : restData.flags;
       this.replied = true;
-
-      return rest.post(webhookUrl, {
-        body: { flags, ...rest },
+      return rest.request({
+        method: 'POST',
+        path: baseWebhook,
+        body: { flags, ...restData },
       });
     },
 
     async editReply(data = {}) {
-      const { ephemeral, ...rest } = data;
-      const flags = ephemeral ? EPH_FLAG : rest.flags;
-
-      return rest.patch(messageUrl, {
-        body: { flags, ...rest },
+      const { ephemeral, ...restData } = data;
+      const flags = ephemeral ? EPH_FLAG : restData.flags;
+      return rest.request({
+        method: 'PATCH',
+        path: originalMessage,
+        body: { flags, ...restData },
       });
     },
 
     async followUp(data = {}) {
-      const { ephemeral, ...rest } = data;
-      const flags = ephemeral ? EPH_FLAG : rest.flags;
-
-      return rest.post(webhookUrl, {
-        body: { flags, ...rest },
+      const { ephemeral, ...restData } = data;
+      const flags = ephemeral ? EPH_FLAG : restData.flags;
+      return rest.request({
+        method: 'POST',
+        path: baseWebhook,
+        body: { flags, ...restData },
       });
     },
 
     async fetchReply() {
       try {
-        return await rest.get(messageUrl);
+        return await rest.request({
+          method: 'GET',
+          path: originalMessage,
+        });
       } catch {
         return null;
       }
