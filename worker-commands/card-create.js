@@ -27,7 +27,8 @@ module.exports = {
     console.log('[CARD-CREATE] 🎯 Executing...');
 
     // ✅ Hydrate the interaction before using it
-    const hydrated = hydrateWorkerInteraction(interaction);
+    const hydrated = await hydrateWorkerInteraction(interaction);
+
 
     try {
       await hydrated.deferReply();
