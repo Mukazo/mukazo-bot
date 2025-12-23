@@ -85,7 +85,6 @@ module.exports = {
 
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
-    await interaction.deferReply();
 
   if (sub === 'create') return await queueWithReply(interaction);
   if (sub === 'edit') return await queueWithReply(interaction);
