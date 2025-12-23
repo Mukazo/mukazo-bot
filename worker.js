@@ -121,10 +121,18 @@ new Worker(
     
       await cmd.execute(interaction);
 
-await pub.publish('worker:result', JSON.stringify({
-  token: interaction.token,
-  content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`
-}));
+// 🛑 Fallback: ensure some kind of reply happened
+if (!interaction.replied && !interaction.deferred) {
+  await interaction.reply({
+    content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
+    ephemeral: true,
+  });
+} else {
+  await interaction.followUp({
+    content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
+    ephemeral: true,
+  });
+}
 
     } catch (err) {
       console.error(`[worker] error in /${d.command}:`, err);
