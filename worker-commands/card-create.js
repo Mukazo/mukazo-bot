@@ -20,11 +20,12 @@ module.exports = {
   data: { name: 'card-create' },
 
   async execute(interaction) {
+    console.log('[CARD-CREATE] 🎯 Executing...');
     await interaction.deferReply();
 
     const allowedRole = process.env.CARD_CREATOR_ROLE_ID;
     if (!interaction.member.roles?.cache?.has(allowedRole)) {
-      return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+      return interaction.editReply({ content: 'You do not have permission to use this command.', ephemeral: true });
     }
 
     const opts = interaction.options;
@@ -83,7 +84,7 @@ module.exports = {
       new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [previewEmbed],
       components: [row],
       files: [new AttachmentBuilder(localPath, { name: localFilename })]
