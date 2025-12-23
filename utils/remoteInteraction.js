@@ -1,17 +1,17 @@
 // utils/remoteInteraction.js
-const { REST, Routes } = require('discord.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord.js');
 const { buildOptionsProxy } = require('./optionsProxy');
 
 const EPH_FLAG = 1 << 6;
 
 function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap, userSnap }) {
-  // Token must be the interaction token
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
   return {
     applicationId: appId,
     channelId,
-    guildId: guildId ?? null,
+    guildId: guildId || null,
     guild: guildId ? { id: guildId } : null,
     user: userSnap || { id: '0' },
 
@@ -19,19 +19,18 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     deferred: false,
 
     inGuild() { return !!this.guildId; },
-    inCachedGuild() { return !!this.guildId; },
-    isRepliable: () => true,
-    isChatInputCommand: () => true,
+    isChatInputCommand() { return true; },
 
     async deferReply({ ephemeral } = {}) {
-      const flags = ephemeral ? EPH_FLAG : undefined;
+      // This triggers the original interaction callback
       this.deferred = true;
+      const flags = ephemeral ? EPH_FLAG : undefined;
 
       return rest.request({
         method: 'POST',
         path: Routes.interactionCallback(this.applicationId, token),
         body: {
-          type: 5, // DEFERRED_RESPONSE
+          type: 5,
           data: { flags }
         }
       });
@@ -40,7 +39,6 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     async reply(data = {}) {
       const { ephemeral, ...restData } = data;
       const flags = ephemeral ? EPH_FLAG : restData.flags;
-
       this.replied = true;
 
       return rest.request({
@@ -76,7 +74,7 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
       try {
         return rest.request({
           method: 'GET',
-          path: Routes.webhookMessage(this.applicationId, token, '@original'),
+          path: Routes.webhookMessage(this.applicationId, token, '@original')
         });
       } catch {
         return null;
