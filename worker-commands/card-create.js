@@ -20,8 +20,15 @@ module.exports = {
   data: { name: 'card-create' },
 
   async execute(interaction) {
-    console.log('[CARD-CREATE] 🎯 Executing...');
+  console.log('[CARD-CREATE] 🎯 Executing...');
+
+  try {
     await interaction.deferReply();
+    console.log('[CARD-CREATE] 🟢 Deferred reply');
+  } catch (e) {
+    console.error('[CARD-CREATE] ❌ Failed to deferReply:', e);
+    return;
+  }
 
     const allowedRole = process.env.CARD_CREATOR_ROLE_ID;
     if (!interaction.member.roles?.cache?.has(allowedRole)) {

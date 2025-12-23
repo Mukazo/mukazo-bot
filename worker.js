@@ -122,9 +122,12 @@ const cmd = commands.get(key);
     }
 
     try {
-      interaction = await hydrateWorkerInteraction(interaction);
-    
-      await cmd.execute(interaction);
+  interaction = await hydrateWorkerInteraction(interaction);
+  console.log('[WORKER] ⚙️ Hydrated interaction');
+  
+  await cmd.execute(interaction);
+  console.log('[WORKER] ✅ Executed command:', key);
+
 
 // 🛑 Fallback: ensure some kind of reply happened
 if (!interaction.replied && !interaction.deferred) {
