@@ -116,7 +116,7 @@ new Worker(
     }
 
     try {
-      await hydrateWorkerInteraction(interaction);
+      interaction = await hydrateWorkerInteraction(interaction);
       await cmd.execute(interaction);
       const { pub } = require('./utils/pubsub'); // if not already
 
