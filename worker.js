@@ -140,7 +140,7 @@ const cmd = commands.get(key);
 
 
 // 🛑 Fallback: ensure some kind of reply happened
-if (!interaction.replied && !interaction.deferred) {
+if (!interaction.replied && !interaction.deferred && typeof interaction.reply === 'function') {
   await interaction.reply({
     content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
     ephemeral: true,

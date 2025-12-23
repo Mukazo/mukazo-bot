@@ -1,4 +1,3 @@
-// utils/remoteInteraction.js
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord.js');
 const { buildOptionsProxy } = require('./optionsProxy');
@@ -7,9 +6,10 @@ const EPH_FLAG = 1 << 6;
 
 function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap, userSnap }) {
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+  const applicationId = appId;
 
   return {
-    applicationId: appId,
+    applicationId,
     token,
     channelId,
     guildId: guildId || null,
@@ -23,18 +23,19 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     isChatInputCommand() { return true; },
 
     async deferReply({ ephemeral } = {}) {
-      // This triggers the original interaction callback
+      this.deferred = true;
       this.deferred = true;
       const flags = ephemeral ? EPH_FLAG : undefined;
 
-      return rest.request({
+      await rest.request({
         method: 'POST',
-        path: Routes.interactionCallback(interaction.applicationId || interaction.appId, interaction.token),
+        path: Routes.interactionCallback(applicationId, token),
         body: {
           type: 5,
           data: { flags }
         }
       });
+      return true;
     },
 
     async reply(data = {}) {
@@ -42,41 +43,45 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
       const flags = ephemeral ? EPH_FLAG : restData.flags;
       this.replied = true;
 
-      return rest.request({
+      await rest.request({
         method: 'POST',
-        path: Routes.webhook(interaction.applicationId || interaction.appId, interaction.token),
+        path: Routes.webhook(applicationId, token),
         body: { flags, ...restData }
       });
+      return true;
     },
 
     async editReply(data = {}) {
       const { ephemeral, ...restData } = data;
       const flags = ephemeral ? EPH_FLAG : restData.flags;
 
-      return rest.request({
+      await rest.request({
         method: 'PATCH',
-        path: Routes.webhookMessage(interaction.applicationId || interaction.appId, interaction.token, '@original'),
+        path: Routes.webhookMessage(applicationId, token, '@original'),
         body: { flags, ...restData }
       });
+      return true;
     },
 
     async followUp(data = {}) {
       const { ephemeral, ...restData } = data;
       const flags = ephemeral ? EPH_FLAG : restData.flags;
 
-      return rest.request({
+      await rest.request({
         method: 'POST',
-        path: Routes.webhook(this.applicationId, this.token),
+        path: Routes.webhook(applicationId, token),
         body: { flags, ...restData }
       });
+      return true;
     },
 
     async fetchReply() {
       try {
-        return rest.request({
+        await rest.request({
           method: 'GET',
-          path: Routes.webhookMessage(interaction.applicationId || interaction.appId, interaction.token, '@original')
+          path: Routes.webhookMessage(applicationId, token, '@original')
         });
+      return true;
       } catch {
         return null;
       }

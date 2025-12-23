@@ -27,11 +27,10 @@ module.exports = {
     console.log('[CARD-CREATE] 🎯 Executing...');
 
     // ✅ Hydrate the interaction before using it
-    const hydrated = await hydrateWorkerInteraction(interaction);
-
+    await hydrateWorkerInteraction(interaction);
 
     try {
-      await hydrated.deferReply();
+      await interaction.deferReply();
       console.log('[CARD-CREATE] 🟢 Deferred reply');
     } catch (e) {
       console.error('[CARD-CREATE] ❌ Failed to deferReply:', e);
@@ -39,7 +38,7 @@ module.exports = {
     }
 
     try {
-      await hydrated.editReply({ content: '✅ Worker response successful!' });
+      await interaction.editReply({ content: '✅ Worker response successful!' });
     } catch (e) {
       console.error('[CARD-CREATE] ❌ Failed to editReply:', e);
     }

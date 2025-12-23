@@ -41,9 +41,13 @@ function attachResponseMethods(interaction) {
   const webhookRoute = Routes.webhook(applicationId, interaction.token);
 
   interaction.deferReply = (options = {}) =>
-    rest.post(`${webhookRoute}/messages/@original`, {
-      body: { ...options, type: 5 }
-    });
+  rest.post(webhookRoute, {
+    body: {
+      ...options,
+      type: 5 // DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
+    }
+  });
+
 
   interaction.editReply = (data) =>
     rest.patch(`${webhookRoute}/messages/@original`, { body: data });
