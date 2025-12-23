@@ -20,6 +20,8 @@ module.exports = {
   data: { name: 'card-create' },
 
   async execute(interaction) {
+    await interaction.deferReply();
+
     const allowedRole = process.env.CARD_CREATOR_ROLE_ID;
     if (!interaction.member.roles?.cache?.has(allowedRole)) {
       return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
