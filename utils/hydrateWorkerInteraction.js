@@ -1,15 +1,10 @@
-// utils/hydrateWorkerInteraction.js
 const { REST, Routes } = require('discord.js');
-const getOrCreateUser = require('./getOrCreateUser'); // your existing util
+const getOrCreateUser = require('./getOrCreateUser');
 
-const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
-
-// create a d.js-like roles cache with .has()
 function makeRolesCache(roleIds = []) {
   const set = new Set(roleIds);
   return {
     has: (id) => set.has(id),
-    // minimal surface for code that iterates
     forEach: (fn) => { for (const id of set) fn({ id }, id); },
     get size() { return set.size; }
   };
@@ -18,18 +13,13 @@ function makeRolesCache(roleIds = []) {
 async function hydrateGuildMember(interaction) {
   if (!interaction.guildId || !interaction.user?.id) return null;
   try {
+    const rest = new REST({ version: '10' }).setToken(interaction.token); // now uses job token
     const data = await rest.get(Routes.guildMember(interaction.guildId, interaction.user.id));
-    // data.roles is an array of role IDs
-    const cache = makeRolesCache(Array.isArray(data.roles) ? data.roles : []);
-    interaction.member = interaction.member || {};
-    interaction.member.user = interaction.user;
-    interaction.member.roles = { cache };
+    const cache = makeRolesCache(data.roles || []);
+    interaction.member = { user: interaction.user, roles: { cache } };
     return interaction.member;
-  } catch (e) {
-    // Not fatal; just means roles checks will be false
-    interaction.member = interaction.member || {};
-    interaction.member.user = interaction.user;
-    interaction.member.roles = { cache: makeRolesCache([]) };
+  } catch {
+    interaction.member = { user: interaction.user, roles: { cache: makeRolesCache([]) } };
     return interaction.member;
   }
 }
@@ -40,20 +30,33 @@ function addShims(interaction) {
   if (!interaction.isRepliable) interaction.isRepliable = () => true;
 }
 
+function attachResponseMethods(interaction) {
+  const rest = new REST({ version: '10' }).setToken(interaction.token);
+  const webhookRoute = Routes.webhook(interaction.appId || interaction.applicationId, interaction.token);
+
+  interaction.deferReply = (options = {}) =>
+    rest.post(`${webhookRoute}/messages/@original`, {
+      body: { ...options, type: 5 } // DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
+    });
+
+  interaction.editReply = (data) =>
+    rest.patch(`${webhookRoute}/messages/@original`, { body: data });
+
+  interaction.followUp = (data) =>
+    rest.post(`${webhookRoute}`, { body: data });
+}
+
 async function hydrateWorkerInteraction(interaction) {
   addShims(interaction);
+  attachResponseMethods(interaction);
 
-  // userData for commands that read preferences / balances, etc.
   try {
     interaction.userData = await getOrCreateUser(interaction);
   } catch (e) {
-    // Leave undefined; commands should still guard with ?. if needed
     console.warn('[hydrate] getOrCreateUser failed:', e?.message || e);
   }
 
-  // member.roles.cache.has(...) support via REST
   await hydrateGuildMember(interaction);
-
   return interaction;
 }
 
