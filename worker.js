@@ -8,7 +8,6 @@ const { Worker } = require('bullmq');
 const mongoose = require('mongoose');
 const { createRemoteInteraction } = require('./utils/remoteInteraction');
 const { hydrateWorkerInteraction } = require('./utils/hydrateWorkerInteraction');
-const { startReminderPoller } = require('./utils/reminderPoller');
 
 function preloadModels() {
   const files = glob.sync(path.join(__dirname, 'models/**/*.js'), { nodir: true });
