@@ -63,6 +63,11 @@ async function enqueueInteraction(interaction, extra = {}) {
     extra
   };
 
+  if (!extra?.fullKey) {
+  console.warn('[QUEUE] 🚫 Skipping enqueue: missing fullKey');
+  return;
+}
+
   return q.add('run', payload, {
   attempts: 1,         // 🔇 no retries
   removeOnComplete: 500,

@@ -33,13 +33,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const commandName = interaction.commandName;
-const subcommandName = interaction.options.getSubcommand(false); // safe even if none
-const fullKey = subcommandName ? `${commandName}-${subcommandName}` : commandName;
+const subcommandName = interaction.options.getSubcommand(false);
+const fullKey = subcommandName
+  ? `${commandName}-${subcommandName}`
+  : commandName;
 
 if (!RUN_LOCAL.has(fullKey)) {
-  await enqueueInteraction(interaction);
+  await enqueueInteraction(interaction, { fullKey });
   return;
 }
+
 
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
