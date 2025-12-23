@@ -30,8 +30,8 @@ preloadModels();
     console.log('🗄️  Worker connected to MongoDB');
 
     // 🔽 ensure indexes for models you care about
-    const InventoryItem = require('./models/InventoryItem');
-    await InventoryItem.syncIndexes();
+    const CardInventory = require('./models/CardInventory');
+    await CardInventory.syncIndexes();
     console.log('✅ Worker synced InventoryItem indexes');
 
     // You can add others too if needed
@@ -55,8 +55,7 @@ function loadCommands() {
   const patterns = [
     path.join(__dirname, 'commands/global/**/*.js'),
     path.join(__dirname, 'commands/guild-only/**/*.js'),
-    path.join(__dirname, 'src/commands/global/**/*.js'),
-    path.join(__dirname, 'src/commands/guild-only/**/*.js'),
+    path.join(__dirname, 'commands/subcommands/**/*.js'),
   ];
 
   const files = Array.from(new Set(patterns.flatMap((p) => glob.sync(p, { nodir: true }))));
@@ -134,4 +133,3 @@ process.on('unhandledRejection', (e) => console.error('UNHANDLED REJECTION:', e)
 process.on('uncaughtException', (e) => console.error('UNCAUGHT EXCEPTION:', e));
 
 console.log('🛠️ Worker online.');
-startReminderPoller();
