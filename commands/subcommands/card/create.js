@@ -9,6 +9,5 @@ module.exports = {
 
     await interaction.deferReply();
     console.log('[create] token after defer:', interaction.token); // <== should not be undefined
-    await enqueueInteraction(interaction);
   }
 };

@@ -88,8 +88,6 @@ module.exports = {
     const fullKey = `card-${sub}`;
     console.log('[DEBUG] Enqueueing with fullKey:', fullKey);
 
-  await enqueueInteraction(interaction, { fullKey });
-
   if (sub === 'edit') return await enqueueInteraction(interaction, { fullKey: 'edit-card' });
   }
 };
