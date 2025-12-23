@@ -1,10 +1,14 @@
-const { WebhookClient } = require('discord.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord.js');
 const { buildOptionsProxy } = require('./optionsProxy');
 
 const EPH_FLAG = 1 << 6;
 
 function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap, userSnap }) {
-  const wh = new WebhookClient({ id: appId, token });
+  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
+  const route = Routes.webhookMessage(appId, token, '@original');
+  const sendRoute = Routes.webhook(appId, token);
 
   return {
     applicationId: appId,
@@ -13,52 +17,39 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     guild: guildId ? { id: guildId } : null,
     user: userSnap || { id: '0' },
 
+    replied: false,
+    deferred: false,
+
     inGuild() { return !!this.guildId; },
     inCachedGuild() { return !!this.guildId; },
     isRepliable: () => true,
-    isChatInputCommand: () => true, // makes interaction.isChatInputCommand() work
-
-    deferred: false,
-    replied: false,
 
     async reply(data = {}) {
       const { ephemeral, ...rest } = data;
       const flags = ephemeral ? EPH_FLAG : rest.flags;
       this.replied = true;
-      return wh.send({ flags, ...rest });
-    },
-
-    async deferReply({ ephemeral } = {}) {
-      const flags = ephemeral ? EPH_FLAG : undefined;
-      this.deferred = true;
-      return wh.send({ content: '⏳ Processing...', flags });
-    },
-
-    async followUp(data = {}) {
-      const { ephemeral, ...rest } = data;
-      const flags = ephemeral ? EPH_FLAG : rest.flags;
-      return wh.send({ flags, ...rest });
+      return rest.send
+        ? rest.send({ flags, ...rest })
+        : rest.send = await rest.post(sendRoute, { body: { flags, ...rest } });
     },
 
     async editReply(data = {}) {
       const { ephemeral, ...rest } = data;
       const flags = ephemeral ? EPH_FLAG : rest.flags;
-      return wh.editMessage('@original', { flags, ...rest });
+      return rest.patch(route, { body: { flags, ...rest } });
+    },
+
+    async followUp(data = {}) {
+      const { ephemeral, ...rest } = data;
+      const flags = ephemeral ? EPH_FLAG : rest.flags;
+      return rest.post(sendRoute, { body: { flags, ...rest } });
     },
 
     async fetchReply() {
-      try { return await wh.fetchMessage('@original'); } catch { return null; }
+      try { return await rest.get(route); } catch { return null; }
     },
 
-    options: buildOptionsProxy(optionsSnap || {
-      subcommand: null,
-      subcommandGroup: null,
-      byName: {}
-    }),
-
-    channel: {
-      send: (data) => wh.send(data)
-    }
+    options: buildOptionsProxy(optionsSnap || { subcommand:null, subcommandGroup:null, byName:{} }),
   };
 }
 
