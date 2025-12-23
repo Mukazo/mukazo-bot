@@ -66,20 +66,28 @@ function loadCommands() {
 
   let loaded = 0;
   for (const file of files) {
-    try {
-      const mod = require(file);
-      const name = (mod?.data?.name || mod?.name || path.parse(file).name || '').toLowerCase();
-      if (!name || typeof mod.execute !== 'function') continue;
+  console.log('[DEBUG] 🔍 Scanning file:', file); // log every file path
 
-      commands.set(name, mod);
-      if (Array.isArray(mod.aliases)) {
-        for (const a of mod.aliases) commands.set(String(a).toLowerCase(), mod);
-      }
-      loaded++;
-    } catch (e) {
-      console.warn(`[worker] failed to load ${path.relative(__dirname, file)}: ${e.message}`);
+  try {
+    const mod = require(file);
+    const name = (mod?.data?.name || mod?.name || path.parse(file).name || '').toLowerCase();
+    const hasExecute = typeof mod?.execute === 'function';
+
+    console.log(`[DEBUG] 📦 Loaded: ${name} (has execute: ${hasExecute})`);
+
+    if (!name || !hasExecute) continue;
+
+    commands.set(name, mod);
+
+    if (Array.isArray(mod.aliases)) {
+      for (const a of mod.aliases) commands.set(String(a).toLowerCase(), mod);
     }
+    loaded++;
+  } catch (e) {
+    console.warn(`[worker] ❌ failed to load ${path.relative(__dirname, file)}: ${e.message}`);
   }
+}
+
 
   console.log(
     `[worker] loaded ${loaded} modules. Commands: ${Array.from(commands.keys()).join(', ') || '(none)'}`
