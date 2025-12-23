@@ -2,7 +2,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const createCard = require('../subcommands/card/create.js');
 const editCard = require('../subcommands/card/edit.js');
-const { queueWithReply } = require('../../utils/queueWithReply');
+const { enqueueInteraction } = require('../../queue');
 
 
 module.exports = {
@@ -86,7 +86,7 @@ module.exports = {
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
 
-  if (sub === 'create') return await queueWithReply(interaction);
-  if (sub === 'edit') return await queueWithReply(interaction);
+  if (sub === 'create') return await enqueueInteraction(interaction);
+  if (sub === 'edit') return await enqueueInteraction(interaction);
   }
 };

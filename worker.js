@@ -57,6 +57,7 @@ function loadCommands() {
     path.join(__dirname, 'commands/global/**/*.js'),
     path.join(__dirname, 'commands/guild-only/**/*.js'),
     path.join(__dirname, 'commands/subcommands/**/*.js'),
+    path.join(__dirname, 'worker-commands/**/*.js')
   ];
 
   const files = Array.from(new Set(patterns.flatMap((p) => glob.sync(p, { nodir: true }))));

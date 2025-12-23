@@ -20,7 +20,6 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
     isRepliable: () => true,
 
     // reflect "already deferred": first send should EDIT
-    deferred: true,
     replied: false,
 
     // ✅ EDIT the original interaction response (single message)
