@@ -30,7 +30,6 @@ module.exports = {
     await hydrateWorkerInteraction(interaction);
 
     try {
-  await interaction.deferReply();
 
   if (interaction.invalidWebhook) {
     console.warn('[CARD-CREATE] ⚠️ Webhook was expired — skipping execution');

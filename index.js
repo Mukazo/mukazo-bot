@@ -39,16 +39,14 @@ const fullKey = subcommandName
   : commandName;
 
 if (!RUN_LOCAL.has(fullKey)) {
+  await interaction.deferReply({ ephemeral: true });
   await enqueueInteraction(interaction, { fullKey });
   return;
-}
-
-
+} else {
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
-  await interaction.deferReply(); // ✅ THIS is valid here
-
+  await interaction.deferReply(); // ✅ This only happens for local commands
   try {
     await command.execute(interaction);
   } catch (error) {
@@ -59,6 +57,8 @@ if (!RUN_LOCAL.has(fullKey)) {
       await interaction.reply({ content: 'Something went wrong!', ephemeral: true });
     }
   }
+}
+
 });
 
 // --- Connect to MongoDB ---
