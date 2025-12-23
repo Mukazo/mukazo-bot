@@ -63,7 +63,13 @@ async function enqueueInteraction(interaction, extra = {}) {
     extra
   };
 
-  return q.add('run', payload, { attempts: 2, removeOnComplete: 500, removeOnFail: 200 });
+  return q.add('run', payload, {
+  attempts: 1,         // 🔇 no retries
+  removeOnComplete: 500,
+  removeOnFail: 200,
+  backoff: { type: 'fixed', delay: 60000 } // avoid fast retry loops
+});
+
 }
 
 module.exports = { enqueueInteraction };

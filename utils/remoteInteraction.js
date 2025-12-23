@@ -10,6 +10,7 @@ function createRemoteInteraction({ appId, token, channelId, guildId, optionsSnap
 
   return {
     applicationId: appId,
+    token,
     channelId,
     guildId: guildId || null,
     guild: guildId ? { id: guildId } : null,

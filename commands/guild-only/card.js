@@ -85,8 +85,11 @@ module.exports = {
 
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
+    const fullKey = `card-${sub}`;
+    console.log('[DEBUG] Enqueueing with fullKey:', fullKey);
 
-  if (sub === 'create') return await enqueueInteraction(interaction, { fullKey: 'card-create' });
+  await enqueueInteraction(interaction, { fullKey });
+
   if (sub === 'edit') return await enqueueInteraction(interaction, { fullKey: 'edit-card' });
   }
 };

@@ -112,7 +112,10 @@ new Worker(
     );
 
     const key = String(d.extra?.fullKey || d.command || '').toLowerCase();
-    const cmd = commands.get(key);
+console.log('[WORKER] 🔑 Lookup key:', key); // should be 'card-create'
+
+const cmd = commands.get(key);
+
 
     if (!cmd || typeof cmd.execute !== 'function') {
       return interaction.followUp({ content: `⚠️ Command "${d.command}" not found.` });
