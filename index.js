@@ -44,6 +44,9 @@ if (!RUN_LOCAL.has(fullKey)) {
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
+  await interaction.deferReply(); // ✅ THIS is valid here
+  await enqueueInteraction(interaction); // pass to worker
+
   try {
     await command.execute(interaction);
   } catch (error) {

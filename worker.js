@@ -111,7 +111,7 @@ new Worker(
       }
     );
 
-    const key = String(d.command || '').toLowerCase();
+    const key = String(d.extra?.fullKey || d.command || '').toLowerCase();
     const cmd = commands.get(key);
 
     if (!cmd || typeof cmd.execute !== 'function') {

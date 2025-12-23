@@ -86,7 +86,7 @@ module.exports = {
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
 
-  if (sub === 'create') return await enqueueInteraction(interaction);
-  if (sub === 'edit') return await enqueueInteraction(interaction);
+  if (sub === 'create') return await enqueueInteraction(interaction, { fullKey: 'card-create' });
+  if (sub === 'edit') return await enqueueInteraction(interaction, { fullKey: 'edit-card' });
   }
 };
