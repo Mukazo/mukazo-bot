@@ -1,3 +1,4 @@
+// worker.js
 require('dotenv').config();
 
 const path = require('path');
@@ -7,6 +8,7 @@ const { Worker } = require('bullmq');
 const mongoose = require('mongoose');
 const { createRemoteInteraction } = require('./utils/remoteInteraction');
 const { hydrateWorkerInteraction } = require('./utils/hydrateWorkerInteraction');
+const { pub } = require('./utils/pubsub'); // if not already
 
 function preloadModels() {
   const files = glob.sync(path.join(__dirname, 'models/**/*.js'), { nodir: true });
@@ -28,9 +30,15 @@ preloadModels();
     });
     console.log('🗄️  Worker connected to MongoDB');
 
+    // 🔽 ensure indexes for models you care about
     const CardInventory = require('./models/CardInventory');
     await CardInventory.syncIndexes();
     console.log('✅ Worker synced CardInventory indexes');
+
+    // You can add others too if needed
+    // const UserRecord = require('./models/UserRecord');
+    // await UserRecord.syncIndexes();
+
   } catch (e) {
     console.error('❌ Worker MongoDB connect error:', e.message);
   }
@@ -58,22 +66,28 @@ function loadCommands() {
 
   let loaded = 0;
   for (const file of files) {
-    try {
-      const mod = require(file);
-      const name = (mod?.data?.name || mod?.name || path.parse(file).name || '').toLowerCase();
-      const hasExecute = typeof mod?.execute === 'function';
+  console.log('[DEBUG] 🔍 Scanning file:', file); // log every file path
 
-      if (!name || !hasExecute) continue;
+  try {
+    const mod = require(file);
+    const name = (mod?.data?.name || mod?.name || path.parse(file).name || '').toLowerCase();
+    const hasExecute = typeof mod?.execute === 'function';
 
-      commands.set(name, mod);
-      if (Array.isArray(mod.aliases)) {
-        for (const a of mod.aliases) commands.set(String(a).toLowerCase(), mod);
-      }
-      loaded++;
-    } catch (e) {
-      console.warn(`[worker] ❌ failed to load ${path.relative(__dirname, file)}: ${e.message}`);
+    console.log(`[DEBUG] 📦 Loaded: ${name} (has execute: ${hasExecute})`);
+
+    if (!name || !hasExecute) continue;
+
+    commands.set(name, mod);
+
+    if (Array.isArray(mod.aliases)) {
+      for (const a of mod.aliases) commands.set(String(a).toLowerCase(), mod);
     }
+    loaded++;
+  } catch (e) {
+    console.warn(`[worker] ❌ failed to load ${path.relative(__dirname, file)}: ${e.message}`);
   }
+}
+
 
   console.log(
     `[worker] loaded ${loaded} modules. Commands: ${Array.from(commands.keys()).join(', ') || '(none)'}`
@@ -95,7 +109,7 @@ new Worker(
         channelId: d.channelId,
         guildId: d.guildId,
         optionsSnap: d.optionsSnap,
-        userSnap: d.user,
+        userSnap: d.user, // ✅ pass user to fix “Requested by undefined”
       }),
       {
         commandName: d.command,
@@ -105,43 +119,45 @@ new Worker(
       }
     );
 
+    const key = String(d.extra?.fullKey || d.command || '').toLowerCase();
+console.log('[WORKER] 🔑 Lookup key:', key); // should be 'card-create'
+
+const cmd = commands.get(key);
+
+
+    if (!cmd || typeof cmd.execute !== 'function') {
+      return interaction.followUp({ content: `⚠️ Command "${d.command}" not found.` });
+    }
+
     try {
-      interaction = await hydrateWorkerInteraction(interaction);
-      console.log('[WORKER] ⚙️ Hydrated interaction');
+  interaction = await hydrateWorkerInteraction(interaction);
+  console.log('[WORKER] ⚙️ Hydrated interaction');
 
-      const key = String(d.extra?.fullKey || d.command || '').toLowerCase();
-      console.log('[WORKER] 🔑 Lookup key:', key);
+  console.log('[WORKER] 🧠 Command loaded for execution:', key, typeof cmd?.execute);
+  
+  await cmd.execute(interaction);
+  console.log('[WORKER] ✅ Executed command:', key);
 
-      const cmd = commands.get(key);
-      if (!cmd || typeof cmd.execute !== 'function') {
-        return interaction.followUp({ content: `⚠️ Command "${d.command}" not found.` });
-      }
 
-      console.log('[WORKER] 🧠 Command loaded for execution:', key);
-      await cmd.execute(interaction);
-      console.log('[WORKER] ✅ Executed command:', key);
+// 🛑 Fallback: ensure some kind of reply happened
+if (!interaction.replied && !interaction.deferred) {
+  await interaction.reply({
+    content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
+    ephemeral: true,
+  });
+} else {
+  await interaction.followUp({
+    content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
+    ephemeral: true,
+  });
+}
 
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({
-          content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
-          ephemeral: true,
-        });
-      } else {
-        await interaction.followUp({
-          content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
-          ephemeral: true,
-        });
-      }
     } catch (err) {
       console.error(`[worker] error in /${d.command}:`, err);
-      try {
-        await interaction.followUp({
-          content: `❌ Error in \`/${d.command}\`: ${err?.message || 'unknown error'}`,
-          ephemeral: true,
-        });
-      } catch (e2) {
-        console.error('[worker] failed to followUp with error message:', e2);
-      }
+      await interaction.followUp({
+        content: `❌ Error in \`/${d.command}\`: ${err?.message || 'unknown error'}`,
+        ephemeral: true,
+      });
     }
   },
   { connection, concurrency: Number(process.env.WORKER_CONCURRENCY || 4) }
