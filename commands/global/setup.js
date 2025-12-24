@@ -126,19 +126,16 @@ module.exports = {
     function buildFrontPage() {
       return new EmbedBuilder()
         .setTitle('Bot Acknowledgement & Setup')
-        .setColor('Blurple')
+        .setColor('Lightgreen')
         .setDescription(
           [
-            '**Please read before continuing:**',
-            '',
-            '### Bot Rules',
+            '# **Please read before continuing:**',
+            '## Bot Rules',
             '• No command abuse, exploits, or automation',
             '• No alting, massgifting, scamming or cross-trading',
-            '',
-            '### Beginner Guide',
+            '## Beginner Guide',
             '• ',
-            '',
-            '### Useful Links',
+            '## Useful Links',
             '[Support Server](https://discord.gg/UQ7PbRDztK)',
             '',
             '_Click **Continue** to begin setup._',
