@@ -12,6 +12,7 @@ const { enqueueInteraction, listenForResults } = require('../../../queue');
 
 module.exports = {
   async execute(interaction) {
+    await interaction.editReply({ content: 'Loading…' });
     const opts = interaction.options;
 
     const payload = {
