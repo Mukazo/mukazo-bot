@@ -131,7 +131,7 @@ module.exports = {
 
         // show batch picker
         const menu = new StringSelectMenuBuilder()
-          .setCustomId(`batch:${jobId}`) // correlate batch selection too
+          .setCustomId(`batch:${jobId}:${cardCode}`)
           .setPlaceholder('Select batch')
           .addOptions(
             { label: 'No Batch', value: 'null' },
