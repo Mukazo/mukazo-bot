@@ -57,6 +57,7 @@ async function enqueueInteraction(interaction, extra = {}) {
     channelId: interaction.channelId,
     guildId: interaction.guildId ?? null,
     command: interaction.commandName,
+    memberRoles: interaction.member?.roles?.cache?.map(role => role.id) || [],
     optionsSnap: snapshotOptions(interaction),
     isComponent: interaction.isButton?.() || interaction.isStringSelectMenu?.(),
     customId: interaction.customId ?? null,

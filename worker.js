@@ -140,24 +140,28 @@ const cmd = commands.get(key);
 
 
 // 🛑 Fallback: ensure some kind of reply happened
-if (!interaction.replied && !interaction.deferred && typeof interaction.reply === 'function') {
+// ✅ Fallback: ensure some kind of reply happened
+if (!interaction.replied && !interaction.deferred && typeof interaction.reply === 'function' && !interaction.invalidWebhook) {
   await interaction.reply({
     content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
     ephemeral: true,
   });
-} else {
+} else if (!interaction.invalidWebhook) {
   await interaction.followUp({
     content: `✅ Command \`/${d.command}\` finished for <@${d.userId}>!`,
     ephemeral: true,
   });
 }
 
+
     } catch (err) {
       console.error(`[worker] error in /${d.command}:`, err);
-      await interaction.followUp({
-        content: `❌ Error in \`/${d.command}\`: ${err?.message || 'unknown error'}`,
-        ephemeral: true,
-      });
+      if (!interaction.invalidWebhook) {
+  await interaction.followUp({
+    content: `❌ Error in \`/${d.command}\`: ${err?.message || 'unknown error'}`,
+    ephemeral: true,
+  });
+}
     }
   },
   { connection, concurrency: Number(process.env.WORKER_CONCURRENCY || 4) }

@@ -19,7 +19,12 @@ async function hydrateGuildMember(interaction) {
     interaction.member = { user: interaction.user, roles: { cache } };
     return interaction.member;
   } catch {
-    interaction.member = { user: interaction.user, roles: { cache: makeRolesCache([]) } };
+    const fallbackRoles = interaction.memberRoles || [];
+interaction.member = {
+  user: interaction.user,
+  roles: { cache: makeRolesCache(fallbackRoles) }
+};
+
     return interaction.member;
   }
 }
