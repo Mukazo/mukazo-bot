@@ -4,15 +4,9 @@ const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const { enqueueInteraction } = require('./queue');
-
-const RUN_LOCAL = new Set([
-  'batch-create',
-  'batch-edit'
-]);
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [GatewayIntentBits.Guilds],
 });
 
 client.commands = new Collection();
@@ -24,37 +18,33 @@ for (const file of fs.readdirSync(commandsPath)) {
   client.commands.set(command.data.name, command);
 }
 
-// Handle interactions
+// Interaction handler
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
-  const sub = interaction.options.getSubcommand(false);
-  const key = sub
-    ? `${interaction.commandName}-${sub}`
-    : interaction.commandName;
+  try {
+    // ⛔ DO NOT enqueue workers here
+    // ⛔ DO NOT decide logic here
 
-  // Defer early so workers never race the 3s timeout
-  await interaction.deferReply();
+    await interaction.deferReply(); // single defer, always
+    await command.execute(interaction);
+  } catch (err) {
+    console.error(err);
 
-  if (!RUN_LOCAL.has(key)) {
-    await enqueueInteraction(key, {
-      interactionId: interaction.id,
-      userId: interaction.user.id,
-      guildId: interaction.guildId,
-      options: interaction.options.data
-    });
-    return;
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ content: 'Something went wrong.', ephemeral: true });
+    } else {
+      await interaction.editReply('Something went wrong.');
+    }
   }
-
-  await command.execute(interaction);
 });
 
-// DB
+// MongoDB (main bot)
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
+  .then(() => console.log('✅ Main bot MongoDB connected'))
   .catch(console.error);
 
 client.login(process.env.TOKEN);

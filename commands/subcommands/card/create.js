@@ -13,6 +13,7 @@ const { enqueueInteraction, listenForResults } = require('../../../queue');
 module.exports = {
   async execute(interaction) {
     await interaction.editReply({ content: 'Loading…' });
+
     const opts = interaction.options;
 
     const payload = {
@@ -31,9 +32,11 @@ module.exports = {
         opts.getUser('designer2')?.id,
         opts.getUser('designer3')?.id
       ].filter(Boolean),
-      userId: interaction.user.id
+      userId: interaction.user.id,
+      guildId: interaction.guildId,
     };
 
+    // Preview UI
     const preview = new EmbedBuilder()
       .setTitle('Card Preview')
       .setDescription(payload.name)
@@ -51,23 +54,27 @@ module.exports = {
     );
 
     await interaction.editReply({
+      content: null,
       embeds: [preview],
       components: [row]
     });
 
     const msg = await interaction.fetchReply();
+
     const collector = msg.createMessageComponentCollector({
       componentType: ComponentType.Button,
       time: 60_000
     });
 
     collector.on('collect', async btn => {
-      if (btn.user.id !== interaction.user.id) return;
+      if (btn.user.id !== interaction.user.id) {
+        return btn.reply({ content: 'Only the invoker can use these buttons.', ephemeral: true });
+      }
 
       await btn.deferUpdate();
 
       if (btn.customId === 'cancel') {
-        collector.stop();
+        collector.stop('cancelled');
         return interaction.editReply({
           content: 'Cancelled.',
           embeds: [],
@@ -75,40 +82,58 @@ module.exports = {
         });
       }
 
-      if (btn.customId === 'confirm') {
-        collector.stop();
+      if (btn.customId !== 'confirm') return;
 
-        await interaction.editReply({
-          content: '⏳ Creating card...',
-          embeds: [],
-          components: []
+      collector.stop('confirmed');
+
+      await interaction.editReply({
+        content: '⏳ Creating card...',
+        embeds: [],
+        components: []
+      });
+
+      // ✅ Job correlation id (unique per interaction)
+      const jobId = `${interaction.id}:${Date.now()}`;
+
+      // ✅ enqueue worker with jobId included
+      await enqueueInteraction('card-create', { jobId, ...payload });
+
+      // ✅ listen once, then unsubscribe
+      const unlisten = listenForResults(async result => {
+        if (!result || result.jobId !== jobId) return;
+
+        unlisten(); // ✅ prevents leaks + duplicate triggers
+
+        if (!result.ok) {
+          return interaction.followUp({ content: `❌ ${result.error}`, ephemeral: true });
+        }
+
+        // show batch picker
+        const menu = new StringSelectMenuBuilder()
+          .setCustomId(`batch:${jobId}`) // correlate batch selection too
+          .setPlaceholder('Select batch')
+          .addOptions(
+            { label: 'No Batch', value: 'null' },
+            ...(result.batches ?? [])
+          );
+
+        await interaction.followUp({
+          content: `✅ Created \`${result.cardCode}\`. Select a batch:`,
+          components: [new ActionRowBuilder().addComponents(menu)]
         });
-
-        await enqueueInteraction('card-create', payload);
-      }
+      });
     });
 
-    // Worker result listener
-    listenForResults(async result => {
-      if (result.cardCode !== payload.cardCode) return;
-
-      if (!result.ok) {
-        return interaction.followUp(`❌ ${result.error}`);
+    collector.on('end', async (_, reason) => {
+      if (reason === 'time') {
+        try {
+          await interaction.editReply({
+            content: 'Timed out.',
+            embeds: [],
+            components: []
+          });
+        } catch {}
       }
-
-      // Optional: batch selection happens AFTER worker
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('batch')
-        .setPlaceholder('Select batch')
-        .addOptions(
-          { label: 'No Batch', value: 'null' },
-          ...result.batches
-        );
-
-      await interaction.followUp({
-        content: 'Select a batch:',
-        components: [new ActionRowBuilder().addComponents(menu)]
-      });
     });
   }
 };
