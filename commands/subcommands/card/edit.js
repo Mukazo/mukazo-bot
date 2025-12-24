@@ -79,7 +79,7 @@ module.exports = {
     =========================== */
     const cards = await Card.find(filters).lean();
     if (!cards.length) {
-      return interaction.reply({
+      return interaction.editReply({
         content: 'No cards matched those filters.',
         ephemeral: true,
       });
@@ -207,7 +207,7 @@ module.exports = {
         collector.stop();
 
         await interaction.editReply({
-          content: '⏳ Applying edits...',
+          content: 'Applying edits...',
           embeds: [],
           components: [],
         });
@@ -229,7 +229,7 @@ module.exports = {
           }
 
           interaction.followUp(
-            `✅ Updated ${result.modifiedCount} card${result.modifiedCount !== 1 ? 's' : ''}.`
+            `Updated ${result.modifiedCount} card${result.modifiedCount !== 1 ? 's' : ''}.`
           );
         });
 
