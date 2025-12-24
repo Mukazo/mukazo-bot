@@ -24,10 +24,7 @@ module.exports = {
       // Revive ALL possible regex filters
       if (filters.cardCode) filters.cardCode = reviveRegex(filters.cardCode);
       if (filters.name) filters.name = reviveRegex(filters.name);
-      if (filters.category) filters.category = reviveRegex(filters.category);
-      if (filters.era) filters.era = reviveRegex(filters.era);
       if (filters.group) filters.group = reviveRegex(filters.group);
-      if (filters.batch) filters.batch = reviveRegex(filters.batch);
 
       // Fetch affected cards
       const cards = await Card.find(filters).lean();

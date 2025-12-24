@@ -23,20 +23,21 @@ module.exports = {
     /* ===========================
        FILTER HELPERS (JSON SAFE)
     =========================== */
-    function multiStr(name) {
-      const raw = interaction.options.getString(name);
-      if (!raw) return null;
+    function multiStr(name, { exact = false } = {}) {
+  const raw = interaction.options.getString(name);
+  if (!raw) return null;
 
-      const values = raw
-        .split(',')
-        .map(v => v.trim())
-        .filter(Boolean)
-        .map(v => `^${v}$`); // 👈 STRING, NOT RegExp
+  const values = raw
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean)
+    .map(v => exact ? v : v); // still strings (JSON-safe)
 
-      if (values.length === 0) return null;
-      if (values.length === 1) return values[0];
-      return { $in: values };
-    }
+  if (values.length === 0) return null;
+  if (values.length === 1) return values[0];
+  return { $in: values };
+}
+
 
     function formatFilters(filters) {
       const out = {};
@@ -52,23 +53,27 @@ module.exports = {
     =========================== */
     const filters = {};
 
-    const cardCodeFilter = multiStr('cardcode');
-    if (cardCodeFilter) filters.cardCode = cardCodeFilter;
+    // EXACT matches
+const categoryFilter = multiStr('category', { exact: true });
+if (categoryFilter) filters.category = categoryFilter;
 
-    const nameFilter = multiStr('name');
-    if (nameFilter) filters.name = nameFilter;
+const eraFilter = multiStr('era', { exact: true });
+if (eraFilter) filters.era = eraFilter;
 
-    const categoryFilter = multiStr('category');
-    if (categoryFilter) filters.category = categoryFilter;
+const batchFilter = multiStr('batch', { exact: true });
+if (batchFilter) filters.batch = batchFilter;
 
-    const eraFilter = multiStr('era');
-    if (eraFilter) filters.era = eraFilter;
+// FUZZY / text matches
+const nameFilter = multiStr('name');
+if (nameFilter) filters.name = nameFilter;
 
-    const groupFilter = multiStr('group');
-    if (groupFilter) filters.group = groupFilter;
+const groupFilter = multiStr('group');
+if (groupFilter) filters.group = groupFilter;
 
-    const batchFilter = multiStr('batch');
-    if (batchFilter) filters.batch = batchFilter;
+// Card code – your choice (usually exact)
+const cardCodeFilter = multiStr('cardcode', { exact: true });
+if (cardCodeFilter) filters.cardCode = cardCodeFilter;
+
 
     if (interaction.options.getString('version')) {
       filters.version = interaction.options.getString('version');
