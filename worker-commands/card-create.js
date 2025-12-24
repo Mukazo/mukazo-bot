@@ -67,7 +67,9 @@ const safeFollowUp = async (data) => {
 
     const allowedRole = String(process.env.CARD_CREATOR_ROLE_ID);
 
-const hasRole = interaction.member?.roles?.cache?.has(allowedRole);
+const hasRole = Array.isArray(interaction.memberRoles) &&
+                interaction.memberRoles.includes(allowedRole);
+
 
 console.log('[DEBUG] allowedRole:', allowedRole);
 console.log('[DEBUG] hasRole:', hasRole);
