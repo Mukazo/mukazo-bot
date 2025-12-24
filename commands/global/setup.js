@@ -126,7 +126,7 @@ module.exports = {
     function buildFrontPage() {
       return new EmbedBuilder()
         .setTitle('Bot Acknowledgement & Setup')
-        .setColor('Lightgreen')
+        .setColor('#a4ef8e')
         .setDescription(
           [
             '# **Please read before continuing:**',
