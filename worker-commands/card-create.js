@@ -65,13 +65,12 @@ const safeFollowUp = async (data) => {
       console.error('[CARD-CREATE] ❌ Failed to editReply:', e);
     }
 
+    const allowedRole = String(process.env.ALLOWED_ROLE_ID);
 
     console.log('[DEBUG] allowedRole:', allowedRole);
 console.log('[DEBUG] hasRole:', interaction.member.roles.cache.has(allowedRole));
 console.log('[DEBUG] role cache:', [...interaction.member.roles.cache].map(([id]) => id));
 
-
-    const allowedRole = String(process.env.ALLOWED_ROLE_ID);
 if (!interaction.member.roles?.cache?.has(allowedRole)) {
   return safeEdit({ content: 'You do not have permission to run this command.', ephemeral: true });
 }
