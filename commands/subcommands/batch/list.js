@@ -7,7 +7,7 @@ module.exports = {
     const batches = await Batch.find({}).sort({ releaseAt: -1 }).lean();
 
     if (!batches.length) {
-      return interaction.reply({ content: 'No batches found.', ephemeral: true });
+      return interaction.editReply({ content: 'No batches found.', ephemeral: true });
     }
 
     // Enrich batches with card count
@@ -58,7 +58,7 @@ ${b.description || '*No description*'}`
     };
 
     const { embed, row } = renderPage(currentPage);
-    const msg = await interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
+    const msg = await interaction.editReply({ embeds: [embed], components: [row], ephemeral: false });
 
     const collector = msg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -67,7 +67,7 @@ ${b.description || '*No description*'}`
 
     collector.on('collect', async i => {
       if (i.user.id !== interaction.user.id) {
-        return i.reply({ content: 'This menu isn’t for you.', ephemeral: true });
+        return i.editReply({ content: 'This menu isn’t for you.', ephemeral: true });
       }
 
       await i.deferUpdate();

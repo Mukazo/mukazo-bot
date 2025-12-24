@@ -14,7 +14,7 @@ const code = interaction.options.getString('code').toLowerCase();
 
       const batch = await Batch.findOne({ code });
       if (!batch) {
-        return interaction.reply({ content: `No batch found with code \`${code}\`.`, ephemeral: true });
+        return interaction.editReply({ content: `No batch found with code \`${code}\`.`, ephemeral: true });
       }
 
       const updates = {};
@@ -24,7 +24,7 @@ const code = interaction.options.getString('code').toLowerCase();
       if (releaseStr) {
         const parsed = new Date(releaseStr);
         if (isNaN(parsed)) {
-          return interaction.reply({ content: 'Invalid date format.', ephemeral: true });
+          return interaction.editReply({ content: 'Invalid date format.', ephemeral: true });
         }
         updates.releaseAt = parsed;
       }
@@ -32,7 +32,7 @@ const code = interaction.options.getString('code').toLowerCase();
 if (deactivateStr) {
   const parsed = new Date(deactivateStr);
   if (isNaN(parsed)) {
-    return interaction.reply({ content: 'Invalid deactivate date format.', ephemeral: true });
+    return interaction.editReply({ content: 'Invalid deactivate date format.', ephemeral: true });
   }
   updates.deactivateCardsAt = parsed;
 
@@ -55,7 +55,7 @@ if (active !== null || untilStr) {
   if (untilStr) {
     const parsed = new Date(untilStr);
     if (isNaN(parsed)) {
-      return interaction.reply({ content: 'Invalid until date.', ephemeral: true });
+      return interaction.editReply({ content: 'Invalid until date.', ephemeral: true });
     }
     updateCards.deactivateAt = parsed;
     updates.deactivateCardsAt = parsed; // batch model
@@ -76,7 +76,7 @@ if (active !== null || untilStr) {
         await Card.updateMany({ batch: code }, { $set: { batch: null } });
       }
 
-      return interaction.reply({
+      return interaction.editReply({
         content: `Batch \`${code}\` updated.` + (releaseNow ? ' All assigned cards are now released!' : ''),
         ephemeral: false
       });
