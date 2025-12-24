@@ -155,7 +155,7 @@ module.exports = {
         .setColor(enabled ? 0x57f287 : 0xed4245)
         .setDescription(
           [
-            `${CATEGORY_LABELS[category]} Cards`,
+            `# ${CATEGORY_LABELS[category]} Cards`,
             CATEGORY_DESCRIPTIONS[category] ?? '',
             '',
             `**Status:** ${enabled ? 'Enabled' : 'Disabled'}`,
@@ -186,7 +186,7 @@ module.exports = {
 
       return new EmbedBuilder()
         .setTitle('Setup Complete')
-        .setColor('Blurple')
+        .setColor('#a4ef8e')
         .setDescription(
           [
             '**Enabled Categories:**',
