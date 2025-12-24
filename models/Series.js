@@ -9,6 +9,12 @@ const SeriesSchema = new mongoose.Schema({
     index: true,
   },
 
+  category: {
+  type: String,
+  required: true,
+  index: true,
+},
+
   name: {
     type: String,
     required: true,

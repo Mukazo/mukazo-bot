@@ -25,6 +25,7 @@ module.exports = {
       await Series.create({
         code: data.code,
         name: data.name,
+        category: data.category,
         description: data.description,
         localImagePath: imagePath,
         createdBy: data.userId

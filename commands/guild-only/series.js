@@ -18,6 +18,18 @@ module.exports = {
           opt.setName('name').setDescription('Series name').setRequired(true))
         .addAttachmentOption(opt =>
           opt.setName('image').setDescription('Series logo').setRequired(true))
+        .addStringOption(opt => 
+          opt.setName('category')
+            .setDescription('Series category')
+            .addChoices(
+          { name: 'Music', value: 'music' },
+          { name: 'Animanga', value: 'animanga' },
+          { name: 'Video Games', value: 'video games' },
+          { name: 'Entertainment', value: 'entertainment' },
+          { name: 'Monthlies', value: 'monthlies' },
+          { name: 'Events', value: 'events' },
+          { name: 'Specials', value: 'specials' }
+        ).setRequired(true))
         .addStringOption(opt =>
           opt.setName('description').setDescription('Optional description'))
     )

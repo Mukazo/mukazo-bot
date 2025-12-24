@@ -18,6 +18,7 @@ module.exports = {
     const payload = {
       code: opts.getString('code').toUpperCase(),
       name: opts.getString('name'),
+      category: opts.getString('category'),
       description: opts.getString('description'),
       imageUrl: opts.getAttachment('image').url,
       userId: interaction.user.id
