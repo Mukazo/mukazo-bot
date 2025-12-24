@@ -1,98 +1,50 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const mongoose = require('mongoose');
-const fs = require('fs');
 const path = require('path');
-const { enqueueInteraction } = require('./queue'); // if index.js is inside src/
-const RUN_LOCAL = new Set(['batch-create', 'batch-edit', 'ping']); // tiny/fast ones only
+const { addJobToQueue } = require('./queue');
 
-// --- Setup Bot ---
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-  ]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
 });
 
-// --- Add a collection to store slash commands ---
 client.commands = new Collection();
 
-// --- Load Commands ---
-const commandsPath = path.join(__dirname, 'commands', 'guild-only');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-
+// Register your local commands (e.g., card)
+const commandFiles = ['card.js']; // Add other command files as needed
 for (const file of commandFiles) {
-  const command = require(path.join(commandsPath, file));
-  if (command.data && command.execute) {
-    client.commands.set(command.data.name, command);
-    console.log(`Loaded command: ${command.data.name}`);
-  }
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.data.name, command);
 }
 
-// --- Handle Slash Commands ---
-client.on(Events.InteractionCreate, async (interaction) => {
+// On interaction
+client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const commandName = interaction.commandName;
-const subcommandName = interaction.options.getSubcommand(false);
-const fullKey = subcommandName
-  ? `${commandName}-${subcommandName}`
-  : commandName;
-
-if (!RUN_LOCAL.has(fullKey)) {
-  await interaction.deferReply({ ephemeral: true });
-  await enqueueInteraction(interaction, { fullKey });
-  return;
-} else {
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
-  await interaction.deferReply(); // ✅ This only happens for local commands
   try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error('Command failed:', error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'Something went wrong!', ephemeral: true });
+    await command.execute(interaction, addJobToQueue);
+  } catch (err) {
+    console.error(`[Bot] ❌ Error executing command ${interaction.commandName}:`, err);
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply({ content: 'Something went wrong!' });
     } else {
       await interaction.reply({ content: 'Something went wrong!', ephemeral: true });
     }
   }
-}
-
 });
 
-// --- Connect to MongoDB ---
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  console.log("✅ Connected to MongoDB via Mongoose");
-})
-.catch((err) => {
-  console.error("❌ MongoDB connection error:", err);
-});
-
-// --- On Bot Ready ---
-client.once(Events.ClientReady, async () => {
-  console.log(`🤖 Logged in as ${client.user.tag}`);
-});
-
-// --- Login Bot ---
-client.login(process.env.TOKEN);
-
-const { sub } = require('./utils/pubsub');
-const { Routes } = require('discord.js');
-const { REST } = require('@discordjs/rest');
-
-const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
-
-sub.subscribe('worker:result', async (message) => {
-  const data = JSON.parse(message);
-
+// Connect to MongoDB and login bot
+(async () => {
   try {
-    await rest.patch(
-      Routes.webhookMessage(process.env.CLIENT_ID, data.token, '@original'),
-      { body: { content: data.content } }
-    );
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('[Bot] 🟢 Connected to MongoDB');
+
+    await client.login(process.env.TOKEN);
+    console.log('[Bot] 🟢 Logged in as', client.user.tag);
   } catch (err) {
-    console.error('[Redis Result Reply Failed]', err.message);
+    console.error('[Bot] ❌ Failed to start bot:', err);
   }
-});
+})();
