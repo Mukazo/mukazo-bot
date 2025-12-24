@@ -1,74 +1,60 @@
+// src/index.js
 require('dotenv').config();
 const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const { enqueueInteraction } = require('./queue'); // if index.js is inside src/
-const RUN_LOCAL = new Set(['card-create', 'card-edit', 'batch-create', 'batch-edit']); // tiny/fast ones only
+const { enqueueInteraction } = require('./queue');
 
-// --- Setup Bot ---
+const RUN_LOCAL = new Set([
+  'batch-create',
+  'batch-edit'
+]);
+
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-  ]
+  intents: [GatewayIntentBits.Guilds]
 });
 
-// --- Add a collection to store slash commands ---
 client.commands = new Collection();
 
-// --- Load Commands ---
-const commandsPath = path.join(__dirname, 'commands', 'guild-only', 'global');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-
-for (const file of commandFiles) {
+// Load commands
+const commandsPath = path.join(__dirname, 'commands', 'guild-only');
+for (const file of fs.readdirSync(commandsPath)) {
   const command = require(path.join(commandsPath, file));
-  if (command.data && command.execute) {
-    client.commands.set(command.data.name, command);
-    console.log(`Loaded command: ${command.data.name}`);
-  }
+  client.commands.set(command.data.name, command);
 }
 
-// --- Handle Slash Commands ---
-client.on(Events.InteractionCreate, async (interaction) => {
+// Handle interactions
+client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
-
-  const commandName = interaction.commandName;
-const subcommandName = interaction.options.getSubcommand(false); // safe even if none
-const fullKey = subcommandName ? `${commandName}-${subcommandName}` : commandName;
-
-if (!RUN_LOCAL.has(fullKey)) {
-  await enqueueInteraction(interaction);
-  return;
-}
 
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error('Command failed:', error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'Something went wrong!', ephemeral: true });
-    } else {
-      await interaction.reply({ content: 'Something went wrong!', ephemeral: true });
-    }
+  const sub = interaction.options.getSubcommand(false);
+  const key = sub
+    ? `${interaction.commandName}-${sub}`
+    : interaction.commandName;
+
+  // Defer early so workers never race the 3s timeout
+  await interaction.deferReply();
+
+  if (!RUN_LOCAL.has(key)) {
+    await enqueueInteraction(key, {
+      interactionId: interaction.id,
+      userId: interaction.user.id,
+      guildId: interaction.guildId,
+      options: interaction.options.data
+    });
+    return;
   }
+
+  await command.execute(interaction);
 });
 
-// --- Connect to MongoDB ---
+// DB
 mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  console.log("✅ Connected to MongoDB via Mongoose");
-})
-.catch((err) => {
-  console.error("❌ MongoDB connection error:", err);
-});
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(console.error);
 
-// --- On Bot Ready ---
-client.once(Events.ClientReady, async () => {
-  console.log(`🤖 Logged in as ${client.user.tag}`);
-});
-
-// --- Login Bot ---
 client.login(process.env.TOKEN);

@@ -1,25 +1,33 @@
-const { Queue, QueueScheduler, Worker } = require('bullmq');
-const connection = { host: process.env.REDIS_HOST, port: process.env.REDIS_PORT };
+// src/queue.js
+const { Queue } = require('bullmq');
 
-const interactionQueue = new Queue('discord-tasks', { connection });
-
-
-const enqueueInteraction = async (jobName, payload) => {
-  await interactionQueue.add(jobName, payload, {
-    removeOnComplete: true,
-    removeOnFail: true,
-  });
+const connection = {
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT
 };
 
-// Result listeners
-const listeners = new Set();
-const listenForResults = (cb) => listeners.add(cb);
+const queue = new Queue('discord-tasks', { connection });
 
-// Worker for completed events
-interactionQueue.on('completed', ({ id, returnvalue }) => {
+const listeners = new Set();
+
+async function enqueueInteraction(jobName, payload) {
+  await queue.add(jobName, payload, {
+    removeOnComplete: true,
+    removeOnFail: true
+  });
+}
+
+function listenForResults(cb) {
+  listeners.add(cb);
+}
+
+queue.on('completed', job => {
   for (const cb of listeners) {
-    cb(returnvalue);
+    cb(job.returnvalue);
   }
 });
 
-module.exports = { enqueueInteraction, listenForResults };
+module.exports = {
+  enqueueInteraction,
+  listenForResults
+};
