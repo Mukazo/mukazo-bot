@@ -3,20 +3,33 @@ const Card = require('../models/Card');
 const CardInventory = require('../models/CardInventory');
 const Batch = require('../models/Batch');
 
+/* ===========================
+   REGEX REVIVAL (CRITICAL)
+=========================== */
+function reviveRegex(value) {
+  if (typeof value === 'string') {
+    return new RegExp(value, 'i');
+  }
+
+  if (value?.$in) {
+    return { $in: value.$in.map(v => new RegExp(v, 'i')) };
+  }
+
+  return value;
+}
+
 module.exports = {
   async execute({ jobId, filters, updates }) {
-    // Defensive: prevent invalid filters from reaching Mongo
-
     try {
-        if (filters.cardCode && typeof filters.cardCode === 'object' && !filters.cardCode.$in && !(filters.cardCode instanceof RegExp)) {
-  throw new Error('Invalid cardCode filter');
-}
+      // Revive ALL possible regex filters
+      if (filters.cardCode) filters.cardCode = reviveRegex(filters.cardCode);
+      if (filters.name) filters.name = reviveRegex(filters.name);
+      if (filters.category) filters.category = reviveRegex(filters.category);
+      if (filters.era) filters.era = reviveRegex(filters.era);
+      if (filters.group) filters.group = reviveRegex(filters.group);
+      if (filters.batch) filters.batch = reviveRegex(filters.batch);
 
-if (filters.cardCode?.$in && filters.cardCode.$in.length === 0) {
-  delete filters.cardCode;
-}
-
-      // Fetch affected cards first
+      // Fetch affected cards
       const cards = await Card.find(filters).lean();
       if (!cards.length) {
         return { ok: true, jobId, modifiedCount: 0 };
@@ -46,14 +59,16 @@ if (filters.cardCode?.$in && filters.cardCode.$in.length === 0) {
       return {
         ok: true,
         jobId,
-        modifiedCount: res.modifiedCount
+        modifiedCount: res.modifiedCount,
       };
     } catch (err) {
+      console.error('[WORKER card-edit]', err);
+
       return {
         ok: false,
         jobId,
-        error: err.message
+        error: err.message,
       };
     }
-  }
+  },
 };

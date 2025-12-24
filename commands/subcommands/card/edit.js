@@ -5,7 +5,7 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ComponentType
+  ComponentType,
 } = require('discord.js');
 
 const Card = require('../../../models/Card');
@@ -19,83 +19,88 @@ const Canvas = require('canvas');
 
 module.exports = {
   async execute(interaction) {
+
     /* ===========================
-       FILTER HELPERS
+       FILTER HELPERS (JSON SAFE)
     =========================== */
     function multiStr(name) {
-  const raw = interaction.options.getString(name);
-  if (!raw) return null;
+      const raw = interaction.options.getString(name);
+      if (!raw) return null;
 
-  const values = raw
-    .split(',')
-    .map(v => v.trim())
-    .filter(Boolean)
-    .map(v => new RegExp(`^${v}$`, 'i'));
+      const values = raw
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean)
+        .map(v => `^${v}$`); // 👈 STRING, NOT RegExp
 
-  if (values.length === 0) return null;
-  if (values.length === 1) return values[0];
-  return { $in: values };
-}
-
+      if (values.length === 0) return null;
+      if (values.length === 1) return values[0];
+      return { $in: values };
+    }
 
     function formatFilters(filters) {
       const out = {};
       for (const [key, value] of Object.entries(filters)) {
-        if (value?.$in) {
-          out[key] = value.$in.map(v => v.source.replace(/^\^|\$$/g, ''));
-        } else if (value instanceof RegExp) {
-          out[key] = value.source.replace(/^\^|\$$/g, '');
-        } else {
-          out[key] = value;
-        }
+        if (value?.$in) out[key] = value.$in;
+        else out[key] = value;
       }
       return JSON.stringify(out);
     }
 
     /* ===========================
-       BUILD FILTERS + UPDATES
+       BUILD FILTERS
     =========================== */
     const filters = {};
+
     const cardCodeFilter = multiStr('cardcode');
-if (cardCodeFilter) {
-  filters.cardCode = cardCodeFilter;
-}
+    if (cardCodeFilter) filters.cardCode = cardCodeFilter;
+
     const nameFilter = multiStr('name');
-if (nameFilter) filters.name = nameFilter;
+    if (nameFilter) filters.name = nameFilter;
 
-const categoryFilter = multiStr('category');
-if (categoryFilter) filters.category = categoryFilter;
+    const categoryFilter = multiStr('category');
+    if (categoryFilter) filters.category = categoryFilter;
 
-const eraFilter = multiStr('era');
-if (eraFilter) filters.era = eraFilter;
+    const eraFilter = multiStr('era');
+    if (eraFilter) filters.era = eraFilter;
 
-const groupFilter = multiStr('group');
-if (groupFilter) filters.group = groupFilter;
+    const groupFilter = multiStr('group');
+    if (groupFilter) filters.group = groupFilter;
 
-const batchFilter = multiStr('batch');
-if (batchFilter) filters.batch = batchFilter;
+    const batchFilter = multiStr('batch');
+    if (batchFilter) filters.batch = batchFilter;
 
     if (interaction.options.getString('version')) {
       filters.version = interaction.options.getString('version');
     }
 
+    /* ===========================
+       FETCH MATCHING CARDS
+    =========================== */
     const cards = await Card.find(filters).lean();
     if (!cards.length) {
-      return interaction.reply({ content: 'No cards matched those filters.', ephemeral: true });
+      return interaction.reply({
+        content: 'No cards matched those filters.',
+        ephemeral: true,
+      });
     }
 
+    /* ===========================
+       BUILD UPDATES
+    =========================== */
     const updates = {};
+
     if (interaction.options.getString('setname')) updates.name = interaction.options.getString('setname');
     if (interaction.options.getString('setcategory')) updates.category = interaction.options.getString('setcategory');
     if (interaction.options.getString('setversion')) updates.version = interaction.options.getString('setversion');
     if (interaction.options.getString('setemoji')) updates.emoji = interaction.options.getString('setemoji');
     if (interaction.options.getString('setgroup')) updates.group = interaction.options.getString('setgroup');
     if (interaction.options.getString('setera')) updates.era = interaction.options.getString('setera');
-    const newCode = interaction.options.getString('setcardcode');
-if (typeof newCode === 'string' && newCode.length > 0) {
-  updates.cardCode = newCode;
-}
 
+    const newCode = interaction.options.getString('setcardcode');
+    if (typeof newCode === 'string' && newCode.length > 0) {
+      updates.cardCode = newCode;
+    }
 
     const qty = interaction.options.getInteger('availablequantity');
     if (qty !== null) updates.availableQuantity = qty;
@@ -104,7 +109,7 @@ if (typeof newCode === 'string' && newCode.length > 0) {
     if (active !== null) updates.active = active;
 
     /* ===========================
-       PREVIEW GRID (CANVAS)
+       PREVIEW GRID
     =========================== */
     let page = 0;
     const perPage = 5;
@@ -120,9 +125,10 @@ if (typeof newCode === 'string' && newCode.length > 0) {
 
       for (let i = 0; i < slice.length; i++) {
         const card = slice[i];
-        const imgPath = card.localImagePath && fs.existsSync(card.localImagePath)
-          ? card.localImagePath
-          : path.join(__dirname, '..', 'images', 'placeholder.png');
+        const imgPath =
+          card.localImagePath && fs.existsSync(card.localImagePath)
+            ? card.localImagePath
+            : path.join(__dirname, '..', 'images', 'placeholder.png');
 
         const img = await Canvas.loadImage(imgPath);
         ctx.drawImage(img, i * 266 + 10, 0, 256, 384);
@@ -144,20 +150,25 @@ if (typeof newCode === 'string' && newCode.length > 0) {
               `**Filters:** \`${formatFilters(filters)}\``,
               `**Updates:** \`${JSON.stringify(updates)}\``,
               '',
-              ...cards.slice(page * perPage, page * perPage + perPage).map(card => {
-                const v = generateVersion({ version: card.version, overrideEmoji: card.emoji });
-                return `**${v} ${card.name}** (\`${card.cardCode}\`)`;
-              })
+              ...cards
+                .slice(page * perPage, page * perPage + perPage)
+                .map(card => {
+                  const v = generateVersion({
+                    version: card.version,
+                    overrideEmoji: card.emoji,
+                  });
+                  return `**${v} ${card.name}** (\`${card.cardCode}\`)`;
+                }),
             ].join('\n'))
             .setImage('attachment://preview.png')
-            .setFooter({ text: `Page ${page + 1} / ${totalPages}` })
+            .setFooter({ text: `Page ${page + 1} / ${totalPages}` }),
         ],
-        files: [attachment]
+        files: [attachment],
       };
     }
 
     /* ===========================
-       BUTTONS + COLLECTOR
+       CONTROLS
     =========================== */
     const controls = (disabled = false) => [
       new ActionRowBuilder().addComponents(
@@ -165,14 +176,17 @@ if (typeof newCode === 'string' && newCode.length > 0) {
         new ButtonBuilder().setCustomId('next').setLabel('➡').setStyle(ButtonStyle.Secondary).setDisabled(disabled || page === totalPages - 1),
         new ButtonBuilder().setCustomId('confirm').setLabel('✅ Confirm').setStyle(ButtonStyle.Success).setDisabled(disabled),
         new ButtonBuilder().setCustomId('cancel').setLabel('❌ Cancel').setStyle(ButtonStyle.Danger).setDisabled(disabled)
-      )
+      ),
     ];
 
     const first = await previewEmbed(page);
     await safeReply(interaction, { ...first, components: controls() });
 
     const msg = await interaction.fetchReply();
-    const collector = msg.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60_000 });
+    const collector = msg.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 60_000,
+    });
 
     collector.on('collect', async btn => {
       if (btn.user.id !== interaction.user.id) {
@@ -183,6 +197,7 @@ if (typeof newCode === 'string' && newCode.length > 0) {
 
       if (btn.customId === 'next') page++;
       if (btn.customId === 'prev') page--;
+
       if (btn.customId === 'cancel') {
         collector.stop();
         return interaction.editReply({ content: 'Edit cancelled.', embeds: [], components: [] });
@@ -191,17 +206,21 @@ if (typeof newCode === 'string' && newCode.length > 0) {
       if (btn.customId === 'confirm') {
         collector.stop();
 
-        await interaction.editReply({ content: '⏳ Applying edits...', embeds: [], components: [] });
+        await interaction.editReply({
+          content: '⏳ Applying edits...',
+          embeds: [],
+          components: [],
+        });
 
         const jobId = `${interaction.id}:${Date.now()}`;
 
         await enqueueInteraction('card-edit', {
           jobId,
           filters,
-          updates
+          updates,
         });
 
-        const unlisten = listenForResults(async result => {
+        const unlisten = listenForResults(result => {
           if (result.jobId !== jobId) return;
           unlisten();
 
@@ -209,7 +228,7 @@ if (typeof newCode === 'string' && newCode.length > 0) {
             return interaction.followUp(`❌ ${result.error}`);
           }
 
-          await interaction.followUp(
+          interaction.followUp(
             `✅ Updated ${result.modifiedCount} card${result.modifiedCount !== 1 ? 's' : ''}.`
           );
         });
@@ -224,5 +243,5 @@ if (typeof newCode === 'string' && newCode.length > 0) {
     collector.on('end', () => {
       interaction.editReply({ components: controls(true) }).catch(() => {});
     });
-  }
+  },
 };
