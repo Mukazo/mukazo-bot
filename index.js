@@ -37,7 +37,6 @@ client.on(Events.InteractionCreate, async interaction => {
     : interaction.commandName;
 
   // Defer early so workers never race the 3s timeout
-  await interaction.deferReply();
 
   if (!RUN_LOCAL.has(key)) {
     await enqueueInteraction(key, {

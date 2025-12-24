@@ -12,6 +12,8 @@ const { enqueueInteraction, listenForResults } = require('../../../queue');
 
 module.exports = {
   async execute(interaction) {
+    await interaction.deferReply();
+    await interaction.editReply({ content: 'Preparing preview…' });
     const opts = interaction.options;
 
     const payload = {
