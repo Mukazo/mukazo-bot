@@ -107,7 +107,6 @@ module.exports = {
     .setDescription('Set up your category preferences'),
 
   async execute(interaction) {
-    await interaction.deferReply();
 
     /* ===========================
        ENSURE USER + AUTO CATS
