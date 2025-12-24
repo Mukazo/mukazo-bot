@@ -16,7 +16,7 @@ module.exports = {
     const opts = interaction.options;
 
     const payload = {
-      code: opts.getString('code').toUpperCase(),
+      code: opts.getString('code'),
       name: opts.getString('name'),
       category: opts.getString('category'),
       description: opts.getString('description'),

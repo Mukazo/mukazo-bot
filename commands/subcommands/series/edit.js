@@ -11,7 +11,7 @@ const { enqueueInteraction, listenForResults } = require('../../../queue');
 
 module.exports = {
   async execute(interaction) {
-    const code = interaction.options.getString('code').toUpperCase();
+    const code = interaction.options.getString('code')
 
     const updates = {};
     if (interaction.options.getString('name')) {
