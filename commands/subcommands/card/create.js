@@ -38,9 +38,30 @@ module.exports = {
 
     // Preview UI
     const preview = new EmbedBuilder()
-      .setTitle('Card Preview')
-      .setDescription(payload.name)
-      .setImage(payload.imageUrl);
+  .setTitle(`Card Preview — ${payload.cardCode}`)
+  .setColor(0x5865F2) // blurple
+  .setImage(payload.imageUrl)
+  .addFields(
+    { name: 'Name', value: payload.name, inline: true },
+    { name: 'Category', value: payload.category, inline: true },
+    { name: 'Version', value: payload.version ?? '—', inline: true },
+    { name: 'Group', value: payload.group ?? '—', inline: true },
+    { name: 'Era', value: payload.era ?? '—', inline: true },
+    {
+      name: 'Designers',
+      value: payload.designerIds.length
+        ? payload.designerIds.map(id => `<@${id}>`).join(', ')
+        : '—'
+    },
+    { name: 'Active', value: String(payload.active), inline: true },
+    {
+      name: 'Limited',
+      value: payload.availableQuantity
+        ? String(payload.availableQuantity)
+        : 'No'
+    }
+  );
+
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()

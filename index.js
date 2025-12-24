@@ -1,4 +1,3 @@
-// src/index.js
 require('dotenv').config();
 const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
 const mongoose = require('mongoose');
@@ -18,7 +17,9 @@ for (const file of fs.readdirSync(commandsPath)) {
   client.commands.set(command.data.name, command);
 }
 
-// Interaction handler
+/* ===========================
+   SLASH COMMAND HANDLER
+=========================== */
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -26,10 +27,7 @@ client.on(Events.InteractionCreate, async interaction => {
   if (!command) return;
 
   try {
-    // ⛔ DO NOT enqueue workers here
-    // ⛔ DO NOT decide logic here
-
-    await interaction.deferReply(); // single defer, always
+    await interaction.deferReply(); // ✅ slash commands only
     await command.execute(interaction);
   } catch (err) {
     console.error(err);
@@ -39,6 +37,51 @@ client.on(Events.InteractionCreate, async interaction => {
     } else {
       await interaction.editReply('Something went wrong.');
     }
+  }
+});
+
+/* ===========================
+   BATCH SELECT MENU HANDLER
+=========================== */
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isStringSelectMenu()) return;
+  if (!interaction.customId.startsWith('batch:')) return;
+
+  const [, jobId, cardCode] = interaction.customId.split(':');
+  const selected = interaction.values[0]; // 'null' or batch code
+
+  await interaction.deferUpdate(); // ✅ correct for components
+
+  try {
+    const Card = require('./models/Card');
+    const Batch = require('./models/Batch');
+
+    let deactivateAt = null;
+
+    if (selected !== 'null') {
+      const batch = await Batch.findOne({ code: selected }).lean();
+      if (!batch) throw new Error('Batch not found');
+      deactivateAt = batch.deactivateCardsAt ?? null;
+    }
+
+    await Card.updateOne(
+      { cardCode },
+      {
+        batch: selected === 'null' ? null : selected,
+        deactivateAt,
+      }
+    );
+
+    await interaction.editReply({
+      content: `✅ Card \`${cardCode}\` assigned to batch: \`${selected}\``,
+      components: [],
+    });
+  } catch (err) {
+    console.error(err);
+    await interaction.editReply({
+      content: `❌ Failed to assign batch: ${err.message}`,
+      components: [],
+    });
   }
 });
 
