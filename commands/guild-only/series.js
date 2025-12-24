@@ -16,10 +16,10 @@ module.exports = {
           opt.setName('code').setDescription('Series code (used by cards)').setRequired(true))
         .addStringOption(opt =>
           opt.setName('name').setDescription('Series name').setRequired(true))
-        .addStringOption(opt =>
-          opt.setName('description').setDescription('Optional description'))
         .addAttachmentOption(opt =>
           opt.setName('image').setDescription('Series logo').setRequired(true))
+        .addStringOption(opt =>
+          opt.setName('description').setDescription('Optional description'))
     )
     .addSubcommand(sub =>
       sub
