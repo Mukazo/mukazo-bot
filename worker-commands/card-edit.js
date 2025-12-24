@@ -6,7 +6,9 @@ const Batch = require('../models/Batch');
 module.exports = {
   async execute({ jobId, filters, updates }) {
     // Defensive: prevent invalid filters from reaching Mongo
-if (filters.cardCode && typeof filters.cardCode === 'object' && !filters.cardCode.$in && !(filters.cardCode instanceof RegExp)) {
+
+    try {
+        if (filters.cardCode && typeof filters.cardCode === 'object' && !filters.cardCode.$in && !(filters.cardCode instanceof RegExp)) {
   throw new Error('Invalid cardCode filter');
 }
 
@@ -14,7 +16,6 @@ if (filters.cardCode?.$in && filters.cardCode.$in.length === 0) {
   delete filters.cardCode;
 }
 
-    try {
       // Fetch affected cards first
       const cards = await Card.find(filters).lean();
       if (!cards.length) {
