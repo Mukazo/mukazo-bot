@@ -107,6 +107,20 @@ if (cardCodeFilter) filters.cardCode = cardCodeFilter;
       updates.cardCode = newCode;
     }
 
+    const image = interaction.options.getAttachment('image');
+if (image) {
+  updates.imageUrl = image.url;
+}
+
+const until = interaction.options.getString('until');
+if (until) {
+  const date = new Date(until);
+  if (!isNaN(date)) {
+    updates.deactivateAt = date;
+    updates.active = false;
+  }
+}
+
     const qty = interaction.options.getInteger('availablequantity');
     if (qty !== null) updates.availableQuantity = qty;
 

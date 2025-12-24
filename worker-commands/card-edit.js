@@ -2,6 +2,9 @@
 const Card = require('../models/Card');
 const CardInventory = require('../models/CardInventory');
 const Batch = require('../models/Batch');
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 /* ===========================
    REGEX REVIVAL (CRITICAL)
@@ -41,6 +44,27 @@ module.exports = {
           updates.deactivateAt = batch.deactivateCardsAt;
         }
       }
+
+// Replace image if requested
+if (updates.imageUrl) {
+  const image = await axios.get(updates.imageUrl, {
+    responseType: 'arraybuffer',
+  });
+
+  const imageDir = path.join(__dirname, '..', 'images');
+
+  for (const card of cards) {
+    const imagePath = path.join(imageDir, `${card.cardCode}.png`);
+    fs.writeFileSync(imagePath, image.data);
+
+    await Card.updateOne(
+      { _id: card._id },
+      { $set: { localImagePath: imagePath } }
+    );
+  }
+
+  delete updates.imageUrl;
+}
 
       // Apply updates
       const res = await Card.updateMany(filters, { $set: updates });
