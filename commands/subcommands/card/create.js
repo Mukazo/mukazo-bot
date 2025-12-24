@@ -108,7 +108,7 @@ module.exports = {
       collector.stop('confirmed');
 
       await interaction.editReply({
-        content: '⏳ Creating card...',
+        content: 'Creating card...',
         embeds: [],
         components: []
       });
@@ -126,7 +126,7 @@ module.exports = {
         unlisten(); // ✅ prevents leaks + duplicate triggers
 
         if (!result.ok) {
-          return interaction.followUp({ content: `❌ ${result.error}`, ephemeral: true });
+          return interaction.followUp({ content: `${result.error}`, ephemeral: true });
         }
 
         // show batch picker
@@ -139,7 +139,7 @@ module.exports = {
           );
 
         await interaction.followUp({
-          content: `✅ Created \`${result.cardCode}\`. Select a batch:`,
+          content: `Created \`${result.cardCode}\`. Select a batch:`,
           components: [new ActionRowBuilder().addComponents(menu)]
         });
       });

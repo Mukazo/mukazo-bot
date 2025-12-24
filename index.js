@@ -11,11 +11,22 @@ const client = new Client({
 client.commands = new Collection();
 
 // Load commands
-const commandsPath = path.join(__dirname, 'commands', 'guild-only');
-for (const file of fs.readdirSync(commandsPath)) {
-  const command = require(path.join(commandsPath, file));
-  client.commands.set(command.data.name, command);
+const commandFolders = ['global', 'guild-only'];
+
+for (const folder of commandFolders) {
+  const commandsPath = path.join(__dirname, 'commands', folder);
+  if (!fs.existsSync(commandsPath)) continue;
+
+  const commandFiles = fs
+    .readdirSync(commandsPath)
+    .filter(file => file.endsWith('.js'));
+
+  for (const file of commandFiles) {
+    const command = require(path.join(commandsPath, file));
+    client.commands.set(command.data.name, command);
+  }
 }
+
 
 /* ===========================
    SLASH COMMAND HANDLER
@@ -76,13 +87,13 @@ client.on(Events.InteractionCreate, async interaction => {
     );
 
     await interaction.editReply({
-      content: `✅ Card \`${cardCode}\` assigned to batch: \`${selected}\``,
+      content: `Card \`${cardCode}\` assigned to batch: \`${selected}\``,
       components: [],
     });
   } catch (err) {
     console.error(err);
     await interaction.editReply({
-      content: `❌ Failed to assign batch: ${err.message}`,
+      content: `Failed to assign batch: ${err.message}`,
       components: [],
     });
   }
