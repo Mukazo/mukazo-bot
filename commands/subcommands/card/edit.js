@@ -23,17 +23,20 @@ module.exports = {
        FILTER HELPERS
     =========================== */
     function multiStr(name) {
-      const raw = interaction.options.getString(name);
-      if (!raw) return null;
+  const raw = interaction.options.getString(name);
+  if (!raw) return null;
 
-      const values = raw
-        .split(',')
-        .map(v => v.trim())
-        .filter(Boolean)
-        .map(v => new RegExp(`^${v}$`, 'i'));
+  const values = raw
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean)
+    .map(v => new RegExp(`^${v}$`, 'i'));
 
-      return values.length === 1 ? values[0] : { $in: values };
-    }
+  if (values.length === 0) return null;
+  if (values.length === 1) return values[0];
+  return { $in: values };
+}
+
 
     function formatFilters(filters) {
       const out = {};
