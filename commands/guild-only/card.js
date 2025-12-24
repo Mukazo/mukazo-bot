@@ -2,7 +2,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const createCard = require('../subcommands/card/create.js');
 const editCard = require('../subcommands/card/edit.js');
-const { enqueueInteraction } = require('../../queue');
 
 
 module.exports = {
@@ -84,11 +83,9 @@ module.exports = {
     ),
 
   async execute(interaction) {
-  const sub = interaction.options.getSubcommand();
+    const sub = interaction.options.getSubcommand();
 
-  if (sub === 'create') {
-    return require('./subcommands/card/create').execute(interaction);
+    if (sub === 'create') return createCard.execute(interaction);
+    if (sub === 'edit') return editCard.execute(interaction);
   }
-}
-
 };
