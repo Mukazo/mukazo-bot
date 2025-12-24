@@ -47,7 +47,10 @@ client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isStringSelectMenu()) return;
   if (!interaction.customId.startsWith('batch:')) return;
 
-  const [, cardCode] = interaction.customId.split(':');
+   const parts = interaction.customId.split(':');
+
+  const cardCode = parts.pop();              // ✅ ALWAYS correct
+  const jobId = parts.slice(1).join(':');    // kept if you want it later
   const selected = interaction.values[0]; // 'null' or batch code
 
   await interaction.deferUpdate(); // ✅ correct for components
