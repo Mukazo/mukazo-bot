@@ -51,14 +51,14 @@ module.exports = {
       name: 'Designers',
       value: payload.designerIds.length
         ? payload.designerIds.map(id => `<@${id}>`).join(', ')
-        : '—'
+        : '—', inline: true
     },
     { name: 'Active', value: String(payload.active), inline: true },
     {
       name: 'Limited',
       value: payload.availableQuantity
         ? String(payload.availableQuantity)
-        : 'No'
+        : 'No', inline: true
     }
   );
 
