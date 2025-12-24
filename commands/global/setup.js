@@ -40,7 +40,7 @@ const CATEGORY_LABELS = {
   specials: 'Specials',
 };
 
-// Category descriptions (NEW)
+// Category descriptions
 const CATEGORY_DESCRIPTIONS = {
   music: 'Artists, Groups, Soloists, etc',
   animanga: 'Animes, Mangas, Donghuas, Manhwas, etc',
@@ -80,9 +80,7 @@ async function renderSeriesGrid(series) {
     try {
       const img = await Canvas.loadImage(series[i].localImagePath);
       ctx.drawImage(img, x, y, size, size);
-    } catch {
-      // ignore broken images
-    }
+    } catch {}
   }
 
   return canvas.toBuffer();
@@ -93,8 +91,7 @@ async function renderSeriesGrid(series) {
 =========================== */
 
 function pickRandom(array, count) {
-  const shuffled = [...array].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+  return [...array].sort(() => 0.5 - Math.random()).slice(0, count);
 }
 
 /* ===========================
@@ -108,10 +105,7 @@ module.exports = {
 
   async execute(interaction) {
 
-    /* ===========================
-       ENSURE USER + AUTO CATS
-    =========================== */
-
+    // Ensure user + auto categories
     await User.updateOne(
       { userId: interaction.user.id },
       {
@@ -122,12 +116,39 @@ module.exports = {
       { upsert: true }
     );
 
-    let page = 0;
+    let page = -1; // -1 = front page
     let finished = false;
 
     /* ===========================
-       EMBED BUILDERS
+       PAGE BUILDERS
     =========================== */
+
+    function buildFrontPage() {
+      return new EmbedBuilder()
+        .setTitle('Bot Acknowledgement & Setup')
+        .setColor('Blurple')
+        .setDescription(
+          [
+            '**Please read before continuing:**',
+            '',
+            '### Rules',
+            '• No abuse, exploits, or automation',
+            '• Drops are for personal use only',
+            '• Respect other users and moderators',
+            '',
+            '### Acknowledgements',
+            '• All card art belongs to their respective creators',
+            '• This is a fan-made project',
+            '',
+            '### Useful Links',
+            '[Support Server](https://discord.gg/YOUR_INVITE)',
+            '[Documentation](https://yourdocs.site)',
+            '[Terms of Service](https://yoursite/tos)',
+            '',
+            '_Click **Continue** to begin setup._',
+          ].join('\n')
+        );
+    }
 
     async function buildCategoryPage(category) {
       const user = await User.findOne({ userId: interaction.user.id }).lean();
@@ -137,10 +158,11 @@ module.exports = {
       const examples = pickRandom(allSeries, SERIES_SAMPLE_SIZE);
 
       const embed = new EmbedBuilder()
-        .setTitle(`${CATEGORY_LABELS[category]} Cards`)
+        .setTitle(`Category Preference Selection`)
         .setColor(enabled ? 0x57f287 : 0xed4245)
         .setDescription(
           [
+            `${CATEGORY_LABELS[category]} Cards`,
             CATEGORY_DESCRIPTIONS[category] ?? '',
             '',
             `**Status:** ${enabled ? 'Enabled' : 'Disabled'}`,
@@ -169,8 +191,8 @@ module.exports = {
     async function buildSummaryPage() {
       const user = await User.findOne({ userId: interaction.user.id }).lean();
 
-      const embed = new EmbedBuilder()
-        .setTitle('Setup Complete 🎉')
+      return new EmbedBuilder()
+        .setTitle('Setup Complete')
         .setColor('Blurple')
         .setDescription(
           [
@@ -180,11 +202,18 @@ module.exports = {
             '_You can run `/setup` again at any time to change this._',
           ].join('\n')
         );
-
-      return embed;
     }
 
-    function controls(category) {
+    function frontControls() {
+      return new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('continue')
+          .setLabel('Continue')
+          .setStyle(ButtonStyle.Success)
+      );
+    }
+
+    function categoryControls(category) {
       return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('prev')
@@ -214,13 +243,9 @@ module.exports = {
        INITIAL RENDER
     =========================== */
 
-    const firstCategory = SELECTABLE_CATEGORIES[page];
-    const first = await buildCategoryPage(firstCategory);
-
     await interaction.editReply({
-      embeds: first.embeds,
-      files: first.files,
-      components: [controls(firstCategory)],
+      embeds: [buildFrontPage()],
+      components: [frontControls()],
     });
 
     const msg = await interaction.fetchReply();
@@ -240,6 +265,7 @@ module.exports = {
 
       await btn.deferUpdate();
 
+      if (btn.customId === 'continue') page = 0;
       if (btn.customId === 'prev') page--;
       if (btn.customId === 'next') page++;
 
@@ -249,17 +275,12 @@ module.exports = {
 
         const enabled = user.enabledCategories.includes(category);
 
-        if (enabled) {
-          await User.updateOne(
-            { userId: interaction.user.id },
-            { $pull: { enabledCategories: category } }
-          );
-        } else {
-          await User.updateOne(
-            { userId: interaction.user.id },
-            { $addToSet: { enabledCategories: category } }
-          );
-        }
+        await User.updateOne(
+          { userId: interaction.user.id },
+          enabled
+            ? { $pull: { enabledCategories: category } }
+            : { $addToSet: { enabledCategories: category } }
+        );
       }
 
       if (btn.customId === 'finish') {
@@ -268,13 +289,21 @@ module.exports = {
         return;
       }
 
+      if (page === -1) {
+        return interaction.editReply({
+          embeds: [buildFrontPage()],
+          components: [frontControls()],
+          files: [],
+        });
+      }
+
       const category = SELECTABLE_CATEGORIES[page];
       const data = await buildCategoryPage(category);
 
       await interaction.editReply({
         embeds: data.embeds,
         files: data.files,
-        components: [controls(category)],
+        components: [categoryControls(category)],
       });
     });
 
