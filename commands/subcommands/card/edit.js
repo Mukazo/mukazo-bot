@@ -53,12 +53,25 @@ module.exports = {
        BUILD FILTERS + UPDATES
     =========================== */
     const filters = {};
-    if (multiStr('cardcode')) filters.cardCode = multiStr('cardcode');
-    if (multiStr('name')) filters.name = multiStr('name');
-    if (multiStr('category')) filters.category = multiStr('category');
-    if (multiStr('era')) filters.era = multiStr('era');
-    if (multiStr('group')) filters.group = multiStr('group');
-    if (multiStr('batch')) filters.batch = multiStr('batch');
+    const cardCodeFilter = multiStr('cardcode');
+if (cardCodeFilter) {
+  filters.cardCode = cardCodeFilter;
+}
+    const nameFilter = multiStr('name');
+if (nameFilter) filters.name = nameFilter;
+
+const categoryFilter = multiStr('category');
+if (categoryFilter) filters.category = categoryFilter;
+
+const eraFilter = multiStr('era');
+if (eraFilter) filters.era = eraFilter;
+
+const groupFilter = multiStr('group');
+if (groupFilter) filters.group = groupFilter;
+
+const batchFilter = multiStr('batch');
+if (batchFilter) filters.batch = batchFilter;
+
     if (interaction.options.getString('version')) {
       filters.version = interaction.options.getString('version');
     }
@@ -75,9 +88,11 @@ module.exports = {
     if (interaction.options.getString('setemoji')) updates.emoji = interaction.options.getString('setemoji');
     if (interaction.options.getString('setgroup')) updates.group = interaction.options.getString('setgroup');
     if (interaction.options.getString('setera')) updates.era = interaction.options.getString('setera');
-    if (interaction.options.getString('setcardcode')) {
-      updates.cardCode = interaction.options.getString('setcardcode');
-    }
+    const newCode = interaction.options.getString('setcardcode');
+if (typeof newCode === 'string' && newCode.length > 0) {
+  updates.cardCode = newCode;
+}
+
 
     const qty = interaction.options.getInteger('availablequantity');
     if (qty !== null) updates.availableQuantity = qty;
