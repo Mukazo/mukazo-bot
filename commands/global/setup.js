@@ -42,10 +42,10 @@ const CATEGORY_LABELS = {
 
 // Category descriptions
 const CATEGORY_DESCRIPTIONS = {
-  music: 'Artists, Groups, Soloists, etc',
+  music: 'Primarily Asian Artists, Groups, Soloists, etc',
   animanga: 'Animes, Mangas, Donghuas, Manhwas, etc',
-  'video games': 'Shooter, Stories, Gacha, etc',
-  entertainment: 'Series, Movies, Cartoons, etc',
+  'video games': 'Shooter, Story, Gacha, Fighting, etc',
+  entertainment: 'Series, Movies, Cartoons, Dramas, etc',
 };
 
 // How many random series to show
@@ -66,9 +66,6 @@ async function renderSeriesGrid(series) {
 
   const canvas = Canvas.createCanvas(width, height);
   const ctx = canvas.getContext('2d');
-
-  ctx.fillStyle = '#2f3136';
-  ctx.fillRect(0, 0, width, height);
 
   for (let i = 0; i < series.length; i++) {
     const row = Math.floor(i / cols);
