@@ -49,14 +49,14 @@ const CATEGORY_DESCRIPTIONS = {
 };
 
 // How many random series to show
-const SERIES_SAMPLE_SIZE = 8;
+const SERIES_SAMPLE_SIZE = 16;
 
 /* ===========================
    CANVAS GRID RENDERER
 =========================== */
 
 async function renderSeriesGrid(series) {
-  const cols = 2;
+  const cols = 4;
   const size = 256;
   const padding = 16;
 
