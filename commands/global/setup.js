@@ -57,7 +57,7 @@ const SERIES_SAMPLE_SIZE = 8;
 
 async function renderSeriesGrid(series) {
   const cols = 2;
-  const size = 128;
+  const size = 256;
   const padding = 16;
 
   const rows = Math.ceil(series.length / cols);
