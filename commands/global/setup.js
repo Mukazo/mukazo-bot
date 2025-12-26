@@ -49,7 +49,7 @@ const CATEGORY_DESCRIPTIONS = {
 };
 
 // How many random series to show
-const SERIES_SAMPLE_SIZE = 4;
+const SERIES_SAMPLE_SIZE = 8;
 
 /* ===========================
    CANVAS GRID RENDERER
@@ -57,7 +57,7 @@ const SERIES_SAMPLE_SIZE = 4;
 
 async function renderSeriesGrid(series) {
   const cols = 2;
-  const size = 256;
+  const size = 128;
   const padding = 16;
 
   const rows = Math.ceil(series.length / cols);
@@ -158,7 +158,7 @@ module.exports = {
             `**Status:** ${enabled ? 'Enabled' : 'Disabled'}`,
             '',
             examples.length
-              ? 'Below are example series in this category.'
+              ? 'Below are examples in this category.'
               : '_No series available yet for this category._',
           ].join('\n')
         );
