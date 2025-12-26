@@ -49,7 +49,7 @@ const CATEGORY_DESCRIPTIONS = {
 };
 
 // How many random series to show
-const SERIES_SAMPLE_SIZE = 12;
+const SERIES_SAMPLE_SIZE = 9;
 
 /* ===========================
    CANVAS GRID RENDERER
