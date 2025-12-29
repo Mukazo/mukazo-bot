@@ -125,9 +125,9 @@ module.exports = {
     const description = pulls
       .map(card => {
         const emoji = generateVersion(card);
-        return `### Version — ${emoji}\nName: ${card.name}\nCode: \`${card.cardCode}\``;
+        return `### Version — ${emoji}\nCode: \`${card.cardCode}\``;
       })
-      .join('\n\n');
+      .join('\n');
 
     const embed = new EmbedBuilder()
       .setDescription(description)
