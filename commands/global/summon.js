@@ -125,12 +125,17 @@ module.exports = {
     const description = pulls
       .map(card => {
         const emoji = generateVersion(card);
-        return `### Version — ${emoji}\nCode: \`${card.cardCode}\``;
+        return `**Version** — ${emoji}\n**Code:** \`${card.cardCode}\``;
       })
-      .join('\n');
+      .join('');
 
     const embed = new EmbedBuilder()
-      .setDescription(description)
+      .setDescription(
+    [
+        '## Summoning 5 Cards',
+        description
+    ].join('\n')
+    )
       .setColor('Blurple')
       .setImage('attachment://summon.png');
 
