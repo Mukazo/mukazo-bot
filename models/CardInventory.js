@@ -15,4 +15,4 @@ CardInventorySchema.index({ userId: 1, cardCode: 1 }, { unique: true });
 // Optional helper for “sort by quantity”
 CardInventorySchema.index({ userId: 1, quantity: -1 });
 
-module.exports = mongoose.model('InventoryItem', CardInventorySchema);
+module.exports = mongoose.model('CardInventory', CardInventorySchema);
