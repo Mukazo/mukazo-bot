@@ -49,14 +49,14 @@ module.exports = {
     const ownerId = interaction.user.id;
 
     /* ===========================
-       PULL 5 RANDOM CARDS (RETRY)
+       PULL 3 RANDOM CARDS (RETRY)
     =========================== */
 
     const pulls = [];
     const MAX_ATTEMPTS = 30;
     let attempts = 0;
 
-    while (pulls.length < 5 && attempts < MAX_ATTEMPTS) {
+    while (pulls.length < 3 && attempts < MAX_ATTEMPTS) {
       attempts++;
 
       const version = pickVersion();
@@ -66,7 +66,7 @@ module.exports = {
       pulls.push(card);
     }
 
-    if (pulls.length < 5) {
+    if (pulls.length < 3) {
       return interaction.editReply({
         content: 'Not enough eligible cards available to summon.',
       });
@@ -88,7 +88,7 @@ module.exports = {
     =========================== */
 
     const CARD_WIDTH = 400;
-    const CARD_HEIGHT = 600;
+    const CARD_HEIGHT = 700;
     const GAP = 20;
 
     const canvas = Canvas.createCanvas(
@@ -125,14 +125,15 @@ module.exports = {
     const description = pulls
       .map(card => {
         const emoji = generateVersion(card);
-        return `${emoji} — **Code:** \`${card.cardCode}\``;
+        return `${emoji} — **Code:** \`${card.cardCode}\`\n`;
       })
       .join('\n');
 
     const embed = new EmbedBuilder()
       .setDescription(
     [
-        '## Summoning 5 Cards',
+        '## Summoning 3 Cards',
+        '',
         description
     ].join('\n')
     )
@@ -183,7 +184,7 @@ module.exports = {
         claimedBy: null,
       })),
       ownerHasClaimed: false,
-      expiresAt: new Date(Date.now() + 120_000),
+      expiresAt: new Date(Date.now() + 240_000),
     });
 
     /* ===========================
@@ -192,7 +193,7 @@ module.exports = {
 
     const collector = reply.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 120_000,
+      time: 240_000,
     });
 
     collector.on('collect', async btn => {
