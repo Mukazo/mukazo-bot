@@ -17,6 +17,28 @@ const generateVersion = require('../../utils/generateVersion');
 const CardInventory = require('../../models/CardInventory');
 const SummonSession = require('../../models/SummonSession');
 
+function grayscaleRegion(ctx, x, y, w, h) {
+  const imgData = ctx.getImageData(x, y, w, h);
+  const data = imgData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    // luminance formula (looks better than averaging)
+    const gray = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+
+    data[i] = gray;
+    data[i + 1] = gray;
+    data[i + 2] = gray;
+    // alpha stays data[i+3]
+  }
+
+  ctx.putImageData(imgData, x, y);
+}
+
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('summon')
@@ -65,8 +87,8 @@ module.exports = {
        CANVAS (GRAYSCALE IF UNOWNED)
     =========================== */
 
-    const CARD_WIDTH = 300;
-    const CARD_HEIGHT = 420;
+    const CARD_WIDTH = 380;
+    const CARD_HEIGHT = 540;
     const GAP = 20;
 
     const canvas = Canvas.createCanvas(
@@ -83,14 +105,12 @@ module.exports = {
       try {
         const img = await Canvas.loadImage(card.localImagePath);
 
+        ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
+
         if (!ownedSet.has(card.cardCode)) {
-          ctx.filter = 'grayscale(100%)';
-        } else {
-          ctx.filter = 'none';
+        grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
         }
 
-        ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
-        ctx.filter = 'none';
       } catch {}
     }
 
@@ -105,7 +125,7 @@ module.exports = {
     const description = pulls
       .map(card => {
         const emoji = generateVersion(card);
-        return `${emoji} **${card.name}**\n\`${card.cardCode}\``;
+        return `Version: ${emoji} Card: **${card.name}** \`${card.cardCode}\``;
       })
       .join('\n\n');
 
