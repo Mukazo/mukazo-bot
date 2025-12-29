@@ -19,7 +19,6 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
-    await interaction.deferReply();
 
     const ownerId = interaction.user.id;
 
@@ -36,7 +35,7 @@ module.exports = {
 
     if (pulls.length < 5) {
       return interaction.editReply({
-        content: '❌ Not enough cards available to summon.',
+        content: 'Not enough cards available to summon.',
       });
     }
 
@@ -140,7 +139,7 @@ module.exports = {
       // User already claimed
       if (claimedUsers.has(userId)) {
         return btn.reply({
-          content: '❌ You already claimed a card.',
+          content: 'You already claimed a card.',
           ephemeral: true,
         });
       }
@@ -148,7 +147,7 @@ module.exports = {
       // Card already claimed
       if (claimedCards.has(index)) {
         return btn.reply({
-          content: '❌ This card has already been claimed.',
+          content: 'This card has already been claimed.',
           ephemeral: true,
         });
       }
@@ -156,7 +155,7 @@ module.exports = {
       // Lock until owner claims first
       if (!ownerHasClaimed && userId !== ownerId) {
         return btn.reply({
-          content: '⏳ Wait until the summoner claims first.',
+          content: 'Wait until the summoner claims first.',
           ephemeral: true,
         });
       }
@@ -189,7 +188,7 @@ module.exports = {
       );
 
       await btn.reply({
-        content: `✅ You claimed **${card.cardCode}**`,
+        content: `You claimed **${card.cardCode}**`,
         ephemeral: true,
       });
 
@@ -206,10 +205,10 @@ module.exports = {
     collector.on('end', async (_, reason) => {
       row.components.forEach(btn => btn.setDisabled(true));
 
-      let content = '⏱️ The summon has expired.';
+      let content = 'The summon has expired.';
 
       if (reason === 'all_claimed') {
-        content = '✅ All cards have been claimed.';
+        content = 'All cards have been claimed.';
       }
 
       await interaction.editReply({
