@@ -87,9 +87,9 @@ module.exports = {
        CANVAS (GRAYSCALE IF UNOWNED)
     =========================== */
 
-    const CARD_WIDTH = 600;
-    const CARD_HEIGHT = 750;
-    const GAP = 20;
+    const CARD_WIDTH = 180;
+    const CARD_HEIGHT = 260;
+    const GAP = 15;
 
     const canvas = Canvas.createCanvas(
       pulls.length * (CARD_WIDTH + GAP),
