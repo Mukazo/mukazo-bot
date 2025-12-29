@@ -11,28 +11,10 @@ const {
 const Canvas = require('canvas');
 
 const randomCardFromVersion = require('../../utils/randomCardFromVersion');
-const globalPullConfig = require('../../utils/globalPullConfig');
+const pickVersion = require('../../utils/versionPicker');
 
 const CardInventory = require('../../models/CardInventory');
 const SummonSession = require('../../models/SummonSession');
-
-/* ===========================
-   VERSION PICK (GLOBAL CONFIG)
-=========================== */
-function pickVersionFromGlobalConfig() {
-  const entries = Object.entries(globalPullConfig.versions);
-  const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
-
-  let roll = Math.random() * total;
-
-  for (const [version, weight] of entries) {
-    roll -= weight;
-    if (roll <= 0) return Number(version);
-  }
-
-  // Safety fallback
-  return Number(entries[0][0]);
-}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -50,7 +32,7 @@ module.exports = {
     const pulls = [];
 
     for (let i = 0; i < 5; i++) {
-      const version = pickVersionFromGlobalConfig();
+      const version = pickVersion(); // from versionPicker.js
       const card = await randomCardFromVersion(version, ownerId);
       if (card) pulls.push(card);
     }
