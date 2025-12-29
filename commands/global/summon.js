@@ -123,11 +123,11 @@ module.exports = {
     =========================== */
 
     const fields = pulls.map(card => ({
-  name: `${generateVersion(card)} ${card.name}`,
+  name: `### ${generateVersion(card)} ${card.name}`,
   value: [
     `**Group:** ${card.group}`,
     card.era ? `**Era:** ${card.era}` : null,
-    `**Code:** \`${card.cardCode}\``,
+    `> **Code:** \`${card.cardCode}\``,
   ].filter(Boolean).join('\n'),
   inline: true,
 }));
@@ -150,7 +150,7 @@ module.exports = {
     name = name.slice(0, MAX - 9) + '…';
   }
 
-  return `${name}`;
+  return `Claim ୨୧ ${generateVersion(card)} — ${name}`;
 }
 
     const row = new ActionRowBuilder().addComponents(
@@ -158,7 +158,7 @@ module.exports = {
         new ButtonBuilder()
           .setCustomId(`summon:${i}`)
           .setLabel(buttonLabelForCard(card))
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Secondary)
       )
     );
 
@@ -244,8 +244,6 @@ module.exports = {
 
       row.components[index]
         .setDisabled(true)
-        .setLabel('CLAIMED')
-        .setStyle(ButtonStyle.Secondary);
 
       await interaction.editReply({ components: [row] });
       await btn.editReply(`You claimed **${cardCode}**`);
