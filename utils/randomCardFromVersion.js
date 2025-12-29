@@ -39,11 +39,20 @@ await Card.updateMany(
     version,
     active: true,
     batch: null,
-    releaseAt: { $lte: new Date() },
-    $or: [
-      { availableQuantity: null },
-      { $expr: { $lt: ["$timesPulled", "$availableQuantity"] } }
-    ],
+    $and: [
+    {
+      $or: [
+        { releaseAt: null },
+        { releaseAt: { $lte: new Date() } }
+      ]
+    },
+    {
+      $or: [
+        { availableQuantity: null },
+        { $expr: { $lt: ['$timesPulled', '$availableQuantity'] } }
+      ]
+    }
+  ],
     ...(categories ? { category: { $in: categories } } : {})
   };
 
