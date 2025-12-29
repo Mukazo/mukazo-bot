@@ -40,7 +40,6 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
-    await interaction.deferReply();
 
     const ownerId = interaction.user.id;
 
