@@ -4,7 +4,7 @@ const Card = require('../models/Card');
 const User = require('../models/User');
 const Batch = require('../models/Batch');
 
-async function getRandomCardByVersion(version, userId) {
+async function getRandomCardFromVersion(version, userId) {
   const user = await User.findOne({ userId });
 
   // ✅ Step 1: Unbatch cards from released batches
@@ -69,4 +69,4 @@ await Card.updateMany(
   return await Card.findById(picked._id); // hydrate
 }
 
-module.exports = getRandomCardByVersion;
+module.exports = getRandomCardFromVersion;
