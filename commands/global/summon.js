@@ -125,7 +125,7 @@ module.exports = {
     const description = pulls
       .map(card => {
         const emoji = generateVersion(card);
-        return `**Version** — ${emoji}\n**Code:** \`${card.cardCode}\``;
+        return `${emoji} — **Code:** \`${card.cardCode}\``;
       })
       .join('\n');
 
@@ -143,11 +143,22 @@ module.exports = {
        BUTTONS
     =========================== */
 
+    function buttonLabelForCard(card) {
+  const MAX = 80;
+  let name = card.name;
+
+  if (name.length > MAX - 8) {
+    name = name.slice(0, MAX - 9) + '…';
+  }
+
+  return `Claim • ${name}`;
+}
+
     const row = new ActionRowBuilder().addComponents(
       pulls.map((_, i) =>
         new ButtonBuilder()
           .setCustomId(`summon:${i}`)
-          .setLabel(`Claim ${i + 1}`)
+          .setLabel(buttonLabelForCard(card))
           .setStyle(ButtonStyle.Primary)
       )
     );
