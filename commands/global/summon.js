@@ -151,7 +151,7 @@ module.exports = {
     name = name.slice(0, MAX - 9) + '…';
   }
 
-  return `Claim • ${name}`;
+  return `${name}`;
 }
 
     const row = new ActionRowBuilder().addComponents(
