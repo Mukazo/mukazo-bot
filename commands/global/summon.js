@@ -127,7 +127,7 @@ module.exports = {
         const emoji = generateVersion(card);
         return `**Version** — ${emoji}\n**Code:** \`${card.cardCode}\``;
       })
-      .join('');
+      .join('\n');
 
     const embed = new EmbedBuilder()
       .setDescription(
@@ -136,7 +136,7 @@ module.exports = {
         description
     ].join('\n')
     )
-      .setColor('Blurple')
+      .setColor('#e96163')
       .setImage('attachment://summon.png');
 
     /* ===========================
@@ -245,7 +245,6 @@ module.exports = {
       row.components.forEach(b => b.setDisabled(true));
 
       await interaction.editReply({
-        content: 'The summon has expired.',
         components: [row],
       });
     });
