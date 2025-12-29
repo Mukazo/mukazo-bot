@@ -123,9 +123,8 @@ module.exports = {
     =========================== */
 
     const fields = pulls.map(card => ({
-  name: `### ${generateVersion(card)} ${card.name}`,
+  name: `Version — ${generateVersion(card)}`,
   value: [
-    `**Group:** ${card.group}`,
     card.era ? `**Era:** ${card.era}` : null,
     `> **Code:** \`${card.cardCode}\``,
   ].filter(Boolean).join('\n'),
@@ -134,6 +133,7 @@ module.exports = {
 
 
     const embed = new EmbedBuilder()
+      .setDescription('### Summoning 3 Cards\n> Choose a card below to claim!')
       .addFields(fields)
       .setColor('#e96163')
       .setImage('attachment://summon.png');
@@ -150,7 +150,7 @@ module.exports = {
     name = name.slice(0, MAX - 9) + '…';
   }
 
-  return `Claim ୨୧ ${generateVersion(card)} — ${name}`;
+  return `Claim ୨୧ ${card.group} — ${name}`;
 }
 
     const row = new ActionRowBuilder().addComponents(
