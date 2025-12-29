@@ -12,6 +12,7 @@ const Canvas = require('canvas');
 
 const randomCardFromVersion = require('../../utils/randomCardFromVersion');
 const pickVersion = require('../../utils/versionPicker');
+const generateVersion = require('../../utils/generateVersion');
 
 const CardInventory = require('../../models/CardInventory');
 const SummonSession = require('../../models/SummonSession');
@@ -22,29 +23,47 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
+    await interaction.deferReply();
 
     const ownerId = interaction.user.id;
 
     /* ===========================
-       PULL 5 RANDOM CARDS
+       PULL 5 RANDOM CARDS (RETRY)
     =========================== */
 
     const pulls = [];
+    const MAX_ATTEMPTS = 30;
+    let attempts = 0;
 
-    for (let i = 0; i < 5; i++) {
-      const version = pickVersion(); // from versionPicker.js
+    while (pulls.length < 5 && attempts < MAX_ATTEMPTS) {
+      attempts++;
+
+      const version = pickVersion();
       const card = await randomCardFromVersion(version, ownerId);
-      if (card) pulls.push(card);
+      if (!card) continue;
+
+      pulls.push(card);
     }
 
     if (pulls.length < 5) {
       return interaction.editReply({
-        content: 'Not enough cards available to summon.',
+        content: 'Not enough eligible cards available to summon.',
       });
     }
 
     /* ===========================
-       CANVAS (IMAGES ONLY)
+       CHECK OWNERSHIP
+    =========================== */
+
+    const owned = await CardInventory.find({
+      userId: ownerId,
+      cardCode: { $in: pulls.map(c => c.cardCode) },
+    }).lean();
+
+    const ownedSet = new Set(owned.map(o => o.cardCode));
+
+    /* ===========================
+       CANVAS (GRAYSCALE IF UNOWNED)
     =========================== */
 
     const CARD_WIDTH = 300;
@@ -59,15 +78,20 @@ module.exports = {
     const ctx = canvas.getContext('2d');
 
     for (let i = 0; i < pulls.length; i++) {
+      const card = pulls[i];
+      const x = i * (CARD_WIDTH + GAP);
+
       try {
-        const img = await Canvas.loadImage(pulls[i].localImagePath);
-        ctx.drawImage(
-          img,
-          i * (CARD_WIDTH + GAP),
-          0,
-          CARD_WIDTH,
-          CARD_HEIGHT
-        );
+        const img = await Canvas.loadImage(card.localImagePath);
+
+        if (!ownedSet.has(card.cardCode)) {
+          ctx.filter = 'grayscale(100%)';
+        } else {
+          ctx.filter = 'none';
+        }
+
+        ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
+        ctx.filter = 'none';
       } catch {}
     }
 
@@ -76,27 +100,21 @@ module.exports = {
     });
 
     /* ===========================
-       EMBEDS
+       SINGLE EMBED
     =========================== */
 
-    const embeds = pulls.map((card, i) => {
-      const lines = [
-        `**Group:** ${card.group}`,
-        `**Code:** ${card.cardCode}`,
-        `**Version:** ${card.versionEmoji ?? card.version}`,
-      ];
+    const description = pulls
+      .map(card => {
+        const emoji = generateVersion(card);
+        return `${emoji} **${card.name}**\n\`${card.cardCode}\``;
+      })
+      .join('\n\n');
 
-      if (card.era) {
-        lines.push(`**Era:** ${card.era}`);
-      }
-
-      return new EmbedBuilder()
-        .setTitle(`Card ${i + 1} — ${card.name}`)
-        .setDescription(lines.join('\n'))
-        .setColor('Blurple');
-    });
-
-    embeds[0].setImage('attachment://summon.png');
+    const embed = new EmbedBuilder()
+      .setTitle('✨ Summon')
+      .setDescription(description)
+      .setColor('Blurple')
+      .setImage('attachment://summon.png');
 
     /* ===========================
        BUTTONS
@@ -112,13 +130,13 @@ module.exports = {
     );
 
     const reply = await interaction.editReply({
-      embeds,
+      embeds: [embed],
       files: [attachment],
       components: [row],
     });
 
     /* ===========================
-       SAVE SESSION (PERSISTENT)
+       SAVE SESSION
     =========================== */
 
     await SummonSession.create({
@@ -131,16 +149,16 @@ module.exports = {
         claimedBy: null,
       })),
       ownerHasClaimed: false,
-      expiresAt: new Date(Date.now() + 60_000),
+      expiresAt: new Date(Date.now() + 120_000),
     });
 
     /* ===========================
-       COLLECTOR (UX ONLY)
+       COLLECTOR
     =========================== */
 
     const collector = reply.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 60_000,
+      time: 120_000,
     });
 
     collector.on('collect', async btn => {
@@ -148,10 +166,7 @@ module.exports = {
 
       const index = Number(btn.customId.split(':')[1]);
 
-      const session = await SummonSession.findOne({
-        messageId: reply.id,
-      });
-
+      const session = await SummonSession.findOne({ messageId: reply.id });
       if (!session || session.expiresAt < new Date()) {
         return btn.editReply('This summon has expired.');
       }
@@ -167,10 +182,6 @@ module.exports = {
       if (session.cards.some(c => c.claimedBy === btn.user.id)) {
         return btn.editReply('You already claimed a card.');
       }
-
-      /* ===========================
-         ATOMIC CLAIM (RACE-SAFE)
-      =========================== */
 
       const result = await SummonSession.updateOne(
         {
@@ -190,10 +201,6 @@ module.exports = {
         return btn.editReply('This card was already claimed.');
       }
 
-      /* ===========================
-         GRANT CARD
-      =========================== */
-
       const cardCode = pulls[index].cardCode;
 
       await CardInventory.updateOne(
@@ -202,40 +209,20 @@ module.exports = {
         { upsert: true }
       );
 
-      /* ===========================
-         UI UPDATE (OPTIONALS)
-      =========================== */
-
       row.components[index]
         .setDisabled(true)
         .setLabel('CLAIMED')
         .setStyle(ButtonStyle.Secondary);
 
-      embeds[index]
-        .setColor(0x57f287)
-        .setFooter({ text: `Claimed by ${btn.user.username}` });
-
-      await interaction.editReply({
-        components: [row],
-        embeds,
-      });
-
+      await interaction.editReply({ components: [row] });
       await btn.editReply(`You claimed **${cardCode}**`);
     });
 
-    /* ===========================
-       END / TIMEOUT HANDLING
-    =========================== */
-
     collector.on('end', async () => {
-      row.components.forEach(btn => btn.setDisabled(true));
-
-      const allClaimed = row.components.every(b => b.data.disabled);
+      row.components.forEach(b => b.setDisabled(true));
 
       await interaction.editReply({
-        content: allClaimed
-          ? 'All cards have been claimed.'
-          : 'The summon has expired.',
+        content: 'The summon has expired.',
         components: [row],
       });
     });
