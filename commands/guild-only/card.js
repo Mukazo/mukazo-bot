@@ -55,6 +55,8 @@ module.exports = {
       opt.setName('designer3').setDescription('optional third designer').setRequired(false))
       .addIntegerOption(opt =>
       opt.setName('availablequantity').setDescription('limited quantity').setRequired(false))
+      .addStringOption(opt =>
+      opt.setName('namealias').setDescription('alternate name of card').setRequired(false))
 
     )
     .addSubcommand(sub =>
@@ -72,6 +74,7 @@ module.exports = {
         .addStringOption(opt => opt.setName('setcategory').setDescription('New category'))
         .addStringOption(opt => opt.setName('setversion').setDescription('New version'))
         .addStringOption(opt => opt.setName('setemoji').setDescription('New emoji override'))
+        .addStringOption(opt => opt.setName('setnamealias').setDescription('new alternate name of card'))
         .addStringOption(opt => opt.setName('setgroup').setDescription('New group'))
         .addStringOption(opt => opt.setName('setera').setDescription('New era'))
         .addStringOption(opt => opt.setName('setbatch').setDescription('New batch or "null" to remove'))

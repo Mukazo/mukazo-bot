@@ -22,6 +22,7 @@ module.exports = {
       category: opts.getString('category'),
       version: opts.getString('version'),
       group: opts.getString('group'),
+      namealias: opts.getString('namealias'),
       era: opts.getString('era'),
       emoji: opts.getString('emoji'),
       active: opts.getBoolean('active'),

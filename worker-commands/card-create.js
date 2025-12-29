@@ -26,6 +26,7 @@ module.exports = {
       await Card.create({
         cardCode: data.cardCode,
         name: data.name,
+        namealias: data.namealias,
         category: data.category,
         version: data.version,
         emoji: data.emoji,
