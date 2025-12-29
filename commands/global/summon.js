@@ -134,7 +134,6 @@ module.exports = {
 
 
     const embed = new EmbedBuilder()
-      .setDescription('## Summoning 3 Cards')
       .addFields(fields)
       .setColor('#e96163')
       .setImage('attachment://summon.png');
