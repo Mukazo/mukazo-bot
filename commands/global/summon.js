@@ -23,7 +23,6 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
-    await interaction.deferReply();
 
     const ownerId = interaction.user.id;
 
@@ -111,7 +110,7 @@ module.exports = {
       .join('\n\n');
 
     const embed = new EmbedBuilder()
-      .setTitle('✨ Summon')
+      .setTitle('Summoning 5 Cards')
       .setDescription(description)
       .setColor('Blurple')
       .setImage('attachment://summon.png');
