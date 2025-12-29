@@ -87,8 +87,8 @@ module.exports = {
        CANVAS (GRAYSCALE IF UNOWNED)
     =========================== */
 
-    const CARD_WIDTH = 400;
-    const CARD_HEIGHT = 700;
+    const CARD_WIDTH = 8000;
+    const CARD_HEIGHT = 9000;
     const GAP = 20;
 
     const canvas = Canvas.createCanvas(
@@ -122,21 +122,20 @@ module.exports = {
        SINGLE EMBED
     =========================== */
 
-    const description = pulls
-      .map(card => {
-        const emoji = generateVersion(card);
-        return `${emoji} — **Code:** \`${card.cardCode}\`\n`;
-      })
-      .join('\n');
+    const fields = pulls.map(card => ({
+  name: `${generateVersion(card)} ${card.name}`,
+  value: [
+    `**Group:** ${card.group}`,
+    card.era ? `**Era:** ${card.era}` : null,
+    `**Code:** \`${card.cardCode}\``,
+  ].filter(Boolean).join('\n'),
+  inline: true,
+}));
+
 
     const embed = new EmbedBuilder()
-      .setDescription(
-    [
-        '## Summoning 3 Cards',
-        '',
-        description
-    ].join('\n')
-    )
+      .setDescription('## Summoning 3 Cards')
+      .addFields(fields)
       .setColor('#e96163')
       .setImage('attachment://summon.png');
 
@@ -184,7 +183,7 @@ module.exports = {
         claimedBy: null,
       })),
       ownerHasClaimed: false,
-      expiresAt: new Date(Date.now() + 240_000),
+      expiresAt: new Date(Date.now() + 120_000),
     });
 
     /* ===========================
@@ -193,7 +192,7 @@ module.exports = {
 
     const collector = reply.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 240_000,
+      time: 120_000,
     });
 
     collector.on('collect', async btn => {
