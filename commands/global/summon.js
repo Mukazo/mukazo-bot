@@ -87,8 +87,8 @@ module.exports = {
        CANVAS (GRAYSCALE IF UNOWNED)
     =========================== */
 
-    const CARD_WIDTH = 380;
-    const CARD_HEIGHT = 540;
+    const CARD_WIDTH = 400;
+    const CARD_HEIGHT = 600;
     const GAP = 20;
 
     const canvas = Canvas.createCanvas(
@@ -125,12 +125,11 @@ module.exports = {
     const description = pulls
       .map(card => {
         const emoji = generateVersion(card);
-        return `Version: ${emoji} Card: **${card.name}** \`${card.cardCode}\``;
+        return `### Version — ${emoji}\nName: ${card.name}\nCode: \`${card.cardCode}\``;
       })
       .join('\n\n');
 
     const embed = new EmbedBuilder()
-      .setTitle('Summoning 5 Cards')
       .setDescription(description)
       .setColor('Blurple')
       .setImage('attachment://summon.png');
