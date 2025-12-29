@@ -155,7 +155,7 @@ module.exports = {
 }
 
     const row = new ActionRowBuilder().addComponents(
-      pulls.map((_, i) =>
+      pulls.map((card, i) =>
         new ButtonBuilder()
           .setCustomId(`summon:${i}`)
           .setLabel(buttonLabelForCard(card))
