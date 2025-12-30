@@ -24,7 +24,7 @@ module.exports = {
     let description = '';
 
     for (const [category, commands] of Object.entries(categories)) {
-      description += `\n## **__${category}__**\n`;
+      description += `\n## ୨ **__${category}__** ୧\n`;
 
       for (const command of commands) {
         const emoji = emojiMap[command] ?? '•';
@@ -32,9 +32,9 @@ module.exports = {
 
         if (expires && expires > now) {
           const unix = Math.floor(expires / 1000);
-          description += `${emoji} 𓂃◞ **/${command.toLowerCase()}** ￤ <t:${unix}:R> \n`;
+          description += `${emoji} ── **/${command.toLowerCase()}** 𓂃 <t:${unix}:R> \n`;
         } else {
-          description += `${emoji} 𓂃◞ **/${command.toLowerCase()}** ￤ __Ready__ \n`;
+          description += `${emoji} ── **/${command.toLowerCase()}** 𓂃 __Ready__ \n`;
         }
       }
     }
@@ -43,7 +43,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription(
         [
-          '### ─⋆⋅ Command Cooldowns ⋆⋅─',
+          '### ⋆⋅ Command Cooldowns ⋆⋅',
           description,
         ].join('\n\n')
       );
