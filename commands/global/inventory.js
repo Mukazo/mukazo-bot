@@ -20,11 +20,11 @@ const THEY_HAVE_EMOJI = ':hibiscus:'; // they have, you don't
 const YOU_HAVE_EMOJI  = ':fairy:';    // you have, they don't
 
 const VERSION_ORDER = {
-  v5: 5,
-  v4: 4,
-  v3: 3,
-  v2: 2,
-  v1: 1,
+  5: 5,
+  4: 4,
+  3: 3,
+  2: 2,
+  1: 1,
 };
 
 function normalize(str) {
@@ -115,8 +115,6 @@ module.exports = {
     }
 
     let results = cards.filter(card => {
-      const viewerQty = viewerMap.get(card.cardCode) || 0;
-      const targetQty = targetMap.get(card.cardCode) || 0;
 
       if (show === 'owned' && targetQty <= 0) return false;
       if (show === 'missing' && targetQty > 0) return false;
@@ -129,7 +127,7 @@ module.exports = {
 
       if (names.length) {
         const name = normalize(card.name);
-        const alias = normalize(card.nameAlias);
+        const alias = normalize(card.namealias);
         if (!names.some(n => name?.includes(n) || alias?.includes(n))) {
           return false;
         }
@@ -166,21 +164,22 @@ module.exports = {
       );
 
       const description = slice.map(card => {
-        const viewerQty = viewerMap.get(card.cardCode) || 0;
-        const targetQty = targetMap.get(card.cardCode) || 0;
+  const viewerQty = viewerMap.get(card.cardCode) || 0;
+  const targetQty = targetMap.get(card.cardCode) || 0;
 
-        let compareEmoji = '';
-        if (viewerId !== targetId) {
-          if (targetQty > 0 && viewerQty === 0) compareEmoji = THEY_HAVE_EMOJI;
-          else if (viewerQty > 0 && targetQty === 0) compareEmoji = YOU_HAVE_EMOJI;
-        }
+  let compareEmoji = '';
+  if (viewerId !== targetId) {
+    if (targetQty > 0 && viewerQty === 0) compareEmoji = THEY_HAVE_EMOJI;
+    else if (viewerQty > 0 && targetQty === 0) compareEmoji = YOU_HAVE_EMOJI;
+  }
 
-        const emoji = card.overrideemoji || generateVersion(card);
+  const emoji = card.overrideemoji || generateVersion(card);
 
-        return [
-          `${compareEmoji} ${emoji} ${card.group} **${card.name}**`, card.era ? `*${card.era}*` : null, `\`${card.cardCode}\` ×${targetQty}`,
-        ].filter(Boolean).join('\n');
-      }).join('\n\n');
+  const eraText = card.era ? ` (${card.era})` : '';
+
+  return `${compareEmoji} ${emoji} ${card.group} ${card.name}${eraText} — \`${card.cardCode}\` ×${targetQty}`.trim();
+}).join('\n');
+
 
       return new EmbedBuilder()
         .setTitle(
