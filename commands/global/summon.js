@@ -49,8 +49,8 @@ module.exports = {
     const ownerId = interaction.user.id;
     const commandName = 'Summon';
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
-        if (await cooldowns.isOnCooldown(userId, commandName)) {
-          const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
+        if (await cooldowns.isOnCooldown(ownerId, commandName)) {
+          const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
           return safeReply(interaction, { content: `You must wait ${nextTime} before using \`/pull\` again.` });
         }
     
