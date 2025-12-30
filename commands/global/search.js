@@ -15,8 +15,8 @@ const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 3;
-const CARD_WIDTH = 600;
-const CARD_HEIGHT = 840;
+const CARD_WIDTH = 180;
+const CARD_HEIGHT = 260;
 
 module.exports = {
   data: new SlashCommandBuilder()
