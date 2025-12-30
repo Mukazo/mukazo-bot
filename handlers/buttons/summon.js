@@ -1,3 +1,4 @@
+const { ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const SummonSession = require('../../models/SummonSession');
 const CardInventory = require('../../models/CardInventory');
 
@@ -5,12 +6,18 @@ module.exports = async function handleSummonButton(interaction) {
   const index = Number(interaction.customId.split(':')[1]);
   const messageId = interaction.message.id;
 
-  // Correct acknowledgement for message component
   await interaction.deferUpdate();
 
   const session = await SummonSession.findOne({ messageId });
 
+  /* ===========================
+     EXPIRED — DISABLE ALL
+  =========================== */
   if (!session || session.expiresAt < new Date()) {
+    const disabledRow = disableAllButtons(interaction.message);
+
+    await interaction.message.edit({ components: [disabledRow] });
+
     return interaction.followUp({
       content: 'This summon has expired.',
       ephemeral: true,
@@ -74,15 +81,36 @@ module.exports = async function handleSummonButton(interaction) {
     { upsert: true }
   );
 
-  // Send private confirmation FIRST
+  /* ===========================
+     SUCCESS — DISABLE CLICKED
+  =========================== */
+
   await interaction.followUp({
     content: `You claimed **${cardCode}**`,
     ephemeral: true,
   });
 
-  // Disable the clicked button
-  const row = interaction.message.components[0];
-  row.components[index].setDisabled(true);
+  const oldRow = interaction.message.components[0];
 
-  await interaction.message.edit({ components: [row] });
+  const newRow = new ActionRowBuilder().addComponents(
+    oldRow.components.map((btn, i) =>
+      ButtonBuilder.from(btn).setDisabled(i === index)
+    )
+  );
+
+  await interaction.message.edit({ components: [newRow] });
 };
+
+/* ===========================
+   HELPERS
+=========================== */
+
+function disableAllButtons(message) {
+  const oldRow = message.components[0];
+
+  return new ActionRowBuilder().addComponents(
+    oldRow.components.map(btn =>
+      ButtonBuilder.from(btn).setDisabled(true)
+    )
+  );
+}
