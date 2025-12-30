@@ -167,11 +167,12 @@ module.exports = {
       return new EmbedBuilder()
         .setDescription([
             viewerId === targetId
-            ? `## ${interaction.user.username}'s Inventory`
-            : `## ${targetUser.username}'s Inventory`,
+            ? `# ${interaction.user.username}'s Inventory`
+            : `# ${targetUser.username}'s Inventory`,
             '> When viewing another user\'s inventory, the following means:',
-            '-# :hibiscus: = You do not own, but they do!',
-            '-# :fairy: = You do own, but they do not!',
+            '-# :hibiscus: = You do not own, they do | :fairy: = You do own, they do not',
+            '',
+            '',
             description || ' '
         ].join('\n'))
         .setFooter({
