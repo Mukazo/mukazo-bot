@@ -11,7 +11,7 @@ const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 const THEY_HAVE_EMOJI = ':hibiscus:';
 const YOU_HAVE_EMOJI  = ':fairy:';
@@ -161,10 +161,14 @@ module.exports = {
         const eraText = card.era ? ` ( ${card.era} )` : '';
 
         // ❗ layout unchanged (keeps newline exactly as you had)
-        return `${emoji} ${card.group} **${card.name}**${eraText}\`${card.cardCode}\` ×${targetQty} ${compareEmoji}`.trim();
+        return `${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` × ${targetQty} ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
+        .setAuthor({
+  name: targetUser.username,
+  iconURL: targetUser.displayAvatarURL({ dynamic: true }),
+        })
         .setTitle(
           viewerId === targetId
             ? `${interaction.user.username}'s Inventory`
@@ -190,7 +194,7 @@ module.exports = {
 
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 120_000,
+      time: 240_000,
     });
 
     collector.on('collect', async btn => {

@@ -45,7 +45,7 @@ module.exports = {
   .addFields(
     { name: 'Name', value: payload.name, inline: true },
     { name: 'Category', value: payload.category, inline: true },
-    { name: 'Version', value: payload.version ?? '—', inline: true },
+    { name: 'Version', value: payload.emoji || payload.version, inline: true },
     { name: 'Group', value: payload.group ?? '—', inline: true },
     { name: 'Era', value: payload.era ?? '—', inline: true },
     {
