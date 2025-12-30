@@ -136,7 +136,6 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setDescription('## Summoning 3 Cards\n> Choose one of the cards below to claim, pick wisely!')
       .addFields(fields)
-      .setColor('#e96163')
       .setImage('attachment://summon.png');
 
     /* ===========================

@@ -11,7 +11,7 @@ const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 const THEY_HAVE_EMOJI = ':hibiscus:';
 const YOU_HAVE_EMOJI  = ':fairy:';
@@ -161,16 +161,19 @@ module.exports = {
         const eraText = card.era ? ` ( ${card.era} )` : '';
 
         // ❗ layout unchanged (keeps newline exactly as you had)
-        return `${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` × ${targetQty} ${compareEmoji}`.trim();
+        return `${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
-        .setTitle(
-          viewerId === targetId
-            ? `${interaction.user.username}'s Inventory`
-            : `${targetUser.username}'s Inventory`
-        )
-        .setDescription(description || ' ')
+        .setDescription([
+            viewerId === targetId
+            ? `## ${interaction.user.username}'s Inventory`
+            : `## ${targetUser.username}'s Inventory`,
+            '> When viewing another user\'s inventory, the following means:',
+            '-# :hibiscus: = You do not own, but they do!',
+            '-# :fairy: = You do own, but they do not!',
+            description || ' '
+        ].join('\n'))
         .setFooter({
           text: `Page ${page + 1} / ${Math.max(1, Math.ceil(results.length / PAGE_SIZE))}`,
         });
