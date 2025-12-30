@@ -115,6 +115,8 @@ module.exports = {
     }
 
     let results = cards.filter(card => {
+      const viewerQty = viewerMap.get(card.cardCode) || 0;
+      const targetQty = targetMap.get(card.cardCode) || 0;
 
       if (show === 'owned' && targetQty <= 0) return false;
       if (show === 'missing' && targetQty > 0) return false;
