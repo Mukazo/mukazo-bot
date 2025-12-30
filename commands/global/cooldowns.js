@@ -24,7 +24,7 @@ module.exports = {
     let description = '';
 
     for (const [category, commands] of Object.entries(categories)) {
-      description += `\n### **__${category}__**\n`;
+      description += `\n## **__${category}__**\n`;
 
       for (const command of commands) {
         const emoji = emojiMap[command] ?? '•';
@@ -40,9 +40,10 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription(
         [
-          '## Command Cooldowns',
+          '### ─⋆⋅ Command Cooldowns ⋆⋅─',
           description,
         ].join('\n\n')
       );
