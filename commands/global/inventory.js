@@ -78,7 +78,6 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    await interaction.deferReply();
 
     const viewerId = interaction.user.id;
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
