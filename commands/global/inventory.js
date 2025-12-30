@@ -179,7 +179,7 @@ module.exports = {
 
   const eraText = card.era ? ` ( ${card.era} )` : '';
 
-  return `${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` ×${targetQty} — ${compareEmoji}`.trim();
+  return `${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` ×${targetQty} ${compareEmoji}`.trim();
 }).join('\n');
 
 
