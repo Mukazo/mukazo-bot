@@ -73,8 +73,6 @@ module.exports = {
     .addStringOption(o => o.setName('name').setDescription('Filter by name')),
 
   async execute(interaction) {
-    // ✅ REQUIRED because we use editReply everywhere
-    await interaction.deferReply();
 
     const viewerId = interaction.user.id;
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
