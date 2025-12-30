@@ -93,6 +93,7 @@ module.exports = {
      EXECUTE
   =========================== */
   async execute(interaction) {
+    console.log('[SEARCH] deferred:', interaction.deferred, 'replied:', interaction.replied);
     const userId = interaction.user.id;
 
     const name = interaction.options.getString('name');
