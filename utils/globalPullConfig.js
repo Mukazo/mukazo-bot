@@ -3,10 +3,10 @@
 // Hardcoded rarity weights
 const VERSION_WEIGHTS = {
   'V1': 36,
-  'V2': 29.55,
-  'V3': 20.45,
-  'V4': 12,
-  'V5': 2,
+  'V2': 29,
+  'V3': 21,
+  'V4': 13,
+  'V5': 1,
 };
 
 // Hardcoded multipliers for eras (always lowercased keys!)

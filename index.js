@@ -3,6 +3,8 @@ const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
+const handleButton = require('./handlers/buttons');
+
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -48,6 +50,11 @@ client.on(Events.InteractionCreate, async interaction => {
     } else {
       await interaction.editReply('Something went wrong.');
     }
+  }
+
+  if (interaction.isButton()) {
+    const handled = await handleButton(interaction);
+    if (handled) return;
   }
 });
 

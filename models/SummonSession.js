@@ -15,7 +15,7 @@ const summonSessionSchema = new mongoose.Schema({
     }
   ],
 
-  expiresAt: { type: Date, index: true },
+  expiresAt: { type: Date, index: { expires: '0s'}, },
 }, { timestamps: true });
 
 module.exports = mongoose.model('SummonSession', summonSessionSchema);
