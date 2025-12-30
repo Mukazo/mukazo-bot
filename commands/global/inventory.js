@@ -177,9 +177,9 @@ module.exports = {
 
   const emoji = card.overrideemoji || generateVersion(card);
 
-  const eraText = card.era ? ` (${card.era})` : '';
+  const eraText = card.era ? ` ( ${card.era} )` : '';
 
-  return `${compareEmoji} ${emoji} ${card.group} ${card.name}${eraText} — \`${card.cardCode}\` ×${targetQty}`.trim();
+  return `${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` ×${targetQty} — ${compareEmoji}`.trim();
 }).join('\n');
 
 
