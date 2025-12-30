@@ -34,28 +34,38 @@ for (const folder of commandFolders) {
    SLASH COMMAND HANDLER
 =========================== */
 client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+  /* ===========================
+     SLASH COMMANDS
+  =========================== */
+  if (interaction.isChatInputCommand()) {
+    const command = client.commands.get(interaction.commandName);
+    if (!command) return;
 
-  const command = client.commands.get(interaction.commandName);
-  if (!command) return;
+    try {
+      await interaction.deferReply();
+      await command.execute(interaction);
+    } catch (err) {
+      console.error(err);
 
-  try {
-    await interaction.deferReply(); // ✅ slash commands only
-    await command.execute(interaction);
-  } catch (err) {
-    console.error(err);
-
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({ content: 'Something went wrong.', ephemeral: true });
-    } else {
-      await interaction.editReply('Something went wrong.');
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({ content: 'Something went wrong.', ephemeral: true });
+      } else {
+        await interaction.editReply('Something went wrong.');
+      }
     }
+
+    return;
   }
 
+  /* ===========================
+     BUTTONS (GLOBAL, RESTART-SAFE)
+  =========================== */
   if (interaction.isButton()) {
     const handled = await handleButton(interaction);
     if (handled) return;
   }
+
+  // other interaction types can go here later
 });
 
 /* ===========================
