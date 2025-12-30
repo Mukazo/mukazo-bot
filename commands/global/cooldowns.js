@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const cooldownManager = require('../../utils/cooldownManager');
 
 const emojiMap = {
-  Summon: ':crystal_ball:',
+  Summon: '🔮',
 };
 
 const categories = {
@@ -40,11 +40,12 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      
-      .setDescription([
-        '## Command Cooldowns',
-        description
-      ]).join('\n\n');
+      .setDescription(
+        [
+          '## Command Cooldowns',
+          description,
+        ].join('\n\n')
+      );
 
     await interaction.editReply({ embeds: [embed] });
   },

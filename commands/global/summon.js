@@ -51,7 +51,7 @@ module.exports = {
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
         if (await cooldowns.isOnCooldown(ownerId, commandName)) {
           const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
-          return safeReply(interaction, { content: `You must wait ${nextTime} before using \`/pull\` again.` });
+          return interaction.editReply({ content: `Command on cooldown! Wait ${nextTime} before using again.` });
         }
     
         // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
