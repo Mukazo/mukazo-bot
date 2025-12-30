@@ -32,9 +32,9 @@ module.exports = {
 
         if (expires && expires > now) {
           const unix = Math.floor(expires / 1000);
-          description += `${emoji} ── **/${command.toLowerCase()}** 𓂃 <t:${unix}:R> \n`;
+          description += `${emoji} ─ \`**/${command.toLowerCase()}**\` 𝜗𝜚 <t:${unix}:R> \n`;
         } else {
-          description += `${emoji} ── **/${command.toLowerCase()}** 𓂃 __Ready__ \n`;
+          description += `${emoji} ─ \`**/${command.toLowerCase()}**\` 𝜗𝜚 __Ready__ \n`;
         }
       }
     }
