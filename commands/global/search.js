@@ -162,7 +162,7 @@ module.exports = {
 
     const { embed, attachment } = await renderPage();
 
-    const message = await interaction.reply({
+    const message = await interaction.editReply({
       embeds: [embed],
       files: [attachment],
       components: [row],

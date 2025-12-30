@@ -36,6 +36,21 @@ for (const folder of commandFolders) {
 client.on(Events.InteractionCreate, async interaction => {
 
   /* ===========================
+     AUTOCOMPLETE HANDLER
+  =========================== */
+  if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+    const command = client.commands.get(interaction.commandName);
+    if (!command || !command.autocomplete) return;
+
+    try {
+      await command.autocomplete(interaction);
+    } catch (err) {
+      console.error('Autocomplete error:', err);
+    }
+    return;
+  }
+
+  /* ===========================
      SLASH COMMANDS
   =========================== */
   if (interaction.isChatInputCommand()) {
@@ -55,21 +70,6 @@ client.on(Events.InteractionCreate, async interaction => {
       }
     }
 
-    return;
-  }
-
-  /* ===========================
-     AUTOCOMPLETE HANDLER
-  =========================== */
-  if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
-    const command = client.commands.get(interaction.commandName);
-    if (!command || !command.autocomplete) return;
-
-    try {
-      await command.autocomplete(interaction);
-    } catch (err) {
-      console.error('Autocomplete error:', err);
-    }
     return;
   }
 
