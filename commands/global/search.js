@@ -114,7 +114,7 @@ module.exports = {
     });
 
     if (!results.length) {
-      return interaction.reply({ content: 'No cards found.', ephemeral: true });
+      return interaction.editReply({ content: 'No cards found.', ephemeral: true });
     }
 
     let page = 0;
