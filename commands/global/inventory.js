@@ -32,16 +32,21 @@ function normalize(value) {
   return value.toLowerCase();
 }
 
+function parseNumberList(str) {
+  if (typeof str !== 'string') return [];
+  return str
+    .split(',')
+    .map(v => Number(v.trim()))
+    .filter(n => !Number.isNaN(n));
+}
 
 function parseList(str) {
   if (typeof str !== 'string') return [];
-
   return str
     .split(',')
     .map(v => normalize(v.trim()))
     .filter(Boolean);
 }
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -61,28 +66,15 @@ module.exports = {
       o.setName('user')
         .setDescription('View another user’s inventory')
     )
-    .addStringOption(o =>
-      o.setName('group')
-        .setDescription('Filter by group')
-    )
-    .addStringOption(o =>
-      o.setName('era')
-        .setDescription('Filter by era')
-    )
-    .addStringOption(o =>
-      o.setName('category')
-        .setDescription('Filter by category')
-    )
-    .addStringOption(o =>
-      o.setName('version')
-        .setDescription('Filter by version')
-    )
-    .addStringOption(o =>
-      o.setName('name')
-        .setDescription('Filter by name')
-    ),
+    .addStringOption(o => o.setName('group').setDescription('Filter by group'))
+    .addStringOption(o => o.setName('era').setDescription('Filter by era'))
+    .addStringOption(o => o.setName('category').setDescription('Filter by category'))
+    .addStringOption(o => o.setName('version').setDescription('Filter by version (comma separated, e.g. 5,4,3)'))
+    .addStringOption(o => o.setName('name').setDescription('Filter by name')),
 
   async execute(interaction) {
+    // ✅ REQUIRED because we use editReply everywhere
+    await interaction.deferReply();
 
     const viewerId = interaction.user.id;
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
@@ -92,7 +84,7 @@ module.exports = {
     const groups = parseList(interaction.options.getString('group'));
     const eras = parseList(interaction.options.getString('era'));
     const categories = parseList(interaction.options.getString('category'));
-    const versions = parseList(interaction.options.getString('version'));
+    const versions = parseNumberList(interaction.options.getString('version'));
     const names = parseList(interaction.options.getString('name'));
 
     const [cards, viewerInv, targetInv] = await Promise.all([
@@ -130,102 +122,84 @@ module.exports = {
       if (groups.length && !groups.includes(normalize(card.group))) return false;
       if (eras.length && !eras.includes(normalize(card.era))) return false;
       if (categories.length && !categories.includes(normalize(card.category))) return false;
-      if (versions.length && !versions.includes(normalize(card.version))) return false;
+      if (versions.length && !versions.includes(card.version)) return false;
 
       if (names.length) {
         const name = normalize(card.name);
-        const alias = normalize(card.namealias);
-        if (!names.some(n => name?.includes(n) || alias?.includes(n))) {
-          return false;
-        }
+        // ✅ keep both: supports either schema key
+        const alias = normalize(card.namealias) || normalize(card.namealias);
+        if (!names.some(n => name?.includes(n) || alias?.includes(n))) return false;
       }
 
       return true;
     });
 
-    results.sort((a, b) => {
-      const vDiff =
-        (VERSION_ORDER[b.version] || 0) -
-        (VERSION_ORDER[a.version] || 0);
-      if (vDiff !== 0) return vDiff;
+    const defaultSort = () => {
+      results.sort((a, b) => {
+        const vDiff = (VERSION_ORDER[b.version] || 0) - (VERSION_ORDER[a.version] || 0);
+        if (vDiff !== 0) return vDiff;
 
-      const dDiff = new Date(a.createdAt) - new Date(b.createdAt);
-      if (dDiff !== 0) return dDiff;
+        // leaving your original date sort intact (you can remove if you truly want)
+        const dDiff = new Date(a.createdAt) - new Date(b.createdAt);
+        if (dDiff !== 0) return dDiff;
 
-      const gDiff = a.group.localeCompare(b.group);
-      if (gDiff !== 0) return gDiff;
+        const gDiff = a.group.localeCompare(b.group);
+        if (gDiff !== 0) return gDiff;
 
-      return a.name.localeCompare(b.name);
-    });
+        return a.name.localeCompare(b.name);
+      });
+    };
+
+    defaultSort();
 
     if (!results.length) {
       return interaction.editReply('No cards matched your filters.');
     }
 
     let page = 0;
+    let sortMode = 'default'; // 'default' | 'copies'
 
     const getEmbed = () => {
-      const slice = results.slice(
-        page * PAGE_SIZE,
-        page * PAGE_SIZE + PAGE_SIZE
-      );
+      const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
       const description = slice.map(card => {
-  const viewerQty = viewerMap.get(card.cardCode) || 0;
-  const targetQty = targetMap.get(card.cardCode) || 0;
+        const viewerQty = viewerMap.get(card.cardCode) || 0;
+        const targetQty = targetMap.get(card.cardCode) || 0;
 
-  let compareEmoji = '';
-  if (viewerId !== targetId) {
-    if (targetQty > 0 && viewerQty === 0) compareEmoji = THEY_HAVE_EMOJI;
-    else if (viewerQty > 0 && targetQty === 0) compareEmoji = YOU_HAVE_EMOJI;
-  }
+        let compareEmoji = '';
+        if (viewerId !== targetId) {
+          if (targetQty > 0 && viewerQty === 0) compareEmoji = THEY_HAVE_EMOJI;
+          else if (viewerQty > 0 && targetQty === 0) compareEmoji = YOU_HAVE_EMOJI;
+        }
 
-  const emoji = card.emoji || generateVersion(card);
+        const emoji = card.emoji || generateVersion(card);
+        const eraText = card.era ? ` ( ${card.era} )` : '';
 
-  const eraText = card.era ? ` ( ${card.era} )` : '';
-
-  return `${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` ×${targetQty} ${compareEmoji}`.trim();
-}).join('\n');
-
+        return `${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` ×${targetQty} ${compareEmoji}`.trim();
+      }).join('\n');
 
       return new EmbedBuilder()
-        .setTitle(
-          viewerId === targetId
-            ? `${interaction.user.username}'s Inventory`
-            : `${targetUser.username}'s Inventory`
-        )
+        .setTitle(viewerId === targetId ? `${interaction.user.username}'s Inventory` : `${targetUser.username}'s Inventory`)
         .setDescription(description || ' ')
         .setFooter({
           text: [
             `Owned: ${totalOwned}`,
             `Copies: ${totalCopies}`,
-            show === 'duplicates'
-              ? `Duplicate Copies: ${totalDuplicateCopies}`
-              : null,
+            show === 'duplicates' ? `Duplicate Copies: ${totalDuplicateCopies}` : null,
+            sortMode === 'copies' ? 'Sorted: Copies' : null,
             `Page ${page + 1} / ${Math.max(1, Math.ceil(results.length / PAGE_SIZE))}`,
           ].filter(Boolean).join(' • ')
         });
     };
 
     const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId('prev')
-        .setLabel(' • Previous')
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId('copy')
-        .setLabel('Copy • Codes')
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId('next')
-        .setLabel('Next • ')
-        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('prev').setLabel(' • Previous').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('copy').setLabel('Copy • Codes').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('sort_copies').setLabel('Sort • Copies').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('next').setLabel('Next • ').setStyle(ButtonStyle.Secondary),
     );
 
-    const message = await interaction.editReply({
-      embeds: [getEmbed()],
-      components: [row],
-    });
+    const message = await interaction.editReply({ embeds: [getEmbed()], components: [row] });
 
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -240,24 +214,25 @@ module.exports = {
       }
 
       if (btn.customId === 'next') {
-        page = Math.min(
-          Math.ceil(results.length / PAGE_SIZE) - 1,
-          page + 1
-        );
+        page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
+      }
+
+      if (btn.customId === 'sort_copies') {
+        sortMode = sortMode === 'copies' ? 'default' : 'copies';
+
+        if (sortMode === 'copies') {
+          results.sort((a, b) => (targetMap.get(b.cardCode) || 0) - (targetMap.get(a.cardCode) || 0));
+        } else {
+          defaultSort();
+        }
+
+        page = 0;
       }
 
       if (btn.customId === 'copy') {
-        const slice = results.slice(
-          page * PAGE_SIZE,
-          page * PAGE_SIZE + PAGE_SIZE
-        );
-
+        const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
         const codes = slice.map(c => c.cardCode).join(', ');
-
-        return btn.followUp({
-          content: codes || 'No cards on this page.',
-          ephemeral: true,
-        });
+        return btn.followUp({ content: codes || 'No cards on this page.', ephemeral: true });
       }
 
       await message.edit({ embeds: [getEmbed()] });
