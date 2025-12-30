@@ -46,7 +46,8 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
-        const commandName = 'Summon';
+    const ownerId = interaction.user.id;
+    const commandName = 'Summon';
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
         if (await cooldowns.isOnCooldown(userId, commandName)) {
           const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
@@ -54,9 +55,7 @@ module.exports = {
         }
     
         // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
-        await cooldowns.setCooldown(userId, commandName, cooldownMs);
-
-    const ownerId = interaction.user.id;
+        await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
 
     /* ===========================
        PULL 3 RANDOM CARDS (RETRY)

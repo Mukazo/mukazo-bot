@@ -43,8 +43,8 @@ module.exports = {
       
       .setDescription([
         '## Command Cooldowns',
-        description.trim()
-      ]).join('\n');
+        description
+      ]).join('\n\n');
 
     await interaction.editReply({ embeds: [embed] });
   },
