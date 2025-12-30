@@ -42,10 +42,6 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('inventory')
     .setDescription('View card inventories.')
-    .addUserOption(o =>
-      o.setName('user')
-        .setDescription('View another user’s inventory')
-    )
     .addStringOption(o =>
       o.setName('show')
         .setDescription('What to show')
@@ -55,6 +51,10 @@ module.exports = {
           { name: 'Duplicates', value: 'duplicates' },
           { name: 'Missing', value: 'missing' },
         )
+    )
+    .addUserOption(o =>
+      o.setName('user')
+        .setDescription('View another user’s inventory')
     )
     .addStringOption(o =>
       o.setName('group')
