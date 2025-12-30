@@ -24,7 +24,7 @@ module.exports = {
     let description = '';
 
     for (const [category, commands] of Object.entries(categories)) {
-      description += `\n## :space::space:୨ **__${category}__** ୧\n`;
+      description += `\n## <:space:1455504212069842956><:space:1455504212069842956>୨ **__${category}__** ୧\n`;
 
       for (const command of commands) {
         const emoji = emojiMap[command] ?? '•';
@@ -43,8 +43,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription(
         [
-          ':space:',
-          ':space:',
+          '<:space:1455504212069842956>',
           description,
         ].join('\n\n')
       );
