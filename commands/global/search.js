@@ -24,7 +24,7 @@ module.exports = {
     .setDescription('Search all cards.')
     .addStringOption(o =>
       o.setName('name')
-        .setDescription('Search by card name')
+        .setDescription('Search by card name or alias')
         .setAutocomplete(true)
     )
     .addStringOption(o =>
@@ -65,7 +65,11 @@ module.exports = {
     let choices = [];
 
     if (focused.name === 'name') {
-      choices = [...new Set(cards.map(c => c.name))];
+      choices = [
+        ...new Set(
+          cards.flatMap(c => [c.name, c.namealias]).filter(Boolean)
+        ),
+      ];
     }
     if (focused.name === 'group') {
       choices = [...new Set(cards.map(c => c.group).filter(Boolean))];
@@ -105,16 +109,23 @@ module.exports = {
     const ownedMap = new Map(inventory.map(i => [i.cardCode, i.quantity]));
 
     let results = cards.filter(card => {
-      if (name && !card.name.toLowerCase().includes(name.toLowerCase())) return false;
+      if (name) {
+        const q = name.toLowerCase();
+        const n = card.name?.toLowerCase() ?? '';
+        const a = card.namealias?.toLowerCase() ?? '';
+        if (!n.includes(q) && !a.includes(q)) return false;
+      }
+
       if (group && card.group !== group) return false;
       if (era && card.era !== era) return false;
       if (category && card.category !== category) return false;
       if (version && card.version !== version) return false;
+
       return true;
     });
 
     if (!results.length) {
-      return interaction.editReply({ content: 'No cards found.', ephemeral: true });
+      return interaction.editReply({ content: 'No cards found.' });
     }
 
     let page = 0;
@@ -126,14 +137,20 @@ module.exports = {
       const ctx = canvas.getContext('2d');
 
       for (let i = 0; i < slice.length; i++) {
-        const img = await loadImage(slice[i].image);
-        ctx.drawImage(img, i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
+        try {
+          const img = await loadImage(slice[i].image);
+          ctx.drawImage(img, i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
+        } catch (err) {
+          // draw placeholder instead of hanging
+          ctx.fillStyle = '#1e1e1e';
+          ctx.fillRect(i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
+        }
       }
 
       const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'cards.png' });
 
       const embed = new EmbedBuilder()
-        .setTitle('Card Search . . .')
+        .setTitle('Card Search')
         .setImage('attachment://cards.png')
         .setFooter({
           text: `Page ${page + 1} / ${Math.ceil(results.length / PAGE_SIZE)}`,
@@ -176,12 +193,8 @@ module.exports = {
     collector.on('collect', async btn => {
       await btn.deferUpdate();
 
-      if (btn.customId === 'prev') {
-        page = Math.max(0, page - 1);
-      }
-      if (btn.customId === 'next') {
-        page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
-      }
+      if (btn.customId === 'prev') page = Math.max(0, page - 1);
+      if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
 
       const { embed, attachment } = await renderPage();
       await message.edit({ embeds: [embed], files: [attachment] });
