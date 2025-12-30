@@ -96,8 +96,8 @@ module.exports = {
        CANVAS (GRAYSCALE IF UNOWNED)
     =========================== */
 
-    const CARD_WIDTH = 180;
-    const CARD_HEIGHT = 260;
+    const CARD_WIDTH = 200;
+    const CARD_HEIGHT = 300;
     const GAP = 15;
 
     const canvas = Canvas.createCanvas(
