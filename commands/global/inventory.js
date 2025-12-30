@@ -16,8 +16,8 @@ const PAGE_SIZE = 10;
 /* ===========================
    CUSTOM COMPARISON EMOJIS
 =========================== */
-const THEY_HAVE_EMOJI = ':hibiscus: '; // they have, you don't
-const YOU_HAVE_EMOJI  = ':fairy: ';  // you have, they don't
+const THEY_HAVE_EMOJI = ':hibiscus:'; // they have, you don't
+const YOU_HAVE_EMOJI  = ':fairy:';    // you have, they don't
 
 const VERSION_ORDER = {
   v5: 5,
@@ -48,18 +48,34 @@ module.exports = {
     )
     .addStringOption(o =>
       o.setName('show')
+        .setDescription('What to show')
         .setRequired(true)
         .addChoices(
           { name: 'Owned', value: 'owned' },
+          { name: 'Duplicates', value: 'duplicates' },
           { name: 'Missing', value: 'missing' },
-          { name: 'Duplicates', value: 'duplicates' }
         )
     )
-    .addStringOption(o => o.setName('group'))
-    .addStringOption(o => o.setName('era'))
-    .addStringOption(o => o.setName('category'))
-    .addStringOption(o => o.setName('version'))
-    .addStringOption(o => o.setName('name')),
+    .addStringOption(o =>
+      o.setName('group')
+        .setDescription('Filter by group')
+    )
+    .addStringOption(o =>
+      o.setName('era')
+        .setDescription('Filter by era')
+    )
+    .addStringOption(o =>
+      o.setName('category')
+        .setDescription('Filter by category')
+    )
+    .addStringOption(o =>
+      o.setName('version')
+        .setDescription('Filter by version')
+    )
+    .addStringOption(o =>
+      o.setName('name')
+        .setDescription('Filter by name')
+    ),
 
   async execute(interaction) {
     await interaction.deferReply();
@@ -67,7 +83,6 @@ module.exports = {
     const viewerId = interaction.user.id;
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
     const targetId = targetUser.id;
-
     const show = interaction.options.getString('show');
 
     const groups = parseList(interaction.options.getString('group'));
@@ -84,6 +99,21 @@ module.exports = {
 
     const viewerMap = new Map(viewerInv.map(i => [i.cardCode, i.quantity]));
     const targetMap = new Map(targetInv.map(i => [i.cardCode, i.quantity]));
+
+    /* ===========================
+       INVENTORY TOTALS (TARGET)
+    =========================== */
+    let totalOwned = 0;
+    let totalCopies = 0;
+    let totalDuplicateCopies = 0;
+
+    for (const qty of targetMap.values()) {
+      if (qty > 0) {
+        totalOwned += 1;
+        totalCopies += qty;
+        if (qty > 1) totalDuplicateCopies += (qty - 1);
+      }
+    }
 
     let results = cards.filter(card => {
       const viewerQty = viewerMap.get(card.cardCode) || 0;
@@ -110,16 +140,16 @@ module.exports = {
     });
 
     results.sort((a, b) => {
-      const v =
+      const vDiff =
         (VERSION_ORDER[b.version] || 0) -
         (VERSION_ORDER[a.version] || 0);
-      if (v !== 0) return v;
+      if (vDiff !== 0) return vDiff;
 
-      const d = new Date(a.createdAt) - new Date(b.createdAt);
-      if (d !== 0) return d;
+      const dDiff = new Date(a.createdAt) - new Date(b.createdAt);
+      if (dDiff !== 0) return dDiff;
 
-      const g = a.group.localeCompare(b.group);
-      if (g !== 0) return g;
+      const gDiff = a.group.localeCompare(b.group);
+      if (gDiff !== 0) return gDiff;
 
       return a.name.localeCompare(b.name);
     });
@@ -162,9 +192,16 @@ module.exports = {
             ? `${interaction.user.username}'s Inventory`
             : `${targetUser.username}'s Inventory`
         )
-        .setDescription(description)
+        .setDescription(description || ' ')
         .setFooter({
-          text: `Page ${page + 1} / ${Math.ceil(results.length / PAGE_SIZE)}`,
+          text: [
+            `Owned: ${totalOwned}`,
+            `Copies: ${totalCopies}`,
+            show === 'duplicates'
+              ? `Duplicate Copies: ${totalDuplicateCopies}`
+              : null,
+            `Page ${page + 1} / ${Math.max(1, Math.ceil(results.length / PAGE_SIZE))}`,
+          ].filter(Boolean).join(' • ')
         });
     };
 
