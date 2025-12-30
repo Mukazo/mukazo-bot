@@ -165,9 +165,6 @@ module.exports = {
       }).join('\n');
 
       return new EmbedBuilder()
-        .setAuthor({
-  iconURL: targetUser.displayAvatarURL({ dynamic: true }),
-        })
         .setTitle(
           viewerId === targetId
             ? `${interaction.user.username}'s Inventory`

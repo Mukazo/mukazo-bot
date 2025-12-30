@@ -93,7 +93,6 @@ module.exports = {
      EXECUTE
   =========================== */
   async execute(interaction) {
-    console.log('[SEARCH] deferred:', interaction.deferred, 'replied:', interaction.replied);
     const userId = interaction.user.id;
 
     const name = interaction.options.getString('name');
@@ -157,9 +156,6 @@ module.exports = {
       const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'cards.png' });
 
       const embed = new EmbedBuilder()
-        .setAuthor({
-  iconURL: userId.displayAvatarURL({ dynamic: true }),
-        })
         .setDescription('## Searching for . . .\n> Here you can search for every card inside Mukazo!')
         .setImage('attachment://cards.png')
         .setFooter({
