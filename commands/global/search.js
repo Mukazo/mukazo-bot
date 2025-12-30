@@ -157,7 +157,10 @@ module.exports = {
       const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'cards.png' });
 
       const embed = new EmbedBuilder()
-        .setTitle('Card Search')
+        .setAuthor({
+  iconURL: userId.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription('## Searching for . . .\n> Here you can search for every card inside Mukazo!')
         .setImage('attachment://cards.png')
         .setFooter({
           text: `Page ${page + 1} / ${Math.ceil(results.length / PAGE_SIZE)}`,
@@ -165,12 +168,12 @@ module.exports = {
 
       slice.forEach(card => {
         embed.addFields({
-          name: `${generateVersion(card)} ${card.name}`,
+          name: `${card.emoji || generateVersion(card)} ${card.name}`,
           value: [
-            `Group: ${card.group}`,
-            card.era ? `Era: ${card.era}` : null,
-            `Code: \`${card.cardCode}\``,
-            `Owned: ${ownedMap.get(card.cardCode) > 0 ? 'Yes' : 'No'}`,
+            `**Group:** ${card.group}`,
+            card.era ? `**Era:** ${card.era}` : null,
+            `> **Code:** \`${card.cardCode}\``,
+            `**Owned:** ${ownedMap.get(card.cardCode) > 0 ? 'Yes' : 'No'}`,
           ].filter(Boolean).join('\n'),
           inline: true,
         });

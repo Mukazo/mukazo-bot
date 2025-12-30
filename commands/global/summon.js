@@ -123,7 +123,7 @@ module.exports = {
     =========================== */
 
     const fields = pulls.map(card => ({
-  name: `Version — ${generateVersion(card)}`,
+  name: `Version — ${card.emoji || generateVersion(card)}`,
   value: [
     `**Group:** ${card.group}`,
     card.era ? `**Era:** ${card.era}` : null,

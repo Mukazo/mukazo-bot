@@ -166,7 +166,6 @@ module.exports = {
 
       return new EmbedBuilder()
         .setAuthor({
-  name: targetUser.username,
   iconURL: targetUser.displayAvatarURL({ dynamic: true }),
         })
         .setTitle(
