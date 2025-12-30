@@ -11,7 +11,7 @@ const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 /* ===========================
    CUSTOM COMPARISON EMOJIS
@@ -179,7 +179,7 @@ module.exports = {
 
   const eraText = card.era ? ` ( ${card.era} )` : '';
 
-  return `${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` ×${targetQty} — ${compareEmoji}`.trim();
+  return `${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` ×${targetQty} — ${compareEmoji}`.trim();
 }).join('\n');
 
 
@@ -205,15 +205,15 @@ module.exports = {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('prev')
-        .setLabel('Previous')
+        .setLabel(' • Previous')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId('copy')
-        .setLabel('Copy Codes')
+        .setLabel('Copy • Codes')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId('next')
-        .setLabel('Next')
+        .setLabel('Next • ')
         .setStyle(ButtonStyle.Secondary),
     );
 
