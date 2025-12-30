@@ -178,10 +178,7 @@ module.exports = {
         const emoji = card.overrideemoji || generateVersion(card);
 
         return [
-          `${compareEmoji} ${emoji} **${card.group}**`.trim(),
-          `**${card.name}**`,
-          card.era ? `*${card.era}*` : null,
-          `\`${card.cardCode}\` ×${targetQty}`,
+          `${compareEmoji} ${emoji} ${card.group} **${card.name}**`, card.era ? `*${card.era}*` : null, `\`${card.cardCode}\` ×${targetQty}`,
         ].filter(Boolean).join('\n');
       }).join('\n\n');
 
