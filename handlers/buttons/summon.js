@@ -6,7 +6,6 @@ module.exports = async function handleSummonButton(interaction) {
   const index = Number(interaction.customId.split(':')[1]);
   const messageId = interaction.message.id;
 
-  await interaction.deferReply({ ephemeral: true });
 
   const session = await SummonSession.findOne({ messageId });
 
