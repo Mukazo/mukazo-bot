@@ -43,7 +43,8 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription(
         [
-          '### ⋆⋅ Command Cooldowns ⋆⋅',
+          '',
+          '',
           description,
         ].join('\n\n')
       );
