@@ -183,7 +183,7 @@ module.exports = {
         claimedBy: null,
       })),
       ownerHasClaimed: false,
-      expiresAt: new Date(Date.now() + 30_000),
+      expiresAt: new Date(Date.now() + 180_000),
     });
   },
 };
