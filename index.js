@@ -57,8 +57,10 @@ client.on(Events.InteractionCreate, async interaction => {
     const command = client.commands.get(interaction.commandName);
     if (!command) return;
 
+    const ephemeral = command.ephemeral === true;
+
     try {
-      await interaction.deferReply();
+      await interaction.deferReply({ephemeral});
       await command.execute(interaction);
     } catch (err) {
       console.error(err);

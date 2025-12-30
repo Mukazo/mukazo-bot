@@ -12,6 +12,7 @@ const Canvas = require('canvas');
 
 const randomCardFromVersion = require('../../utils/randomCardFromVersion');
 const pickVersion = require('../../utils/versionPicker');
+const cooldowns = require('../../utils/cooldownManager');
 const generateVersion = require('../../utils/generateVersion');
 
 const CardInventory = require('../../models/CardInventory');
@@ -45,6 +46,14 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
+    const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
+        if (await cooldowns.isOnCooldown(userId, commandName)) {
+          const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
+          return safeReply(interaction, { content: `You must wait ${nextTime} before using \`/pull\` again.` });
+        }
+    
+        // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
+        await cooldowns.setCooldown(userId, commandName, cooldownMs);
 
     const ownerId = interaction.user.id;
 
