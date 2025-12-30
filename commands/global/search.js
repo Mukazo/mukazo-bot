@@ -137,16 +137,22 @@ module.exports = {
       const canvas = createCanvas(slice.length * CARD_WIDTH, CARD_HEIGHT);
       const ctx = canvas.getContext('2d');
 
+      
       for (let i = 0; i < slice.length; i++) {
-        try {
-          const img = await loadImage(slice[i].image);
-          ctx.drawImage(img, i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
-        } catch (err) {
-          // draw placeholder instead of hanging
-          ctx.fillStyle = '#1e1e1e';
-          ctx.fillRect(i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
-        }
-      }
+  const card = slice[i];
+
+  try {
+    // ✅ summon-style: load the local file path
+    const img = await loadImage(card.localImagePath);
+    ctx.drawImage(img, i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
+  } catch (err) {
+    console.error(`[SEARCH] Failed to load image for ${card.cardCode}:`, err?.message || err);
+
+    // placeholder instead of hanging/crashing
+    ctx.fillStyle = '#1e1e1e';
+    ctx.fillRect(i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
+  }
+}
 
       const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'cards.png' });
 
