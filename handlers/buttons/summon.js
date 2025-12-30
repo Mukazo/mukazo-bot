@@ -6,28 +6,28 @@ module.exports = async function handleSummonButton(interaction) {
   const index = Number(interaction.customId.split(':')[1]);
   const messageId = interaction.message.id;
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferUpdate();
 
   const session = await SummonSession.findOne({ messageId });
 
   if (!session || session.expiresAt < new Date()) {
-    return interaction.editReply('This summon has expired.');
+    return interaction.followUp('This summon has expired.');
   }
 
   if (!session.cards[index]) {
-    return interaction.editReply('Invalid card.');
+    return interaction.followUp('Invalid card.');
   }
 
   if (session.cards[index].claimedBy) {
-    return interaction.editReply('This card was already claimed.');
+    return interaction.followUp('This card was already claimed.');
   }
 
   if (!session.ownerHasClaimed && interaction.user.id !== session.ownerId) {
-    return interaction.editReply('Wait until the summoner claims first.');
+    return interaction.followUp('Wait until the summoner claims first.');
   }
 
   if (session.cards.some(c => c.claimedBy === interaction.user.id)) {
-    return interaction.editReply('You already claimed a card.');
+    return interaction.followUp('You already claimed a card.');
   }
 
   const result = await SummonSession.updateOne(
@@ -45,7 +45,7 @@ module.exports = async function handleSummonButton(interaction) {
   );
 
   if (result.modifiedCount === 0) {
-    return interaction.editReply('This card was already claimed.');
+    return interaction.followUp('This card was already claimed.');
   }
 
   const cardCode = session.cards[index].cardCode;
@@ -63,5 +63,5 @@ module.exports = async function handleSummonButton(interaction) {
 
   await interaction.message.edit({ components: [row] });
 
-  await interaction.editReply(`You claimed **${cardCode}**`);
+  await interaction.followUp(`You claimed **${cardCode}**`);
 };
