@@ -27,16 +27,21 @@ const VERSION_ORDER = {
   1: 1,
 };
 
-function normalize(str) {
-  return str?.toLowerCase();
+function normalize(value) {
+  if (typeof value !== 'string') return '';
+  return value.toLowerCase();
 }
 
+
 function parseList(str) {
-  return (str || '')
+  if (typeof str !== 'string') return [];
+
+  return str
     .split(',')
     .map(v => normalize(v.trim()))
     .filter(Boolean);
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -175,7 +180,7 @@ module.exports = {
     else if (viewerQty > 0 && targetQty === 0) compareEmoji = YOU_HAVE_EMOJI;
   }
 
-  const emoji = card.overrideemoji || generateVersion(card);
+  const emoji = card.emoji || generateVersion(card);
 
   const eraText = card.era ? ` ( ${card.era} )` : '';
 
