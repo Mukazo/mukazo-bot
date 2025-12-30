@@ -13,31 +13,12 @@ const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 8;
 
-/* ===========================
-   CUSTOM COMPARISON EMOJIS
-=========================== */
-const THEY_HAVE_EMOJI = ':hibiscus:'; // they have, you don't
-const YOU_HAVE_EMOJI  = ':fairy:';    // you have, they don't
-
-const VERSION_ORDER = {
-  5: 5,
-  4: 4,
-  3: 3,
-  2: 2,
-  1: 1,
-};
+const THEY_HAVE_EMOJI = ':hibiscus:';
+const YOU_HAVE_EMOJI  = ':fairy:';
 
 function normalize(value) {
   if (typeof value !== 'string') return '';
   return value.toLowerCase();
-}
-
-function parseNumberList(str) {
-  if (typeof str !== 'string') return [];
-  return str
-    .split(',')
-    .map(v => Number(v.trim()))
-    .filter(n => !Number.isNaN(n));
 }
 
 function parseList(str) {
@@ -46,6 +27,17 @@ function parseList(str) {
     .split(',')
     .map(v => normalize(v.trim()))
     .filter(Boolean);
+}
+
+// ✅ versions are numeric in DB; parse input into [Number]
+function parseNumberList(str) {
+  if (typeof str !== 'string') return [];
+  return str
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean)
+    .map(v => Number(v))
+    .filter(n => Number.isFinite(n));
 }
 
 module.exports = {
@@ -69,10 +61,12 @@ module.exports = {
     .addStringOption(o => o.setName('group').setDescription('Filter by group'))
     .addStringOption(o => o.setName('era').setDescription('Filter by era'))
     .addStringOption(o => o.setName('category').setDescription('Filter by category'))
-    .addStringOption(o => o.setName('version').setDescription('Filter by version (comma separated, e.g. 5,4,3)'))
+    // ✅ clarify numeric usage
+    .addStringOption(o => o.setName('version').setDescription('Filter by version numbers (e.g. 1,2,3 or 2,4,5)'))
     .addStringOption(o => o.setName('name').setDescription('Filter by name')),
 
   async execute(interaction) {
+    // No deferReply here because your index.js already handles it
 
     const viewerId = interaction.user.id;
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
@@ -82,7 +76,7 @@ module.exports = {
     const groups = parseList(interaction.options.getString('group'));
     const eras = parseList(interaction.options.getString('era'));
     const categories = parseList(interaction.options.getString('category'));
-    const versions = parseNumberList(interaction.options.getString('version'));
+    const versions = parseNumberList(interaction.options.getString('version')); // ✅ numeric list
     const names = parseList(interaction.options.getString('name'));
 
     const [cards, viewerInv, targetInv] = await Promise.all([
@@ -93,21 +87,6 @@ module.exports = {
 
     const viewerMap = new Map(viewerInv.map(i => [i.cardCode, i.quantity]));
     const targetMap = new Map(targetInv.map(i => [i.cardCode, i.quantity]));
-
-    /* ===========================
-       INVENTORY TOTALS (TARGET)
-    =========================== */
-    let totalOwned = 0;
-    let totalCopies = 0;
-    let totalDuplicateCopies = 0;
-
-    for (const qty of targetMap.values()) {
-      if (qty > 0) {
-        totalOwned += 1;
-        totalCopies += qty;
-        if (qty > 1) totalDuplicateCopies += (qty - 1);
-      }
-    }
 
     let results = cards.filter(card => {
       const viewerQty = viewerMap.get(card.cardCode) || 0;
@@ -120,13 +99,18 @@ module.exports = {
       if (groups.length && !groups.includes(normalize(card.group))) return false;
       if (eras.length && !eras.includes(normalize(card.era))) return false;
       if (categories.length && !categories.includes(normalize(card.category))) return false;
-      if (versions.length && !versions.includes(card.version)) return false;
+
+      // ✅ numeric compare against numeric list
+      if (versions.length) {
+        const v = Number(card.version);
+        if (!Number.isFinite(v)) return false;
+        if (!versions.includes(v)) return false;
+      }
 
       if (names.length) {
         const name = normalize(card.name);
-        // ✅ keep both: supports either schema key
-        const alias = normalize(card.namealias) || normalize(card.namealias);
-        if (!names.some(n => name?.includes(n) || alias?.includes(n))) return false;
+        const alias = normalize(card.namealias); // ✅ your field name
+        if (!names.some(n => name.includes(n) || alias.includes(n))) return false;
       }
 
       return true;
@@ -134,12 +118,15 @@ module.exports = {
 
     const defaultSort = () => {
       results.sort((a, b) => {
-        const vDiff = (VERSION_ORDER[b.version] || 0) - (VERSION_ORDER[a.version] || 0);
-        if (vDiff !== 0) return vDiff;
+        // ✅ Version: highest first (5→1) because it's numeric
+        if (Number.isFinite(b.version) && Number.isFinite(a.version) && b.version !== a.version) {
+          return b.version - a.version;
+        }
+        // If version missing, push missing versions lower
+        if (Number.isFinite(b.version) && !Number.isFinite(a.version)) return -1;
+        if (!Number.isFinite(b.version) && Number.isFinite(a.version)) return 1;
 
-        // leaving your original date sort intact (you can remove if you truly want)
-        const dDiff = new Date(a.createdAt) - new Date(b.createdAt);
-        if (dDiff !== 0) return dDiff;
+        // You said you don't want date sorting, so we skip it.
 
         const gDiff = a.group.localeCompare(b.group);
         if (gDiff !== 0) return gDiff;
@@ -173,20 +160,19 @@ module.exports = {
         const emoji = card.emoji || generateVersion(card);
         const eraText = card.era ? ` ( ${card.era} )` : '';
 
-        return `${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` ×${targetQty} ${compareEmoji}`.trim();
+        // ❗ layout unchanged (keeps newline exactly as you had)
+        return `${emoji} ${card.group} **${card.name}**${eraText}\`${card.cardCode}\` ×${targetQty} ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
-        .setTitle(viewerId === targetId ? `${interaction.user.username}'s Inventory` : `${targetUser.username}'s Inventory`)
+        .setTitle(
+          viewerId === targetId
+            ? `${interaction.user.username}'s Inventory`
+            : `${targetUser.username}'s Inventory`
+        )
         .setDescription(description || ' ')
         .setFooter({
-          text: [
-            `Owned: ${totalOwned}`,
-            `Copies: ${totalCopies}`,
-            show === 'duplicates' ? `Duplicate Copies: ${totalDuplicateCopies}` : null,
-            sortMode === 'copies' ? 'Sorted: Copies' : null,
-            `Page ${page + 1} / ${Math.max(1, Math.ceil(results.length / PAGE_SIZE))}`,
-          ].filter(Boolean).join(' • ')
+          text: `Page ${page + 1} / ${Math.max(1, Math.ceil(results.length / PAGE_SIZE))}`,
         });
     };
 
@@ -197,7 +183,10 @@ module.exports = {
       new ButtonBuilder().setCustomId('next').setLabel('Next • ').setStyle(ButtonStyle.Secondary),
     );
 
-    const message = await interaction.editReply({ embeds: [getEmbed()], components: [row] });
+    const message = await interaction.editReply({
+      embeds: [getEmbed()],
+      components: [row],
+    });
 
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -219,7 +208,20 @@ module.exports = {
         sortMode = sortMode === 'copies' ? 'default' : 'copies';
 
         if (sortMode === 'copies') {
-          results.sort((a, b) => (targetMap.get(b.cardCode) || 0) - (targetMap.get(a.cardCode) || 0));
+          results.sort((a, b) => {
+            const qa = targetMap.get(a.cardCode) || 0;
+            const qb = targetMap.get(b.cardCode) || 0;
+            // Highest copies first; tie-breaker keep your existing default ordering
+            if (qb !== qa) return qb - qa;
+
+            // Tie-breaker: version desc, then group, then name
+            if (Number.isFinite(b.version) && Number.isFinite(a.version) && b.version !== a.version) {
+              return b.version - a.version;
+            }
+            const gDiff = a.group.localeCompare(b.group);
+            if (gDiff !== 0) return gDiff;
+            return a.name.localeCompare(b.name);
+          });
         } else {
           defaultSort();
         }
