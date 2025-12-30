@@ -46,6 +46,7 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
+        const commandName = 'Summon';
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
         if (await cooldowns.isOnCooldown(userId, commandName)) {
           const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
