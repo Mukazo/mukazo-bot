@@ -72,7 +72,7 @@ module.exports = {
     const viewerId = interaction.user.id;
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
     const targetId = targetUser.id;
-    const show = interaction.options.getString('show');
+    const view = interaction.options.getString('view');
 
     const groups = parseList(interaction.options.getString('group'));
     const eras = parseList(interaction.options.getString('era'));
@@ -106,9 +106,9 @@ const targetKeys = targetUserDoc?.keys ?? viewerKeys;
       const viewerQty = viewerMap.get(card.cardCode) || 0;
       const targetQty = targetMap.get(card.cardCode) || 0;
 
-      if (show === 'owned' && targetQty <= 0) return false;
-      if (show === 'missing' && targetQty > 0) return false;
-      if (show === 'duplicates' && targetQty <= 1) return false;
+      if (view === 'owned' && targetQty <= 0) return false;
+      if (view === 'missing' && targetQty > 0) return false;
+      if (view === 'duplicates' && targetQty <= 1) return false;
 
       if (groups.length && !groups.includes(normalize(card.group))) return false;
       if (eras.length && !eras.includes(normalize(card.era))) return false;
@@ -175,7 +175,7 @@ const targetKeys = targetUserDoc?.keys ?? viewerKeys;
         const eraText = card.era ? ` ( ${card.era} )` : '';
 
         // ❗ layout unchanged (keeps newline exactly as you had)
-        return `${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
+        return `-# ${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
