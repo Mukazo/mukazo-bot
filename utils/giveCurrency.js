@@ -7,30 +7,45 @@ async function giveCurrency(userId, { wirlies = 0, keys = 0 }) {
     throw new TypeError('giveCurrency expects numeric wirlies and keys');
   }
 
-  // Fetch current values first (needed for key cap)
-  const user = await User.findOneAndUpdate(
-    { userId },
-    { $inc: { wirlies } },
-    { new: true, upsert: true }
-  );
+  // Fetch current balances
+  const user =
+    (await User.findOne({ userId }).lean()) ?? {
+      wirlies: 0,
+      keys: 0,
+    };
 
-  // Handle key cap
-  if (keys > 0) {
-    const keysToAdd = Math.max(
-      0,
-      Math.min(keys, MAX_KEYS - (user.keys ?? 0))
-    );
+  /* ===========================
+     WIRLIES (allow negative, floor at 0)
+  =========================== */
+  let finalWirliesChange = wirlies;
 
-    if (keysToAdd > 0) {
-      return await User.findOneAndUpdate(
-        { userId },
-        { $inc: { keys: keysToAdd } },
-        { new: true }
-      );
-    }
+  if (wirlies < 0) {
+    finalWirliesChange = Math.max(wirlies, -user.wirlies);
   }
 
-  return user;
+  /* ===========================
+     KEYS (allow negative + cap)
+  =========================== */
+  let finalKeysChange = keys;
+
+  if (keys > 0) {
+    finalKeysChange = Math.min(keys, MAX_KEYS - user.keys);
+  }
+
+  if (keys < 0) {
+    finalKeysChange = Math.max(keys, -user.keys);
+  }
+
+  return await User.findOneAndUpdate(
+    { userId },
+    {
+      $inc: {
+        wirlies: finalWirliesChange,
+        keys: finalKeysChange,
+      },
+    },
+    { new: true, upsert: true }
+  );
 }
 
 module.exports = {
