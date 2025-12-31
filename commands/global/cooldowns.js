@@ -3,10 +3,12 @@ const cooldownManager = require('../../utils/cooldownManager');
 
 const emojiMap = {
   Summon: '🔮',
+  Route: '🗺️',
 };
 
 const categories = {
   Cards: ['Summon'],
+  Money: ['Route'],
 };
 
 module.exports = {

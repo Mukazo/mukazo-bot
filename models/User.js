@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
   enabledCategories: {
   type: [String],
   default: [],
-}
+},
+wirlies: { type: Number, default: 250 },
 
 }, { timestamps: true });
 

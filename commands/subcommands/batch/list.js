@@ -34,10 +34,10 @@ module.exports = {
         .setDescription(
           pageItems.map(b =>
             `**${b.name}** \`(${b.code})\`
+            ${b.description || '*No description*'}
 > ${new Date(b.releaseAt).toDateString()}
 > Cards: \`${b.count}\`
-> Deactivates: ${b.deactivateCardsAt ? new Date(b.deactivateCardsAt).toDateString() : '*None*'}
-${b.description || '*No description*'}`
+> Deactivates: ${b.deactivateCardsAt ? new Date(b.deactivateCardsAt).toDateString() : '*None*'}`
           ).join('\n\n')
         );
 

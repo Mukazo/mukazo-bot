@@ -15,11 +15,11 @@ function buildMaintenanceEmbed(maintenance) {
     .setDescription(
       [
         '## Mukazo undergoing maintenance . . .',
-        '> In the meantime while Mukazo is on vacation, go take a relaxing break!',
+        '> In the meantime, go take a relaxing break!',
+        '',
         maintenance.reason
           ? `**Reason:** ${maintenance.reason}`
           : '**Reason:** Ongoing maintenance.',
-        '',
         maintenance.endsAt
           ? `**Estimated completion:** <t:${Math.floor(
               new Date(maintenance.endsAt).getTime() / 1000
@@ -72,6 +72,13 @@ if (maintenance?.active && !hasBypassRole) {
     embeds: [buildMaintenanceEmbed(maintenance)],
   });
 }
+
+if (interaction.commandName !== 'setup') {
+      const userExists = await User.exists({ userId: interaction.user.id });
+      if (!userExists) {
+        return interaction.reply({ content: 'Welcome to Mukazo! Make sure you do \`/setup\` before using any other commands.' });
+      }
+    }
 
 
   /* ===========================
