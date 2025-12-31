@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema({
   default: [],
 },
 wirlies: { type: Number, default: 1000 },
+dailystreak: {
+    count: { type: Number, default: 0},
+    lastClaim: { type: Date, default: null }
+  },
 
 }, { timestamps: true });
 

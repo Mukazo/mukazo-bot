@@ -81,11 +81,11 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
-        '## It\'s time to choose a route. . .',
-        'You embark on an adventure, where will you go?',
-        '> Each route offers different rewards, choose one wisely.',
+        '## It\'s time to choose',
+        'You embark on an adventure. . .',
         '',
-        '',
+        '> Each route offers different rewards',
+        '> Choose a route to see what you will discover!',
     ].join('\n'))
       .setColor(0x5865f2);
 

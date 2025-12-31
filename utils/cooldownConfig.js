@@ -28,5 +28,6 @@ module.exports = {
   { id: '1412071548881473598', percent: 40 }, // All Rounder
     ]
   },
+  Daily: 24 * 60 * 60 * 1000,
   // Add more as needed
 };
