@@ -67,13 +67,13 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
         '## The Expedition',
-        'You wandered into an enchanted forest',
-        'Sparkles and shimmer surrounds you',
-        'Graced by their presence, the fairies give',
-        `you <:Wirlies:1455924065972785375> **${reward.wirlies}**`,
+        'You wandered into an enchanted forest,',
+        'sparkles and shimmer surrounds you.',
+        'Graced by their presence, the fairies',
+        `give you <:Wirlies:1455924065972785375> **${reward.wirlies}**`,
         '',
         '',
-        `> **Daily Streak:** ${streak} days`,
+        `> **Daily Streak:** ${streak}`,
         `> __**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`
       ].join('\n'))
 
