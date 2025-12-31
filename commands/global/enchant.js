@@ -165,11 +165,11 @@ const pulls = shuffled.slice(0, 3);
           '## Enchanting Has Begun . . .',
           'As your key turns into particles, 3 cards appears!',
           '> With these options choose a card to claim',
+          `<:Key:1456059698582392852> Remaining: ${userAfterSpend.keys}`,
         ].join('\n')
       )
       .addFields(fields)
       .setImage('attachment://enchant.png')
-      .setFooter(`Keys Remaining: ${userAfterSpend.keys}`);
 
     /* ===========================
        BUTTONS (owner-only enforced in handler)
