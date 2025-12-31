@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   type: [String],
   default: [],
 },
-wirlies: { type: Number, default: 250 },
+wirlies: { type: Number, default: 1000 },
 
 }, { timestamps: true });
 

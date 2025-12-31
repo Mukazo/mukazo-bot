@@ -10,6 +10,7 @@ const {
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
+const User = require('../../models/User');
 
 const PAGE_SIZE = 8;
 
@@ -169,6 +170,9 @@ module.exports = {
             viewerId === targetId
             ? `# ${interaction.user.username}'s Inventory`
             : `# ${targetUser.username}'s Inventory`,
+            viewerId === targetId
+            ? `**Balance: <:Wirlies:1455924065972785375> ${interaction.user.wirlies}**`
+            : `**Balance: <:Wirlies:1455924065972785375> ${targetUser.wirlies}**`,
             '> When viewing another user\'s inventory, the following means:',
             '-# :hibiscus: = You do not own, they do | :fairy: = You do own, they do not',
             '',

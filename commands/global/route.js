@@ -82,7 +82,10 @@ module.exports = {
       .setDescription([
         '## It\'s time to choose . . .',
         '> You embark on an adventure, what route will you be taking this time?',
-        '> **Each route offers different rewards, choose carefully.**'
+        '',
+        '> **Each route offers different rewards, choose carefully.**',
+        '',
+        '',
     ].join('\n'))
       .setColor(0x5865f2);
 
@@ -122,12 +125,13 @@ module.exports = {
       const user = await giveWirlies(interaction.user.id, earned);
 
       const resultEmbed = new EmbedBuilder()
-        .setTitle(route.embed.title)
         .setDescription(
           [
+            `## ${route.embed.title}`,
             route.embed.description,
             '',
-            `**+${earned} <:Wirlies:1455924065972785375> Wirlies**`,
+            `**Earned:** + <:Wirlies:1455924065972785375> ${earned} Wirlies**`,
+            '',
             `**Balance:** <:Wirlies:1455924065972785375> ${user.wirlies}`,
           ].join('\n')
         )
@@ -146,7 +150,6 @@ module.exports = {
     collector.on('end', async (_, reason) => {
       if (reason !== 'user') {
         row.components[0].setDisabled(true);
-        await interaction.editReply({ components: [row] });
       }
     });
   },
