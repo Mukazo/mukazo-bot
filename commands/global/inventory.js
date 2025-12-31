@@ -175,7 +175,7 @@ const targetKeys = targetUserDoc?.keys ?? viewerKeys;
         const eraText = card.era ? ` ( ${card.era} )` : '';
 
         // ❗ layout unchanged (keeps newline exactly as you had)
-        return `-# ${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
+        return `${emoji} ${card.group} **${card.name}**\n> ${eraText}\`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
