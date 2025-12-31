@@ -109,6 +109,8 @@ module.exports = {
     const ownedMap = new Map(inventory.map(i => [i.cardCode, i.quantity]));
 
     let results = cards.filter(card => {
+      if (card.batch != null) return false;
+
       if (name) {
         const q = name.toLowerCase();
         const n = card.name?.toLowerCase() ?? '';

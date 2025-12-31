@@ -44,15 +44,15 @@ function parseNumberList(str) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('inventory')
-    .setDescription('View card inventories.')
+    .setDescription('View inventories.')
     .addStringOption(o =>
-      o.setName('show')
-        .setDescription('What to show')
+      o.setName('view')
+        .setDescription('options')
         .setRequired(true)
         .addChoices(
-          { name: 'Owned', value: 'owned' },
-          { name: 'Duplicates', value: 'duplicates' },
-          { name: 'Missing', value: 'missing' },
+          { name: 'Owned Cards', value: 'owned' },
+          { name: 'Duplicate Cards', value: 'duplicates' },
+          { name: 'Missing Cards', value: 'missing' },
         )
     )
     .addUserOption(o =>
@@ -98,6 +98,8 @@ const targetBalance = targetUserDoc?.wirlies ?? viewerBalance;
     const targetMap = new Map(targetInv.map(i => [i.cardCode, i.quantity]));
 
     let results = cards.filter(card => {
+      if (card.batch != null) return false;
+
       const viewerQty = viewerMap.get(card.cardCode) || 0;
       const targetQty = targetMap.get(card.cardCode) || 0;
 
