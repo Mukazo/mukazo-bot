@@ -6,6 +6,7 @@ const path = require('path');
 const handleButton = require('./handlers/buttons');
 const { EmbedBuilder } = require('discord.js');
 const Maintenance = require('./models/Maintenance');
+const User = require('../models/User');
 const MAINTENANCE_BYPASS_ROLE_ID = '1455908485425397842';
 
 
