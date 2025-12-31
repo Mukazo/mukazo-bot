@@ -15,7 +15,7 @@ function buildMaintenanceEmbed(maintenance) {
     .setColor('#f59e0b')
     .setDescription(
       [
-        '## Mukazo undergoing maintenance . . .',
+        '## Mukazo undergoes maintenance . . .',
         '> In the meantime, go take a relaxing break!',
         '',
         maintenance.reason
