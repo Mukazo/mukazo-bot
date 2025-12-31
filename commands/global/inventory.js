@@ -12,7 +12,7 @@ const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
 const User = require('../../models/User');
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 6;
 
 const THEY_HAVE_EMOJI = ':hibiscus:';
 const YOU_HAVE_EMOJI  = ':fairy:';
@@ -175,7 +175,7 @@ const targetKeys = targetUserDoc?.keys ?? viewerKeys;
         const eraText = card.era ? ` ( ${card.era} )` : '';
 
         // ❗ layout unchanged (keeps newline exactly as you had)
-        return `${emoji} ${card.group} **${card.name}**\n> ${eraText}\`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
+        return `${emoji} ${card.group} **${card.name}**\n> ${eraText}\` ${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
@@ -184,8 +184,8 @@ const targetKeys = targetUserDoc?.keys ?? viewerKeys;
             ? `# ${interaction.user.username}'s Inventory`
             : `# ${targetUser.username}'s Inventory`,
             viewerId === targetId
-            ? `**Balance: <:Wirlies:1455924065972785375> ${viewerBalance.toLocaleString()} &  <:Key:1456059698582392852> ${viewerKeys.toLocaleString()}**`
-            : `**Balance: <:Wirlies:1455924065972785375> ${targetBalance.toLocaleString()} &  <:Key:1456059698582392852> ${targetKeys.toLocaleString()}**`,
+            ? `### Balance: <:Wirlies:1455924065972785375> ${viewerBalance.toLocaleString()} &  <:Key:1456059698582392852> ${viewerKeys.toLocaleString()}`
+            : `### Balance: <:Wirlies:1455924065972785375> ${targetBalance.toLocaleString()} &  <:Key:1456059698582392852> ${targetKeys.toLocaleString()}`,
             '',
             description || ' '
         ].join('\n'))
