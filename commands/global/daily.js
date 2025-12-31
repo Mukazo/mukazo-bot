@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const cooldowns = require('../../utils/cooldownManager');
 const cooldownConfig = require('../../utils/cooldownConfig');
-const giveCurrency = require('../../utils/giveWirlies');
+const { giveCurrency } = require('../../utils/giveCurrency');
 const User = require('../../models/User'); // Adjust path if needed
 
 module.exports = {
@@ -47,8 +47,9 @@ module.exports = {
     // Calculate scaling reward
     // Calculate tiered reward scaling
     function calculateDailyReward(streak) {
-  const wirlies = 500 + Math.min(7500, Math.floor(streak / 10) * 250);  // +200 per 15 days, max +5000
-  return { wirlies };
+  const wirlies = 500 + Math.min(7500, Math.floor(streak / 10) * 250);  // +200 per 15 days, max +7500
+  const keys = 1 + Math.min(4, Math.floor(streak / 30));       // +1 per 60 days, max +5
+  return { wirlies, keys };
   }
 
     const reward = calculateDailyReward(streak);
@@ -59,7 +60,11 @@ module.exports = {
     await cooldowns.setCooldown(userId, commandName, cooldownDuration);
 
     // Grant currency
-    const user = await giveCurrency(userId, reward.wirlies);
+    const user = await giveCurrency(userId, {
+  wirlies: reward.wirlies,
+  keys: reward.keys,
+});
+
 
 
     // Response embed
@@ -74,7 +79,7 @@ module.exports = {
         '',
         '',
         `> **Daily Streak:** ${streak}`,
-        `> __**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`
+        `> __**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()} & 🗝️ ${user.keys}`
       ].join('\n'))
 
     return interaction.editReply({ embeds: [embed] });

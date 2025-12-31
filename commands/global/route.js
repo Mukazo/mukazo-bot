@@ -5,8 +5,8 @@ const {
   StringSelectMenuBuilder,
 } = require('discord.js');
 
-const giveWirlies = require('../../utils/giveWirlies');
 const cooldowns = require('../../utils/cooldownManager');
+const { giveCurrency } = require('../../utils/giveCurrency');
 
 const ROUTES = [
   {
@@ -16,6 +16,7 @@ const ROUTES = [
     emoji: '🌑',
     min: 140,
     max: 230,
+    keyChance: 0.20,
     embed: {
       title: 'Shady Alley',
       description: 'You navigated the dark alleys and struck a deal.',
@@ -29,6 +30,7 @@ const ROUTES = [
     emoji: '🏪',
     min: 170,
     max: 200,
+    keyChance: 0.23,
     embed: {
       title: 'Open Market',
       description: 'You worked the stalls and earned some wirlies.',
@@ -42,6 +44,7 @@ const ROUTES = [
     emoji: '🏙️',
     min: 120,
     max: 280,
+    keyChance: 0.18,
     embed: {
       title: 'Rooftops',
       description: 'You ran the rooftops and came back with a haul.',
@@ -122,20 +125,29 @@ module.exports = {
       if (!route) return;
 
       const earned = randomInt(route.min, route.max);
-      const user = await giveWirlies(interaction.user.id, earned);
+
+const gotKey = Math.random() < (route.keyChance ?? 0);
+
+const user = await giveCurrency(interaction.user.id, {
+  wirlies: earned,
+  keys: gotKey ? 1 : 0,
+});
+
 
       const resultEmbed = new EmbedBuilder()
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-        .setDescription(
-          [
-            `## ${route.embed.title}`,
-            route.embed.description,
-            '',
-            `**Earned: +  <:Wirlies:1455924065972785375> ${earned}**`,
-            '',
-            `__**Balance: **__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
-          ].join('\n')
-        )
+        .setDescription([
+  `## ${route.embed.title}`,
+  route.embed.description,
+  '',
+  `**Earned:**`,
+  `+ <:Wirlies:1455924065972785375> ${earned}`,
+  gotKey ? '+ 🗝️ 1' : null,
+  '',
+  `__**Balance:**__`,
+  `> <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
+  `> 🗝️ ${user.keys ?? 0}`,
+].filter(Boolean).join('\n'))
         .setColor(route.embed.color);
 
       row.components[0].setDisabled(true);

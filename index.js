@@ -169,7 +169,7 @@ client.on(Events.InteractionCreate, async interaction => {
     );
 
     await interaction.editReply({
-      content: `Card \`${cardCode}\` assigned to batch: \`${selected}\``,
+      content: `\`${cardCode}\` assigned to batch: \`${selected}\``,
       components: [],
     });
   } catch (err) {

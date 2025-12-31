@@ -5,10 +5,11 @@ const emojiMap = {
   Summon: '🔮',
   Route: '🗺️',
   Daily: '✨',
+  Enchant: '🪄',
 };
 
 const categories = {
-  Cards: ['Summon'],
+  Cards: ['Summon', 'Enchant'],
   Money: ['Daily','Route'],
 };
 
