@@ -1,13 +1,39 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Events, Collection, InteractionType } = require('discord.js');
+const { Client, GatewayIntentBits, Events, Collection, InteractionType, Partials } = require('discord.js');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const handleButton = require('./handlers/buttons');
+const { EmbedBuilder } = require('discord.js');
+const Maintenance = require('./models/Maintenance');
+const MAINTENANCE_BYPASS_ROLE_ID = '1455908485425397842';
+
+
+function buildMaintenanceEmbed(maintenance) {
+  return new EmbedBuilder()
+    .setColor('#f59e0b')
+    .setDescription(
+      [
+        '## Mukazo undergoing maintenance . . .',
+        '> In the meantime while Mukazo is on vacation, go take a relaxing break!',
+        maintenance.reason
+          ? `**Reason:** ${maintenance.reason}`
+          : '**Reason:** Ongoing maintenance.',
+        '',
+        maintenance.endsAt
+          ? `**Estimated completion:** <t:${Math.floor(
+              new Date(maintenance.endsAt).getTime() / 1000
+            )}:R>`
+          : '**Estimated completion:** Unknown',
+      ].join('\n')
+    );
+}
+
 
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
+  partials: [Partials.Channel, Partials.Message, Partials.Reaction, Partials.User]
 });
 
 client.commands = new Collection();
@@ -34,6 +60,19 @@ for (const folder of commandFolders) {
    SLASH COMMAND HANDLER
 =========================== */
 client.on(Events.InteractionCreate, async interaction => {
+
+  const maintenance = await Maintenance.findOne();
+
+const hasBypassRole =
+  interaction.inGuild() &&
+  interaction.member?.roles?.cache?.has(MAINTENANCE_BYPASS_ROLE_ID);
+
+if (maintenance?.active && !hasBypassRole) {
+  return interaction.reply({
+    embeds: [buildMaintenanceEmbed(maintenance)],
+  });
+}
+
 
   /* ===========================
      AUTOCOMPLETE HANDLER
