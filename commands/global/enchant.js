@@ -72,15 +72,11 @@ module.exports = {
 
     if (currentKeys < 1) {
       return interaction.editReply({
-        content: 'You need at least 🔑 **1** to use enchant.',
+        content: 'You need at least <:Key:1456059698582392852> **1** to use enchant.',
       });
     }
     // Spend 1 key (sink)
     await giveCurrency(ownerId, { keys: -1 });
-
-    /* ===========================
-   PULL 3 SPECIAL CARDS (POOL-BASED, boutique-style)
-=========================== */
 
 /* ===========================
    PULL 3 V5 SPECIAL CARDS (SIMPLE + GUARANTEED)
@@ -95,7 +91,7 @@ const pool = await Card.find({
 
 if (pool.length < 3) {
   // refund key
-  await giveCurrency(ownerId, { keys: 1 });
+  await giveCurrency(ownerId, { keys: -1 });
 
   return interaction.editReply({
     content: 'Not enough special cards are available to enchant right now.',

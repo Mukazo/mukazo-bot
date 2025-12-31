@@ -142,11 +142,11 @@ const user = await giveCurrency(interaction.user.id, {
   '\n',
   `**Earned:**`,
   `+ <:Wirlies:1455924065972785375> ${earned}`,
-  gotKey ? '+ 🗝️ 1' : null,
+  gotKey ? '+ <:Key:1456059698582392852> 1' : null,
   '\n',
   `__**Balance:**__`,
   `> <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
-  `> 🗝️ ${user.keys ?? 0}`,
+  `> <:Key:1456059698582392852> ${user.keys ?? 0}`,
 ].filter(Boolean).join('\n'))
         .setColor(route.embed.color);
 

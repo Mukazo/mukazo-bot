@@ -175,7 +175,7 @@ const targetKeys = targetUserDoc?.keys ?? viewerKeys;
         const eraText = card.era ? ` ( ${card.era} )` : '';
 
         // ❗ layout unchanged (keeps newline exactly as you had)
-        return `-# ${emoji} ${card.group} **${card.name}**${eraText} \`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
+        return `-# ${emoji} ${card.group} **${card.name}**${eraText}\n\`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
@@ -184,10 +184,8 @@ const targetKeys = targetUserDoc?.keys ?? viewerKeys;
             ? `# ${interaction.user.username}'s Inventory`
             : `# ${targetUser.username}'s Inventory`,
             viewerId === targetId
-            ? `**Balance: <:Wirlies:1455924065972785375> ${viewerBalance.toLocaleString()} &  🗝️ ${viewerKeys.toLocaleString()}**`
-            : `**Balance: <:Wirlies:1455924065972785375> ${targetBalance.toLocaleString()} &  🗝️ ${targetKeys.toLocaleString()}**`,
-            '> When viewing another user\'s inventory, the following means:',
-            '-# :hibiscus: = You do not own, they do | :fairy: = You do own, they do not',
+            ? `**Balance: <:Wirlies:1455924065972785375> ${viewerBalance.toLocaleString()} &  <:Key:1456059698582392852> ${viewerKeys.toLocaleString()}**`
+            : `**Balance: <:Wirlies:1455924065972785375> ${targetBalance.toLocaleString()} &  <:Key:1456059698582392852> ${targetKeys.toLocaleString()}**`,
             '',
             description || ' '
         ].join('\n'))

@@ -79,7 +79,7 @@ module.exports = {
         '',
         '',
         `> **Daily Streak:** ${streak}`,
-        `> __**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()} & 🗝️ ${user.keys}`
+        `> __**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()} & <:Key:1456059698582392852> ${user.keys}`
       ].join('\n'))
 
     return interaction.editReply({ embeds: [embed] });
