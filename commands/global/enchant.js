@@ -9,8 +9,7 @@ const {
 
 const Canvas = require('canvas');
 
-const randomCardFromVersion = require('../../utils/randomCardFromVersion');
-const pickVersion = require('../../utils/versionPicker');
+const Card = require('../../models/Card');
 const generateVersion = require('../../utils/generateVersion');
 const cooldowns = require('../../utils/cooldownManager');
 
@@ -80,33 +79,31 @@ module.exports = {
     await giveCurrency(ownerId, { keys: -1 });
 
     /* ===========================
-       PULL 3 SPECIAL CARDS (RETRY)
-    =========================== */
-    const pulls = [];
-    const MAX_ATTEMPTS = 60; // higher because filter is strict
-    let attempts = 0;
+   PULL 3 SPECIAL CARDS (POOL-BASED, boutique-style)
+=========================== */
 
-    while (pulls.length < 3 && attempts < MAX_ATTEMPTS) {
-      attempts++;
+/* ===========================
+   PULL 3 V5 SPECIAL CARDS (SIMPLE + GUARANTEED)
+=========================== */
 
-      const version = pickVersion();
-      const card = await randomCardFromVersion(version, ownerId);
-      if (!card) continue;
+const pool = await Card.find({
+  active: true,
+  batch: null, // hide unreleased
+  version: 5,
+  category: { $in: ['monthlies', 'events', 'specials'] },
+}).lean();
 
-      // ONLY monthlies/events/specials
-      if (!ENCHANT_CATEGORIES.has(card.category)) continue;
+if (pool.length < 3) {
+  // refund key
+  await giveCurrency(ownerId, { keys: 1 });
 
-      pulls.push(card);
-    }
+  return interaction.editReply({
+    content: 'Not enough special cards are available to enchant right now.',
+  });
+}
 
-    if (pulls.length < 3) {
-      // refund key if it failed to produce 3 options
-      await giveCurrency(ownerId, { keys: 1 });
-
-      return interaction.editReply({
-        content: 'Not enough special cards available to enchant right now.',
-      });
-    }
+const shuffled = pool.sort(() => 0.5 - Math.random());
+const pulls = shuffled.slice(0, 3);
 
     /* ===========================
        CHECK OWNERSHIP (for grayscale)

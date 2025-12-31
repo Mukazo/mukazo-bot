@@ -139,11 +139,11 @@ const user = await giveCurrency(interaction.user.id, {
         .setDescription([
   `## ${route.embed.title}`,
   route.embed.description,
-  '',
+  '\n',
   `**Earned:**`,
   `+ <:Wirlies:1455924065972785375> ${earned}`,
   gotKey ? '+ 🗝️ 1' : null,
-  '',
+  '\n',
   `__**Balance:**__`,
   `> <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
   `> 🗝️ ${user.keys ?? 0}`,
