@@ -59,7 +59,8 @@ module.exports = {
     await cooldowns.setCooldown(userId, commandName, cooldownDuration);
 
     // Grant currency
-    const user = await giveCurrency(userId, reward);
+    const user = await giveCurrency(userId, reward.wirlies);
+
 
     // Response embed
     const embed = new EmbedBuilder()
