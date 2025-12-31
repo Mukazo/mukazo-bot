@@ -76,7 +76,8 @@ module.exports = {
       });
     }
     // Spend 1 key (sink)
-    await giveCurrency(ownerId, { keys: -1 });
+    const userAfterSpend = await giveCurrency(ownerId, { keys: -1 });
+
 
 /* ===========================
    PULL 3 V5 SPECIAL CARDS (SIMPLE + GUARANTEED)
@@ -91,7 +92,7 @@ const pool = await Card.find({
 
 if (pool.length < 3) {
   // refund key
-  await giveCurrency(ownerId, { keys: -1 });
+  await giveCurrency(ownerId, { keys: 1 });
 
   return interaction.editReply({
     content: 'Not enough special cards are available to enchant right now.',
@@ -167,7 +168,8 @@ const pulls = shuffled.slice(0, 3);
         ].join('\n')
       )
       .addFields(fields)
-      .setImage('attachment://enchant.png');
+      .setImage('attachment://enchant.png')
+      .setFooter(`Keys Remaining: ${userAfterSpend.keys}`);
 
     /* ===========================
        BUTTONS (owner-only enforced in handler)
