@@ -86,6 +86,14 @@ module.exports = {
       CardInventory.find({ userId: targetId }).lean(),
     ]);
 
+    const [viewerUserDoc, targetUserDoc] = await Promise.all([
+  User.findOne({ userId: viewerId }).lean(),
+  viewerId === targetId ? null : User.findOne({ userId: targetId }).lean(),
+]);
+
+const viewerBalance = viewerUserDoc?.wirlies ?? 0;
+const targetBalance = targetUserDoc?.wirlies ?? viewerBalance;
+
     const viewerMap = new Map(viewerInv.map(i => [i.cardCode, i.quantity]));
     const targetMap = new Map(targetInv.map(i => [i.cardCode, i.quantity]));
 
@@ -171,8 +179,8 @@ module.exports = {
             ? `# ${interaction.user.username}'s Inventory`
             : `# ${targetUser.username}'s Inventory`,
             viewerId === targetId
-            ? `**Balance: <:Wirlies:1455924065972785375> ${interaction.user.wirlies}**`
-            : `**Balance: <:Wirlies:1455924065972785375> ${targetUser.wirlies}**`,
+            ? `**Balance: <:Wirlies:1455924065972785375> ${viewerBalance.toLocaleString()}**`
+            : `**Balance: <:Wirlies:1455924065972785375> ${targetBalance.toLocaleString()}**`,
             '> When viewing another user\'s inventory, the following means:',
             '-# :hibiscus: = You do not own, they do | :fairy: = You do own, they do not',
             '',

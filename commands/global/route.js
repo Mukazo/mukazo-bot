@@ -12,10 +12,10 @@ const ROUTES = [
   {
     id: 'alley',
     label: 'Shady Alley',
-    description: 'Risky, but profitable.',
+    description: 'Creep through the dangerous alley',
     emoji: '🌑',
-    min: 40,
-    max: 120,
+    min: 140,
+    max: 230,
     embed: {
       title: 'Shady Alley',
       description: 'You navigated the dark alleys and struck a deal.',
@@ -25,10 +25,10 @@ const ROUTES = [
   {
     id: 'market',
     label: 'Open Market',
-    description: 'Safe and steady.',
+    description: 'Navigate through the booming market',
     emoji: '🏪',
-    min: 20,
-    max: 60,
+    min: 170,
+    max: 200,
     embed: {
       title: 'Open Market',
       description: 'You worked the stalls and earned some wirlies.',
@@ -38,10 +38,10 @@ const ROUTES = [
   {
     id: 'rooftops',
     label: 'Rooftops',
-    description: 'High risk, high reward.',
+    description: 'Scavenge through the city rooftops',
     emoji: '🏙️',
-    min: 60,
-    max: 160,
+    min: 120,
+    max: 280,
     embed: {
       title: 'Rooftops',
       description: 'You ran the rooftops and came back with a haul.',
@@ -132,7 +132,7 @@ module.exports = {
             '',
             `**Earned:** + <:Wirlies:1455924065972785375> ${earned} Wirlies**`,
             '',
-            `**Balance:** <:Wirlies:1455924065972785375> ${user.wirlies}`,
+            `**Balance:** <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
           ].join('\n')
         )
         .setColor(route.embed.color);
