@@ -9,7 +9,7 @@ const emojiMap = {
 
 const categories = {
   Cards: ['Summon'],
-  Money: ['Daily, Route'],
+  Money: ['Daily','Route'],
 };
 
 module.exports = {
