@@ -184,7 +184,6 @@ const targetBalance = targetUserDoc?.wirlies ?? viewerBalance;
             '> When viewing another user\'s inventory, the following means:',
             '-# :hibiscus: = You do not own, they do | :fairy: = You do own, they do not',
             '',
-            '',
             description || ' '
         ].join('\n'))
         .setFooter({

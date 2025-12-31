@@ -79,11 +79,11 @@ module.exports = {
     const routes = pickRandomRoutes(3);
 
     const embed = new EmbedBuilder()
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
-        '## It\'s time to choose . . .',
+        '## It\'s time to choose a route. . .',
         '> You embark on an adventure, what route will you be taking this time?',
-        '',
-        '> **Each route offers different rewards, choose carefully.**',
+        '> **Each route offers different rewards, choose one wisely.**',
         '',
         '',
     ].join('\n'))
@@ -125,14 +125,15 @@ module.exports = {
       const user = await giveWirlies(interaction.user.id, earned);
 
       const resultEmbed = new EmbedBuilder()
+        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
         .setDescription(
           [
             `## ${route.embed.title}`,
             route.embed.description,
             '',
-            `**Earned:** + <:Wirlies:1455924065972785375> ${earned} Wirlies**`,
+            `**Earned: + <:Wirlies:1455924065972785375> ${earned} Wirlies**`,
             '',
-            `**Balance:** <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
+            `__**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
           ].join('\n')
         )
         .setColor(route.embed.color);
@@ -141,7 +142,6 @@ module.exports = {
 
       await interaction.editReply({
         embeds: [resultEmbed],
-        components: [row],
       });
 
       collector.stop();
