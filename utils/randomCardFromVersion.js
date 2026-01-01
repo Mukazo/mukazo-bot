@@ -11,12 +11,23 @@ async function getRandomCardFromVersion(version, userId) {
   const now = new Date();
 
 // Auto-activate cards from released batches
-const releasedBatches = await Batch.find({ releaseAt: { $lte: now } }).lean();
+const releasedBatches = await Batch.find({
+  releaseAt: { $lte: now }
+}).lean();
+
 const releasedCodes = releasedBatches.map(b => b.code);
+
 if (releasedCodes.length > 0) {
   await Card.updateMany(
-    { batch: { $in: releasedCodes }, active: false },
-    { $set: { active: true } }
+    {
+      batch: { $in: releasedCodes },
+    },
+    {
+      $set: {
+        active: true,
+        batch: null,
+      },
+    }
   );
 }
 
