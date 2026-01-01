@@ -2,9 +2,9 @@
 
 // Hardcoded rarity weights
 const VERSION_WEIGHTS = {
-  'V1': 35,
+  'V1': 36,
   'V2': 29,
-  'V3': 21,
+  'V3': 20,
   'V4': 13,
   'V5': 2,
 };
