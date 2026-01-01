@@ -132,7 +132,28 @@ module.exports = {
       wirlies,
     });
 
-    const pageResults = results.slice(0, PAGE_SIZE);
+    // ── WIRLIES ONLY ─────────────────────────────
+if (results.length === 0 && wirlies > 0) {
+  const embed = new EmbedBuilder()
+    .setDescription(`## Confirm Gift\n + <:Wirlies:1455924065972785375> ${wirlies.toLocaleString()}`);
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`gift:confirm:${session.id}`)
+      .setLabel('Confirm')
+      .setStyle(ButtonStyle.Success),
+
+    new ButtonBuilder()
+      .setCustomId(`gift:cancel:${session.id}`)
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Danger)
+  );
+
+  return interaction.editReply({
+    embeds: [embed],
+    components: [row],
+  });
+}
 
     const attachment =
       pageResults.length > 0

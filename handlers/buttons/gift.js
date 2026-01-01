@@ -230,7 +230,7 @@ async function renderSummary(interaction, session, page, pingRecipient) {
   if (session.wirlies > 0 && page === 0) {
     embed.addFields({
       name: 'Wirlies',
-      value: `+${session.wirlies.toLocaleString()}`,
+      value: `+ <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`,
       inline: true,
     });
   }
