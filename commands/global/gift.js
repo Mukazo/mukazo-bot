@@ -63,7 +63,7 @@ module.exports = {
 
     // Explicit
     .addStringOption(o =>
-      o.setName('cardcode').setDescription('CARDCODE=+N')
+      o.setName('cardcode').setDescription('CARDCODE=+N, CARDCODE2=+N')
     )
 
     // Random
@@ -74,6 +74,7 @@ module.exports = {
     .addStringOption(o =>
       o
         .setName('mode')
+        .setDescription('Select gifting type')
         .addChoices(
           { name: 'All', value: 'all' },
           { name: 'Duplicates', value: 'duplicates' }
@@ -81,16 +82,16 @@ module.exports = {
     )
 
     // Filters
-    .addStringOption(o => o.setName('name'))
-    .addStringOption(o => o.setName('group'))
-    .addStringOption(o => o.setName('era'))
-    .addStringOption(o => o.setName('category'))
-    .addStringOption(o => o.setName('version'))
+    .addStringOption(o => o.setName('name').setDescription('Names of cards'))
+    .addStringOption(o => o.setName('group').setDescription('Groups of cards'))
+    .addStringOption(o => o.setName('era').setDescription('Eras of cards'))
+    .addStringOption(o => o.setName('category').setDescription('Categories of cards'))
+    .addStringOption(o => o.setName('version').setDescription('Version filter (eg. 1,3,5)'))
 
     // Excludes
-    .addStringOption(o => o.setName('exclude_name'))
-    .addStringOption(o => o.setName('exclude_group'))
-    .addStringOption(o => o.setName('exclude_era')),
+    .addStringOption(o => o.setName('exclude_name').setDescription('Exclude names'))
+    .addStringOption(o => o.setName('exclude_group').setDescription('Exclude grups'))
+    .addStringOption(o => o.setName('exclude_era').setDescription('Exclude eras')),
 
   async execute(interaction) {
     const giverId = interaction.user.id;
