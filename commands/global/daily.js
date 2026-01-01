@@ -75,7 +75,7 @@ module.exports = {
         'You wandered into an enchanted forest,',
         'sparkles and shimmer surrounds you.',
         'Graced by their presence, the fairies',
-        `give you <:Wirlies:1455924065972785375> **${reward.wirlies}**`,
+        `give you <:Wirlies:1455924065972785375> **${reward.wirlies}** & <:Key:1456059698582392852> ${reward.keys}`,
         '',
         '',
         `> **Daily Streak:** ${streak}`,
