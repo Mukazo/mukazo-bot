@@ -236,6 +236,7 @@ async function renderSummary(interaction, session, page, pingRecipient) {
   const map = new Map(cards.map(c => [c.cardCode, c]));
 
   const embed = new EmbedBuilder()
+    .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
     .setTitle('Gift Summary')
     .setDescription(
       slice

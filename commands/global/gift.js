@@ -135,18 +135,19 @@ module.exports = {
     // ── WIRLIES ONLY ─────────────────────────────
 if (results.length === 0 && wirlies > 0) {
   const embed = new EmbedBuilder()
+    .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
     .setDescription(`## Confirm Gift\n### + <:Wirlies:1455924065972785375> ${wirlies.toLocaleString()}`);
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`gift:confirm:${session.id}`)
       .setLabel('Confirm')
-      .setStyle(ButtonStyle.Primary),
+      .setStyle(ButtonStyle.Secondary),
 
     new ButtonBuilder()
       .setCustomId(`gift:cancel:${session.id}`)
       .setLabel('Cancel')
-      .setStyle(ButtonStyle.Primary)
+      .setStyle(ButtonStyle.Secondary)
   );
 
   return interaction.editReply({
@@ -161,6 +162,7 @@ if (results.length === 0 && wirlies > 0) {
         : null;
 
     const embed = new EmbedBuilder()
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setTitle('Confirm Gift')
       .setDescription(
         pageResults
