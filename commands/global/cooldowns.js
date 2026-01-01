@@ -2,11 +2,11 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const cooldownManager = require('../../utils/cooldownManager');
 
 const emojiMap = {
-  Summon: '🔮',
+  Summon: '',
   Claim: '',
-  Route: '🗺️',
-  Daily: '✨',
-  Enchant: '🪄',
+  Route: '',
+  Daily: '',
+  Enchant: '',
 };
 
 const categories = {
