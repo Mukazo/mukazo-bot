@@ -32,6 +32,6 @@ async execute(interaction) {
       }
 
       await Batch.create({ code, name, description, releaseAt, deactivateCardsAt });
-      return interaction.reply({ content: `Batch \`${name}\` created!`});
+      return interaction.editReply({ content: `Batch \`${name}\` created!`});
     }
   };
