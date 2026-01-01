@@ -1,6 +1,7 @@
 const CardInventory = require('../models/CardInventory');
 const User = require('../models/User');
 
+
 module.exports = async function giftWorker(job) {
   const { from, to, cards, wirlies } = job.data;
 

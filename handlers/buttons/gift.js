@@ -6,7 +6,7 @@ const {
   AttachmentBuilder,
 } = require('discord.js');
 const Canvas = require('canvas');
-const queue = require('../../queue');
+const { enqueueInteraction } = require('../../queue');
 
 const GiftSession = require('../../models/GiftSession');
 const Card = require('../../models/Card');
@@ -71,12 +71,12 @@ module.exports = async function giftButtonHandler(interaction) {
       session.page * PAGE_SIZE + PAGE_SIZE
     );
 
-    await queue.add('gift', {
-      from: session.userId,
-      to: session.targetId,
-      cards: slice,
-      wirlies: session.wirlies,
-    });
+    await enqueueInteraction('gift', {
+  from: session.userId,
+  to: session.targetId,
+  cards: slice,
+  wirlies: session.wirlies,
+});
 
     await GiftSession.deleteOne({ _id: sessionId });
 
