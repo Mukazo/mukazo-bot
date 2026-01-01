@@ -16,7 +16,7 @@ const releasedCodes = releasedBatches.map(b => b.code);
 if (releasedCodes.length > 0) {
   await Card.updateMany(
     { batch: { $in: releasedCodes }, active: false },
-    { $set: { active: true } }
+    { $set: { active: true, batch: null } }
   );
 }
 
