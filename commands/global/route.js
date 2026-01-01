@@ -16,7 +16,7 @@ const ROUTES = [
     emoji: '🌑',
     min: 140,
     max: 230,
-    keyChance: 0.20,
+    keyChance: 0.24,
     embed: {
       title: 'Shady Alley',
       description: 'You navigated the dark alleys and struck a deal.',
@@ -30,7 +30,7 @@ const ROUTES = [
     emoji: '🏪',
     min: 170,
     max: 200,
-    keyChance: 0.23,
+    keyChance: 0.27,
     embed: {
       title: 'Open Market',
       description: 'You worked the stalls and earned some wirlies.',
@@ -44,7 +44,7 @@ const ROUTES = [
     emoji: '🏙️',
     min: 120,
     max: 280,
-    keyChance: 0.18,
+    keyChance: 0.20,
     embed: {
       title: 'Rooftops',
       description: 'You ran the rooftops and came back with a haul.',

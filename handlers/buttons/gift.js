@@ -41,7 +41,8 @@ async function renderCardCanvas(cards) {
 =========================== */
 function formatInventoryLine(card, qty) {
   const emoji =
-    card.emoji ||
+    card.overrideemoji ||
+    card.versionemoji ||
     generateVersion(card);
 
   return (
@@ -57,8 +58,7 @@ module.exports = async function giftButtonHandler(interaction) {
 
   await interaction.deferUpdate();
 
-  const [, action, sessionId, pageStr] =
-    interaction.customId.split(':');
+  const [, action, sessionId, pageStr] = interaction.customId.split(':');
   const page = Number(pageStr) || 0;
 
   const session = await GiftSession.findById(sessionId);
@@ -68,15 +68,15 @@ module.exports = async function giftButtonHandler(interaction) {
       components: [],
     });
   }
-  // Only sender can interact
+
   if (interaction.user.id !== session.userId) {
     return interaction.followUp({
       content: 'Only the sender can interact with this gift.',
-      flags: 64, // Ephemeral
+      flags: 64,
     });
   }
 
-  /* ===========================
+  /*===========================
      CANCEL
   =========================== */
   if (action === 'cancel') {
@@ -91,15 +91,44 @@ module.exports = async function giftButtonHandler(interaction) {
   }
 
   /* ===========================
-     CONFIRM → SUMMARY PAGE 0
+     CONFIRM
   =========================== */
   if (action === 'confirm') {
+
+    // 🟡 WIRLIES ONLY
+    if (session.cards.length === 0 && session.wirlies > 0) {
+      await enqueueInteraction('gift', {
+        from: session.userId,
+        to: session.targetId,
+        cards: [],
+        wirlies: session.wirlies,
+      });
+
+      await GiftSession.deleteOne({ _id: sessionId });
+
+      await interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              `## Gift Summary\n### + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
+            ),
+        ],
+        components: [],
+      });
+
+      await interaction.followUp({
+        content: `-# <@${session.targetId}> You received <:Wirlies:1455924065972785375> Wirlies!`,
+      });
+
+      return;
+    }
+
+    // 🔵 CARDS (WITH OPTIONAL WIRLIES)
     const slice = session.cards.slice(
       session.page * PAGE_SIZE,
       session.page * PAGE_SIZE + PAGE_SIZE
     );
 
-    // 1️⃣ enqueue worker (authoritative)
     await enqueueInteraction('gift', {
       from: session.userId,
       to: session.targetId,
@@ -107,7 +136,6 @@ module.exports = async function giftButtonHandler(interaction) {
       wirlies: session.wirlies,
     });
 
-    // reset page for summary
     session.page = 0;
     await session.save();
 
@@ -140,9 +168,7 @@ module.exports = async function giftButtonHandler(interaction) {
       .setTitle('Confirm Gift')
       .setDescription(
         ordered
-          .map((card, i) =>
-            formatInventoryLine(card, slice[i].qty)
-          )
+          .map((card, i) => formatInventoryLine(card, slice[i].qty))
           .join('\n\n')
       )
       .setFooter({
@@ -210,7 +236,7 @@ async function renderSummary(interaction, session, page, pingRecipient) {
   const map = new Map(cards.map(c => [c.cardCode, c]));
 
   const embed = new EmbedBuilder()
-    .setTitle('Gifting Summary')
+    .setTitle('Gift Summary')
     .setDescription(
       slice
         .map(s => {
