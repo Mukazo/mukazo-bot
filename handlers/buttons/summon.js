@@ -24,9 +24,10 @@ module.exports = async function summonButtonHandler(interaction) {
 
   const session = await SummonSession.findOne({ messageId });
   if (!session) {
-    return interaction.editReply({
+    return interaction.followUp({
       content: 'This summon has expired.',
       components: [],
+      ephemeral: true,
     });
   }
 
