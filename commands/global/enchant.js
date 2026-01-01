@@ -85,7 +85,6 @@ module.exports = {
 
 const pool = await Card.find({
   active: true,
-  batch: null, // hide unreleased
   version: 5,
   category: { $in: ['monthlies', 'events', 'specials'] },
 }).lean();
