@@ -10,8 +10,9 @@ const Canvas = require('canvas');
 
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
-const generateVersion = require('../../utils/generateVersion');
 const User = require('../../models/User');
+const GiftSession = require('../../models/GiftSession');
+const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 3;
 
@@ -76,7 +77,6 @@ module.exports = {
   async execute(interaction) {
     const senderId = interaction.user.id;
     const target = interaction.options.getUser('user');
-
     const cardcodeRaw = interaction.options.getString('cardcode');
     const wirlies = interaction.options.getInteger('wirlies') ?? 0;
 
@@ -86,9 +86,6 @@ module.exports = {
       });
     }
 
-    /* ===========================
-       Load data
-    =========================== */
     const [inventory, cards, sender] = await Promise.all([
       CardInventory.find({ userId: senderId }).lean(),
       Card.find({ batch: null }).lean(),
@@ -98,9 +95,6 @@ module.exports = {
     const invMap = new Map(inventory.map(i => [i.cardCode, i.quantity]));
     const cardMap = new Map(cards.map(c => [c.cardCode, c]));
 
-    /* ===========================
-       Parse & validate cards
-    =========================== */
     const parsed = cardcodeRaw ? parseCardCodes(cardcodeRaw) : [];
     const results = [];
 
@@ -109,9 +103,7 @@ module.exports = {
       const card = cardMap.get(cardCode);
 
       if (!card) {
-        return interaction.editReply({
-          content: `Card not found: ${cardCode}`,
-        });
+        return interaction.editReply({ content: `Card not found: ${cardCode}` });
       }
 
       if (owned < qty) {
@@ -129,77 +121,76 @@ module.exports = {
       });
     }
 
-    /* ===========================
-       Pagination (preview)
-    =========================== */
-    const page = 0;
+    // Create session
+    const session = await GiftSession.create({
+      userId: senderId,
+      targetId: target.id,
+      cards: results.map(r => ({
+        cardCode: r.card.cardCode,
+        qty: r.qty,
+      })),
+      wirlies,
+    });
+
     const pageResults = results.slice(0, PAGE_SIZE);
-    const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
 
     const attachment =
       pageResults.length > 0
         ? await renderCardCanvas(pageResults.map(r => r.card))
         : null;
 
-    /* ===========================
-       Embed (grid-style)
-    =========================== */
     const embed = new EmbedBuilder()
       .setTitle('Confirm Gift')
       .setDescription(
         pageResults
-          .map(
-            r =>
+          .map(r => {
+            const emoji =
+              r.card.emoji ||
+              generateVersion(r.card);
+            return (
               `**${r.card.group}**\n` +
-              `${r.card.emoji || r.card.versionemoji} ${r.card.name}\n` +
+              `${emoji} ${r.card.name}\n` +
               `\`${r.card.cardCode}\` × **${r.qty}**`
-          )
+            );
+          })
           .join('\n\n')
       )
-      .setFooter({ text: `Page ${page + 1} / ${totalPages}` });
+      .setFooter({
+        text: `Page 1 / ${Math.max(
+          1,
+          Math.ceil(results.length / PAGE_SIZE)
+        )}`,
+      });
 
     if (attachment) embed.setImage('attachment://gift.png');
 
-    /* ===========================
-       Buttons (Prev / Confirm / Cancel / Next)
-    =========================== */
-    const payload = encodeURIComponent(
-      JSON.stringify({
-        cards: results.map(r => ({
-          cardCode: r.card.cardCode,
-          qty: r.qty,
-        })),
-        wirlies,
-      })
-    );
-
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`gift:page:${target.id}:${page - 1}:${payload}`)
+        .setCustomId(`gift:page:${session.id}:0`)
         .setLabel('◀')
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(page === 0),
+        .setDisabled(true),
 
       new ButtonBuilder()
-        .setCustomId(`gift:confirm:${target.id}:${page}:${payload}`)
+        .setCustomId(`gift:confirm:${session.id}`)
         .setLabel('Confirm')
         .setStyle(ButtonStyle.Success),
 
       new ButtonBuilder()
-        .setCustomId('gift:cancel')
+        .setCustomId(`gift:cancel:${session.id}`)
         .setLabel('Cancel')
         .setStyle(ButtonStyle.Danger),
 
       new ButtonBuilder()
-        .setCustomId(`gift:page:${target.id}:${page + 1}:${payload}`)
+        .setCustomId(`gift:page:${session.id}:1`)
         .setLabel('▶')
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(page + 1 >= totalPages)
+        .setDisabled(results.length <= PAGE_SIZE)
     );
 
     await interaction.editReply({
       embeds: [embed],
-      components: results.length ? [row] : [],
+      components: [row],
       files: attachment ? [attachment] : [],
     });
   },
