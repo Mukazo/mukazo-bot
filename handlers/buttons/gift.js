@@ -181,7 +181,7 @@ module.exports = async function giftButtonHandler(interaction) {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`gift:page:${sessionId}:${page - 1}`)
-        .setLabel('◀')
+        .setLabel(' • Previous')
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(page === 0),
 
@@ -197,7 +197,7 @@ module.exports = async function giftButtonHandler(interaction) {
 
       new ButtonBuilder()
         .setCustomId(`gift:page:${sessionId}:${page + 1}`)
-        .setLabel('▶')
+        .setLabel('Next • ')
         .setStyle(ButtonStyle.Secondary)
         .setDisabled((page + 1) * PAGE_SIZE >= session.cards.length)
     );
@@ -265,13 +265,13 @@ async function renderSummary(interaction, session, page, pingRecipient) {
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`gift:summary:${session.id}:${page - 1}`)
-      .setLabel('◀')
+      .setLabel(' • Previous')
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(page === 0),
 
     new ButtonBuilder()
       .setCustomId(`gift:summary:${session.id}:${page + 1}`)
-      .setLabel('▶')
+      .setLabel('Next • ')
       .setStyle(ButtonStyle.Secondary)
       .setDisabled((page + 1) * PAGE_SIZE >= session.cards.length)
   );

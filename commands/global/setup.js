@@ -210,13 +210,13 @@ module.exports = {
       return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('prev')
-          .setLabel('⬅')
+          .setLabel(' • Previous')
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page === 0),
 
         new ButtonBuilder()
           .setCustomId('next')
-          .setLabel('➡')
+          .setLabel('Next • ')
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page === SELECTABLE_CATEGORIES.length - 1),
 

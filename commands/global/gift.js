@@ -190,7 +190,7 @@ if (results.length === 0 && wirlies > 0) {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`gift:page:${session.id}:0`)
-        .setLabel('◀')
+        .setLabel(' • Previous')
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(true),
 
@@ -206,7 +206,7 @@ if (results.length === 0 && wirlies > 0) {
 
       new ButtonBuilder()
         .setCustomId(`gift:page:${session.id}:1`)
-        .setLabel('▶')
+        .setLabel('Next • ')
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(results.length <= PAGE_SIZE)
     );
