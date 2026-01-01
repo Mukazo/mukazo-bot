@@ -20,6 +20,12 @@ const Series = require('../../models/Series');
 
 // Always enabled
 const AUTO_CATEGORIES = ['monthlies', 'events', 'specials'];
+const REQUIRED_CATEGORIES = [
+  'entertainment',
+  'video games',
+  'animanga',
+  'music',
+];
 
 // User-selectable
 const SELECTABLE_CATEGORIES = [
@@ -158,6 +164,7 @@ module.exports = {
             `# ${CATEGORY_LABELS[category]} Cards`,
             CATEGORY_DESCRIPTIONS[category] ?? '',
             '',
+            `To enable a category click the "Toggle" button`,
             `**Status:** ${enabled ? 'Enabled' : 'Disabled'}`,
             '',
             examples.length
@@ -277,10 +284,28 @@ module.exports = {
       }
 
       if (btn.customId === 'finish') {
-        finished = true;
-        collector.stop();
-        return;
-      }
+  const user = await User.findOne({ userId: interaction.user.id }).lean();
+
+  const hasRequiredCategory = user.enabledCategories.some(cat =>
+    REQUIRED_CATEGORIES.includes(cat)
+  );
+
+  if (!hasRequiredCategory) {
+    return btn.followUp({
+      content:
+        'You must enable at least **one** of the following categories before finishing setup:\n' +
+        '> Entertainment\n' +
+        '> Video Games\n' +
+        '> Animanga\n' +
+        '> Music',
+      ephemeral: true,
+    });
+  }
+
+  finished = true;
+  collector.stop();
+  return;
+}
 
       if (page === -1) {
         return interaction.editReply({
