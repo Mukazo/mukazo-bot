@@ -40,7 +40,7 @@ await Card.updateMany(
 
   // ✅ Step 2: Prepare user preferences
   const alwaysInclude = ['monthlies', 'events', 'specials'];
-  const prefs = user?.preferredCategories ?? [];
+  const prefs = user?.enabledCategories ?? [];
   const categories = prefs.length
     ? [...new Set([...prefs, ...alwaysInclude])]
     : undefined;
