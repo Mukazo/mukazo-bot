@@ -1,6 +1,7 @@
 const { ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const SummonSession = require('../../models/SummonSession');
 const CardInventory = require('../../models/CardInventory');
+const cooldowns = require('../../utils/cooldownManager');
 
 module.exports = async function handleSummonButton(interaction) {
   const index = Number(interaction.customId.split(':')[1]);
@@ -52,6 +53,21 @@ module.exports = async function handleSummonButton(interaction) {
     });
   }
 
+  const CLAIM_COOLDOWN = 60_000;
+const cooldownName = 'SummonClaim';
+
+if (await cooldowns.isOnCooldown(interaction.user.id, cooldownName)) {
+  const next = await cooldowns.getCooldownTimestamp(
+    interaction.user.id,
+    cooldownName
+  );
+
+  return interaction.followUp({
+    content: `You can claim again ${next}.`,
+    ephemeral: true,
+  });
+}
+
   const result = await SummonSession.updateOne(
     {
       messageId,
@@ -81,6 +97,12 @@ module.exports = async function handleSummonButton(interaction) {
     { upsert: true }
   );
 
+  await cooldowns.setCooldown(
+  interaction.user.id,
+  cooldownName,
+  CLAIM_COOLDOWN
+);
+
   /* ===========================
      SUCCESS — DISABLE CLICKED
   =========================== */
@@ -93,10 +115,16 @@ module.exports = async function handleSummonButton(interaction) {
   const oldRow = interaction.message.components[0];
 
   const newRow = new ActionRowBuilder().addComponents(
-    oldRow.components.map((btn, i) =>
-      ButtonBuilder.from(btn).setDisabled(i === index)
-    )
-  );
+  session.cards.map((card, i) =>
+    new ButtonBuilder()
+      .setCustomId(`summon:${i}`)
+      .setLabel(oldRow.components[i].label)
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(Boolean(card.claimedBy))
+  )
+);
+
+await interaction.message.edit({ components: [newRow] });
 
   await interaction.message.edit({ components: [newRow] });
 };

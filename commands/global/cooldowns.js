@@ -3,13 +3,14 @@ const cooldownManager = require('../../utils/cooldownManager');
 
 const emojiMap = {
   Summon: '🔮',
+  Claim: '',
   Route: '🗺️',
   Daily: '✨',
   Enchant: '🪄',
 };
 
 const categories = {
-  Cards: ['Summon', 'Enchant'],
+  Cards: ['Summon', 'Claim', 'Enchant'],
   Money: ['Daily','Route'],
 };
 
@@ -36,9 +37,9 @@ module.exports = {
 
         if (expires && expires > now) {
           const unix = Math.floor(expires / 1000);
-          description += `${emoji} ─ **\`/${command.toLowerCase()}\`** 𝜗𝜚 <t:${unix}:R> \n`;
+          description += `${emoji} ─ **\`${command.toLowerCase()}\`** 𝜗𝜚 <t:${unix}:R> \n`;
         } else {
-          description += `${emoji} ─ **\`/${command.toLowerCase()}\`** 𝜗𝜚 __**Ready**__ \n`;
+          description += `${emoji} ─ **\`${command.toLowerCase()}\`** 𝜗𝜚 __**Ready**__ \n`;
         }
       }
     }
