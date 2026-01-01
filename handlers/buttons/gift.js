@@ -14,6 +14,9 @@ const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 3;
 
+/* ===========================
+   Canvas renderer (preview only)
+=========================== */
 async function renderCardCanvas(cards) {
   const CARD_W = 320;
   const CARD_H = 450;
@@ -33,12 +36,29 @@ async function renderCardCanvas(cards) {
   return new AttachmentBuilder(canvas.toBuffer(), { name: 'gift.png' });
 }
 
+/* ===========================
+   Inventory-style formatter
+=========================== */
+function formatInventoryLine(card, qty) {
+  const emoji =
+    card.emoji ||
+    generateVersion(card);
+
+  return (
+    `${emoji} **${card.group}**\n` +
+    `${card.name}\n` +
+    `${card.era ? `${card.era}\n` : ''}` +
+    `\`${card.cardCode}\` × **${qty}**`
+  );
+}
+
 module.exports = async function giftButtonHandler(interaction) {
   if (!interaction.customId.startsWith('gift:')) return;
 
   await interaction.deferUpdate();
 
-  const [, action, sessionId, pageStr] = interaction.customId.split(':');
+  const [, action, sessionId, pageStr] =
+    interaction.customId.split(':');
   const page = Number(pageStr) || 0;
 
   const session = await GiftSession.findById(sessionId);
@@ -48,46 +68,55 @@ module.exports = async function giftButtonHandler(interaction) {
       components: [],
     });
   }
-
+  // Only sender can interact
   if (interaction.user.id !== session.userId) {
     return interaction.followUp({
       content: 'Only the sender can interact with this gift.',
-      ephemeral: true,
+      flags: 64, // Ephemeral
     });
   }
 
+  /* ===========================
+     CANCEL
+  =========================== */
   if (action === 'cancel') {
     await GiftSession.deleteOne({ _id: sessionId });
+
     return interaction.editReply({
-      content: '❌ Gift cancelled.',
+      content: 'Gift cancelled.',
       embeds: [],
       components: [],
       files: [],
     });
   }
+
+  /* ===========================
+     CONFIRM → SUMMARY PAGE 0
+  =========================== */
   if (action === 'confirm') {
     const slice = session.cards.slice(
       session.page * PAGE_SIZE,
       session.page * PAGE_SIZE + PAGE_SIZE
     );
 
+    // 1️⃣ enqueue worker (authoritative)
     await enqueueInteraction('gift', {
-  from: session.userId,
-  to: session.targetId,
-  cards: slice,
-  wirlies: session.wirlies,
-});
-
-    await GiftSession.deleteOne({ _id: sessionId });
-
-    return interaction.editReply({
-      content: '✅ Gift sent successfully.',
-      embeds: [],
-      components: [],
-      files: [],
+      from: session.userId,
+      to: session.targetId,
+      cards: slice,
+      wirlies: session.wirlies,
     });
+
+    // reset page for summary
+    session.page = 0;
+    await session.save();
+
+    return renderSummary(interaction, session, 0, true);
   }
 
+  /* ===========================
+     PREVIEW PAGINATION
+  =========================== */
   if (action === 'page') {
     session.page = page;
     await session.save();
@@ -97,11 +126,11 @@ module.exports = async function giftButtonHandler(interaction) {
       (page + 1) * PAGE_SIZE
     );
 
-    const fullCards = await Card.find({
+    const cards = await Card.find({
       cardCode: { $in: slice.map(c => c.cardCode) },
     }).lean();
 
-    const map = new Map(fullCards.map(c => [c.cardCode, c]));
+    const map = new Map(cards.map(c => [c.cardCode, c]));
     const ordered = slice.map(s => map.get(s.cardCode));
 
     const attachment =
@@ -111,18 +140,9 @@ module.exports = async function giftButtonHandler(interaction) {
       .setTitle('Confirm Gift')
       .setDescription(
         ordered
-          .map((card, i) => {
-            const qty = slice[i].qty;
-            const emoji =
-              card.overrideemoji ||
-              card.versionemoji ||
-              generateVersion(card);
-            return (
-              `**${card.group}**\n` +
-              `${emoji} ${card.name}\n` +
-              `\`${card.cardCode}\` × **${qty}**`
-            );
-          })
+          .map((card, i) =>
+            formatInventoryLine(card, slice[i].qty)
+          )
           .join('\n\n')
       )
       .setFooter({
@@ -132,7 +152,6 @@ module.exports = async function giftButtonHandler(interaction) {
       });
 
     if (attachment) embed.setImage('attachment://gift.png');
-
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`gift:page:${sessionId}:${page - 1}`)
@@ -163,4 +182,82 @@ module.exports = async function giftButtonHandler(interaction) {
       files: attachment ? [attachment] : [],
     });
   }
+
+  /* ===========================
+     SUMMARY PAGINATION
+  =========================== */
+  if (action === 'summary') {
+    session.page = page;
+    await session.save();
+
+    return renderSummary(interaction, session, page, false);
+  }
 };
+
+/* ===========================
+   SUMMARY RENDERER
+=========================== */
+async function renderSummary(interaction, session, page, pingRecipient) {
+  const slice = session.cards.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE
+  );
+
+  const cards = await Card.find({
+    cardCode: { $in: slice.map(c => c.cardCode) },
+  }).lean();
+
+  const map = new Map(cards.map(c => [c.cardCode, c]));
+
+  const embed = new EmbedBuilder()
+    .setTitle('Gifting Summary')
+    .setDescription(
+      slice
+        .map(s => {
+          const card = map.get(s.cardCode);
+          if (!card) return null;
+          return formatInventoryLine(card, s.qty);
+        })
+        .filter(Boolean)
+        .join('\n\n')
+    )
+    .setFooter({
+      text: `Page ${page + 1} / ${Math.ceil(
+        session.cards.length / PAGE_SIZE
+      )}`,
+    });
+
+  if (session.wirlies > 0 && page === 0) {
+    embed.addFields({
+      name: 'Wirlies',
+      value: `+${session.wirlies.toLocaleString()}`,
+      inline: true,
+    });
+  }
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`gift:summary:${session.id}:${page - 1}`)
+      .setLabel('◀')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === 0),
+
+    new ButtonBuilder()
+      .setCustomId(`gift:summary:${session.id}:${page + 1}`)
+      .setLabel('▶')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled((page + 1) * PAGE_SIZE >= session.cards.length)
+  );
+
+  await interaction.editReply({
+    embeds: [embed],
+    components: [row],
+    files: [],
+  });
+
+  if (pingRecipient) {
+    await interaction.followUp({
+      content: `-# <@${session.targetId}> You received a gift!`,
+    });
+  }
+}
