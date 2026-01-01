@@ -164,8 +164,8 @@ module.exports = {
             `# ${CATEGORY_LABELS[category]} Cards`,
             CATEGORY_DESCRIPTIONS[category] ?? '',
             '',
-            `To enable a category click the "Toggle" button`,
-            `**Status:** ${enabled ? 'Enabled' : 'Disabled'}`,
+            `> To enable a category click the "Toggle" button`,
+            `> **Status:** ${enabled ? 'Enabled' : 'Disabled'}`,
             '',
             examples.length
               ? 'Below are examples in this category.'

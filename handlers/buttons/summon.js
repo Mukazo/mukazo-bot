@@ -6,6 +6,8 @@ const {
 
 const SummonSession = require('../../models/SummonSession');
 const cooldowns = require('../../utils/cooldownManager');
+const CardInventory = require('../../models/CardInventory');
+
 
 const CLAIM_COOLDOWN = 60_000; // 1 minute
 const COOLDOWN_NAME = 'Claim';
@@ -91,6 +93,17 @@ module.exports = async function summonButtonHandler(interaction) {
   if (interaction.user.id === session.ownerId) {
     session.ownerHasClaimed = true;
   }
+
+  await CardInventory.updateOne(
+  {
+    userId: interaction.user.id,
+    cardCode: card.cardCode,
+  },
+  {
+    $inc: { quantity: 1 },
+  },
+  { upsert: true }
+);
 
   // 🎁 Give card (worker-safe if you already enqueue elsewhere)
   // If you already do this elsewhere, keep it there
