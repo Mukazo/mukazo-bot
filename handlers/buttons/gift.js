@@ -79,7 +79,7 @@ module.exports = async function giftButtonHandler(interaction) {
     const attachment = await renderCardCanvas(slice.map(c => c.card));
 
     const embed = new EmbedBuilder()
-      .setTitle('Confirm Gift')
+      .setTitle('Confirm • Gift')
       .setDescription(
         slice.map(c => `• \`${c.card.cardCode}\` × ${c.qty}`).join('\n')
       )
@@ -89,7 +89,7 @@ module.exports = async function giftButtonHandler(interaction) {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`gift:page:${targetId}:${page - 1}:${rest[1]}`)
-        .setLabel('◀')
+        .setLabel(' • Previous')
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(page === 0),
 
@@ -100,7 +100,7 @@ module.exports = async function giftButtonHandler(interaction) {
 
       new ButtonBuilder()
         .setCustomId(`gift:page:${targetId}:${page + 1}:${rest[1]}`)
-        .setLabel('▶')
+        .setLabel('Next •')
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(page + 1 >= totalPages),
     );

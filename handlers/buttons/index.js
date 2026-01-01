@@ -14,5 +14,10 @@ module.exports = async interaction => {
     return true;
   }
 
+  if (interaction.customId.startsWith('gift:')) {
+    await enchant(interaction);
+    return true;
+  }
+
   return false;
 };
