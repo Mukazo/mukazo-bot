@@ -140,11 +140,13 @@ if (results.length === 0 && wirlies > 0) {
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`gift:confirm:${session.id}`)
-      .setLabel('Confirm'),
+      .setLabel('Confirm')
+      .setStyle(ButtonStyle.Primary),
 
     new ButtonBuilder()
       .setCustomId(`gift:cancel:${session.id}`)
-      .setLabel('Cancel'),
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Primary)
   );
 
   return interaction.editReply({
