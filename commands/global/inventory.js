@@ -92,9 +92,9 @@ module.exports = {
 ]);
 
 const viewerBalance = viewerUserDoc?.wirlies ?? 0;
-const targetBalance = targetUserDoc?.wirlies;
+const targetBalance = targetUserDoc.wirlies;
 const viewerKeys = viewerUserDoc?.keys ?? 0;
-const targetKeys = targetUserDoc?.keys;
+const targetKeys = targetUserDoc.keys;
 
 
     const viewerMap = new Map(viewerInv.map(i => [i.cardCode, i.quantity]));
