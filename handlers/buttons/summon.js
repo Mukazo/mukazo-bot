@@ -9,7 +9,7 @@ const cooldowns = require('../../utils/cooldownManager');
 const CardInventory = require('../../models/CardInventory');
 
 
-const CLAIM_COOLDOWN = 60_000; // 1 minute
+const CLAIM_COOLDOWN = 30_000; // 1 minute
 const COOLDOWN_NAME = 'Claim';
 
 module.exports = async function summonButtonHandler(interaction) {
@@ -37,6 +37,13 @@ module.exports = async function summonButtonHandler(interaction) {
   if (card.claimedBy) {
     return interaction.followUp({
       content: 'This card has already been claimed.',
+      ephemeral: true,
+    });
+  }
+
+  if (!session.ownerHasClaimed && interaction.user.id !== session.ownerId) {
+    return interaction.followUp({
+      content: 'Wait until the summoner claims first.',
       ephemeral: true,
     });
   }

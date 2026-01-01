@@ -2,7 +2,7 @@
 
 module.exports = {
   Summon: {
-    default: 120 * 1000,
+    default: 150 * 1000,
     reductions: [
   { id: '1387230787929243780', percent: 15, group: 'patreon' }, // Booster
   { id: '1394845122180677662', percent: 20, group: 'patreon' }, // Maknae
@@ -16,7 +16,7 @@ module.exports = {
   },
   
   Route: {
-    default: 15 * 60 * 1000,
+    default: 20 * 60 * 1000,
     reductions: [
   { id: '1387230787929243780', percent: 15, group: 'patreon' }, // Booster
   { id: '1394845122180677662', percent: 20, group: 'patreon' }, // Maknae
