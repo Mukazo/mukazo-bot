@@ -16,7 +16,7 @@ const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 3;
 const CARD_WIDTH = 320;
-const CARD_HEIGHT = 450;
+const CARD_HEIGHT = 480;
 
 module.exports = {
   data: new SlashCommandBuilder()

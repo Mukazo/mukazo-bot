@@ -115,7 +115,7 @@ const pulls = shuffled.slice(0, 3);
        CANVAS (same sizing style as summon)
     =========================== */
     const CARD_WIDTH = 320;
-    const CARD_HEIGHT = 450;
+    const CARD_HEIGHT = 480;
     const GAP = 15;
 
     const canvas = Canvas.createCanvas(

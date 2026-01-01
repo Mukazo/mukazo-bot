@@ -21,7 +21,7 @@ const PAGE_SIZE = 3;
 =========================== */
 async function renderCardCanvas(cards) {
   const CARD_W = 320;
-  const CARD_H = 450;
+  const CARD_H = 480;
   const GAP = 15;
 
   const canvas = Canvas.createCanvas(
