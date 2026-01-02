@@ -46,10 +46,8 @@ function formatInventoryLine(card, qty) {
     generateVersion(card);
 
   return (
-    `${emoji} **${card.group}**\n` +
-    `${card.name}\n` +
-    `${card.era ? `${card.era}\n` : ''}` +
-    `\`${card.cardCode}\` × **${qty}**`
+    `${emoji} **${card.group}** ${card.name}\n` +
+    `${card.era ? `${card.era}\n` : ''} \`${card.cardCode}\` × **${qty}**`
   );
 }
 
@@ -117,7 +115,7 @@ module.exports = async function giftButtonHandler(interaction) {
       });
 
       await interaction.followUp({
-        content: `-# <@${session.targetId}> You received <:Wirlies:1455924065972785375> Wirlies!`,
+        content: `-# <@${session.targetId}> received <:Wirlies:1455924065972785375> Wirlies!`,
       });
 
       return;
@@ -284,7 +282,7 @@ async function renderSummary(interaction, session, page, pingRecipient) {
 
   if (pingRecipient) {
     await interaction.followUp({
-      content: `-# <@${session.targetId}> You received a gift!`,
+      content: `-# <@${session.targetId}> received a gift!`,
     });
   }
 }
