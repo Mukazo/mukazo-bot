@@ -9,7 +9,7 @@ const cooldowns = require('../../utils/cooldownManager');
 const CardInventory = require('../../models/CardInventory');
 
 
-const CLAIM_COOLDOWN = 30_000; // 1 minute
+const CLAIM_COOLDOWN = 30_000; // 30 seconds
 const COOLDOWN_NAME = 'Claim';
 
 module.exports = async function summonButtonHandler(interaction) {
@@ -30,6 +30,26 @@ module.exports = async function summonButtonHandler(interaction) {
       ephemeral: true,
     });
   }
+
+  const now = Date.now();
+
+if (session.expiresAt && session.expiresAt.getTime() <= now) {
+  // Disable all buttons globally
+  const disabledRow = new ActionRowBuilder().addComponents(
+    interaction.message.components[0].components.map(btn =>
+      ButtonBuilder.from(btn).setDisabled(true)
+    )
+  );
+
+  await interaction.message.edit({
+    components: [disabledRow],
+  });
+
+  return interaction.followUp({
+    content: 'This summon has expired.',
+    ephemeral: true,
+  });
+}
 
   const card = session.cards[index];
   if (!card) return;

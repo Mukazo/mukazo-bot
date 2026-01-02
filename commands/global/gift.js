@@ -156,6 +156,8 @@ if (results.length === 0 && wirlies > 0) {
   });
 }
 
+const pageResults = results.slice(0, PAGE_SIZE);
+
     const attachment =
       pageResults.length > 0
         ? await renderCardCanvas(pageResults.map(r => r.card))
