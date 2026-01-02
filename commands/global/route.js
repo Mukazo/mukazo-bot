@@ -16,7 +16,7 @@ const ROUTES = [
     emoji: '🌑',
     min: 275,
     max: 310,
-    keyChance: 0.28,
+    keyChance: 0.34,
     embed: {
       title: 'Shady Alley',
       description: 'You navigated the dark alleys and struck a deal.',
@@ -30,7 +30,7 @@ const ROUTES = [
     emoji: '🏪',
     min: 250,
     max: 325,
-    keyChance: 0.30,
+    keyChance: 0.39,
     embed: {
       title: 'Open Market',
       description: 'You worked the stalls and earned some wirlies.',
@@ -44,11 +44,25 @@ const ROUTES = [
     emoji: '🏙️',
     min: 235,
     max: 350,
-    keyChance: 0.26,
+    keyChance: 0.35,
     embed: {
       title: 'Rooftops',
       description: 'You ran the rooftops and came back with a haul.',
       color: 0xed4245,
+    },
+  },
+  {
+    id: 'festival',
+    label: 'Festival',
+    description: 'a celebration for the New Years',
+    emoji: '🎡',
+    min: 285,
+    max: 330,
+    keyChance: 0.37,
+    embed: {
+      title: 'Festival',
+      description: 'You enjoyed the activities & found some wirlies.',
+      color: 0xf37373,
     },
   },
 ];
