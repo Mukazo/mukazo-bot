@@ -193,5 +193,24 @@ module.exports = {
       ownerHasClaimed: false,
       expiresAt: new Date(Date.now() + 180_000),
     });
+
+    setTimeout(async () => {
+  try {
+    const channel = await interaction.client.channels.fetch(reply.channel.id);
+    const message = await channel.messages.fetch(reply.id);
+
+    if (!message.editable) return;
+
+    const disabledRow = new ActionRowBuilder().addComponents(
+      message.components[0].components.map(btn =>
+        ButtonBuilder.from(btn).setDisabled(true)
+      )
+    );
+
+    await message.edit({ components: [disabledRow] });
+  } catch {
+    // message deleted, channel gone, bot restarted — safe to ignore
+  }
+}, 180_000);
   },
 };
