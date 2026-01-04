@@ -30,5 +30,6 @@ module.exports = {
   },
   Daily: 24 * 60 * 60 * 1000,
   Enchant: 30 * 1000,
+  Weekly: 7 * 24 * 60 * 60 * 1000,
   // Add more as needed
 };

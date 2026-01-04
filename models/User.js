@@ -13,6 +13,10 @@ dailystreak: {
     count: { type: Number, default: 0},
     lastClaim: { type: Date, default: null }
   },
+weeklystreak: {
+    count: { type: Number, default: 0},
+    lastClaim: { type: Date, default: null }
+  },
 
 }, { timestamps: true });
 
