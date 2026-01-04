@@ -17,6 +17,7 @@ weeklystreak: {
     count: { type: Number, default: 0},
     lastClaim: { type: Date, default: null }
   },
+  questRerollTokens: { type: Number, default: 0 }
 
 }, { timestamps: true });
 

@@ -46,8 +46,8 @@ function formatInventoryLine(card, qty) {
     generateVersion(card);
 
   return (
-    `${emoji} **${card.group}** ${card.name}\n` +
-    `${card.era ? `${card.era}\n` : ''} \`${card.cardCode}\` × **${qty}**`
+    `${emoji} **${card.group}** __${card.name}__ ` +
+    `${card.era ? `${card.era}` : ''} \`${card.cardCode}\` × **${qty}**`
   );
 }
 
