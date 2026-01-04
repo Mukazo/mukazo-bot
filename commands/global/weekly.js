@@ -177,10 +177,9 @@ module.exports = {
     =========================== */
     const lines = pulls.map(card => {
       const emoji = card.emoji || generateVersion(card);
+      const eraText = card.era ? `${card.era}` : '';
       return [
-        `${emoji} **${card.group}**`,
-        card.era ? `*${card.era}*` : null,
-        `\`${card.cardCode}\``,
+        `${emoji} **${card.group}** ${card.name} ${eraText} \`${card.cardCode}\``,
       ]
         .filter(Boolean)
         .join('\n');
