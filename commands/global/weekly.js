@@ -179,7 +179,7 @@ module.exports = {
       const emoji = card.emoji || generateVersion(card);
       const eraText = card.era ? `${card.era}` : '';
       return [
-        `${emoji} **${card.group}** ${card.name} ${eraText} \`${card.cardCode}\``,
+        `${emoji} **${card.group}** __${card.name}__ ${eraText} \`${card.cardCode}\``,
       ]
         .filter(Boolean)
         .join('\n');
@@ -193,7 +193,7 @@ module.exports = {
           '## A Soothing Tune',
           'You start to hear humming echoing from a nearby cavern. As you approach slowly, you find an open chest with:',
           '',
-          `## <:Wirlies:1455924065972785375> ${reward.wirlies} & <:Key:1456059698582392852> ${reward.keys}`,
+          `### <:Wirlies:1455924065972785375> ${reward.wirlies} & <:Key:1456059698582392852> ${reward.keys}`,
           ...lines.map(l => `• ${l}`),
           '',
           `> **Weekly Streak:** ${streak}`,
