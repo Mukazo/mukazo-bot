@@ -179,7 +179,8 @@ module.exports = {
       const emoji = card.emoji || generateVersion(card);
       return [
         `${emoji} **${card.group}**`,
-        card.era ? `*${card.era}*` : null `\`${card.cardCode}\``
+        card.era ? `*${card.era}*` : null,
+        `\`${card.cardCode}\``,
       ]
         .filter(Boolean)
         .join('\n');
