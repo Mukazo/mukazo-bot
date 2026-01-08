@@ -12,12 +12,12 @@ function bar(cur, max) {
 
 function fmtQuest(q, uq) {
   if (q.mode === 'completion') {
-    return `${uq?.completed ? '✅' : '⬜'} **${q.name}**\n${q.description}`;
+    return `${uq?.completed ? '<:check:1458968004066017332>' : '<:dashy:1458967877796364546>'} **${q.name}**\n${q.description}`;
   }
 
   const cur = uq?.progress || 0;
   const max = q.conditions?.count || 0;
-  return `${uq?.completed ? '✅' : '🟦'} **${q.name}**\n${q.description}\n${bar(cur, max)} ${cur}/${max}`;
+  return `${uq?.completed ? '<:check:1458968004066017332>' : '<:dashy:1458967877796364546>'} **${q.name}**\n${q.description}\n${bar(cur, max)} ${cur}/${max}`;
 }
 
 async function getAssigned(userId, category) {
@@ -53,11 +53,15 @@ for (const q of quests) {
     .isCompletionMet(userId, q);
 
   if (met) {
-    uq.completed = true;
-    await uq.save();
+  uq.completed = true;
+  await uq.save();
 
-    console.log('[QUEST] Completion quest auto-completed on list:', q.key);
-  }
+  // 🎁 Grant rewards immediately
+  await require('../../../utils/quest/rewards')
+    .completeQuest(userId, q);
+
+  console.log('[QUEST] Completion quest auto-completed + rewarded:', q.key);
+}
 }
 
   return quests;
