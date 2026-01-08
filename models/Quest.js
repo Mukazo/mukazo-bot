@@ -44,7 +44,7 @@ const QuestSchema = new mongoose.Schema(
       count: { type: Number, default: null }, // required for progress
       commandName: { type: String, default: null }, // for trigger="command"
       minWirlies: { type: Number, default: null }, // for trigger="route" earn quests
-      minKey: { type: Number, default: null }, // for trigger="route" earn quests
+      minKeys: { type: Number, default: null }, // for trigger="route" earn quests
 
       version: { type: Number, default: null },
       group: { type: String, default: null },
