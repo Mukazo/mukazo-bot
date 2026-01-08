@@ -1,6 +1,7 @@
 const { ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const SummonSession = require('../../models/SummonSession');
 const CardInventory = require('../../models/CardInventory');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 module.exports = async function handleEnchantButton(interaction) {
   const index = Number(interaction.customId.split(':')[1]);
@@ -85,6 +86,16 @@ module.exports = async function handleEnchantButton(interaction) {
     { $inc: { quantity: 1 } },
     { upsert: true }
   );
+
+  await emitQuestEvent(session.ownerId, {
+  type: 'enchant',
+  card: {
+    cardCode,
+    version: session.cards[index].version,
+    group: session.cards[index].group,
+    era: session.cards[index].era,
+  },
+});
 
   await interaction.followUp({
     content: `You claimed **${cardCode}**`,

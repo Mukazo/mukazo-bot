@@ -8,7 +8,6 @@ module.exports = {
     .setName('quest')
     .setDescription('Quest system')
 
-    // LIST
     .addSubcommand(sub =>
       sub
         .setName('list')
@@ -25,11 +24,10 @@ module.exports = {
         )
     )
 
-    // REROLL (USES WIRLIES NOW)
     .addSubcommand(sub =>
       sub
         .setName('reroll')
-        .setDescription('Reroll a daily or weekly quest (costs Wirlies)')
+        .setDescription('Reroll a daily/weekly quest (costs Wirlies)')
         .addStringOption(o =>
           o.setName('category')
             .addChoices(
@@ -40,28 +38,25 @@ module.exports = {
         )
         .addIntegerOption(o =>
           o.setName('slot')
-            .setDescription('Quest slot (1–3)')
+            .setDescription('Quest slot 1–3')
             .setMinValue(1)
             .setMaxValue(3)
             .setRequired(true)
         )
     )
 
-    // CREATE (ADMIN)
     .addSubcommand(sub =>
       sub
         .setName('create')
-        .setDescription('Create a quest')
-        .setDefaultMemberPermissions('0')
+        .setDescription('Create a quest (admin)')
 
-        // Identity
         .addStringOption(o => o.setName('key').setDescription('Unique quest key').setRequired(true))
         .addStringOption(o => o.setName('name').setDescription('Quest name').setRequired(true))
         .addStringOption(o => o.setName('description').setDescription('Quest description').setRequired(true))
 
-        // Behavior
         .addStringOption(o =>
           o.setName('category')
+            .setDescription('Quest category')
             .addChoices(
               { name: 'Daily', value: 'daily' },
               { name: 'Weekly', value: 'weekly' },
@@ -70,18 +65,23 @@ module.exports = {
             )
             .setRequired(true)
         )
+
         .addStringOption(o =>
-          o.setName('type')
+          o.setName('trigger')
+            .setDescription('What increments it')
             .addChoices(
               { name: 'Summon', value: 'summon' },
               { name: 'Enchant', value: 'enchant' },
-              { name: 'Claim', value: 'claim' },
+              { name: 'Route', value: 'route' },
+              { name: 'Command Usage', value: 'command' },
               { name: 'Any', value: 'any' }
             )
             .setRequired(true)
         )
+
         .addStringOption(o =>
           o.setName('mode')
+            .setDescription('Quest mode')
             .addChoices(
               { name: 'Progress', value: 'progress' },
               { name: 'Completion (own all)', value: 'completion' }
@@ -89,27 +89,38 @@ module.exports = {
             .setRequired(true)
         )
 
-        // Conditions
-        .addIntegerOption(o => o.setName('count').setDescription('Required amount (progress only)'))
-        .addIntegerOption(o => o.setName('version').setDescription('Card version filter'))
-        .addStringOption(o => o.setName('group').setDescription('Group filter'))
-        .addStringOption(o => o.setName('era').setDescription('Era filter'))
-
-        // Expiry
+        .addStringOption(o =>
+          o.setName('prerequisite')
+            .setDescription('Prerequisite quest key')
+        )
         .addIntegerOption(o =>
           o.setName('expires_in_hours')
             .setDescription('Expire after X hours (optional)')
         )
 
-        // Rewards
-        .addIntegerOption(o => o.setName('wirlies').setDescription('Reward wirlies'))
-        .addIntegerOption(o => o.setName('keys').setDescription('Reward keys'))
+        // progress conditions
+        .addIntegerOption(o => o.setName('count').setDescription('Required count (progress only)'))
+
+        // command usage condition
+        .addStringOption(o => o.setName('command_name').setDescription('Command name (for trigger=command)'))
+
+        // route condition
+        .addIntegerOption(o => o.setName('min_wirlies').setDescription('Min wirlies earned in a route run (trigger=route)'))
+
+        // card filters
+        .addIntegerOption(o => o.setName('version').setDescription('Card version filter'))
+        .addStringOption(o => o.setName('group').setDescription('Group filter'))
+        .addStringOption(o => o.setName('era').setDescription('Era filter'))
+
+        // rewards
+        .addIntegerOption(o => o.setName('reward_wirlies').setDescription('Reward wirlies'))
+        .addIntegerOption(o => o.setName('reward_keys').setDescription('Reward keys'))
     ),
 
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
     if (sub === 'list') return list.execute(interaction);
-    if (sub === 'create') return create.execute(interaction);
     if (sub === 'reroll') return reroll.execute(interaction);
+    if (sub === 'create') return create.execute(interaction);
   },
 };

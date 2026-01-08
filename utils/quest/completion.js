@@ -2,23 +2,27 @@ const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 
 async function isCompletionMet(userId, quest) {
-  const cards = await Card.find({
+  const q = quest.conditions || {};
+
+  const required = await Card.find({
     active: true,
     batch: null,
-    ...(quest.conditions.version != null && { version: quest.conditions.version }),
-    ...(quest.conditions.group != null && { group: quest.conditions.group }),
-    ...(quest.conditions.era != null && { era: quest.conditions.era }),
+    ...(q.version != null ? { version: q.version } : {}),
+    ...(q.group != null ? { group: q.group } : {}),
+    ...(q.era != null ? { era: q.era } : {}),
   }).select('cardCode').lean();
 
-  if (!cards.length) return false;
+  if (!required.length) return false;
+
+  const codes = required.map(c => c.cardCode);
 
   const owned = await CardInventory.find({
     userId,
-    cardCode: { $in: cards.map(c => c.cardCode) },
+    cardCode: { $in: codes },
     quantity: { $gt: 0 },
-  }).lean();
+  }).select('cardCode').lean();
 
-  return owned.length === cards.length;
+  return owned.length === codes.length;
 }
 
 module.exports = { isCompletionMet };

@@ -147,6 +147,14 @@ const user = await giveCurrency(interaction.user.id, {
   keys: gotKey ? 1 : 0,
 });
 
+await emitQuestEvent(interaction.user.id, {
+  type: 'route',
+  rewards: {
+    wirlies: earned,
+    keys: gotKey ? 1 : 0,
+  },
+});
+
 
       const resultEmbed = new EmbedBuilder()
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))

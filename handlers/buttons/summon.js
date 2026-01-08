@@ -7,6 +7,7 @@ const {
 const SummonSession = require('../../models/SummonSession');
 const cooldowns = require('../../utils/cooldownManager');
 const CardInventory = require('../../models/CardInventory');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 
 const CLAIM_COOLDOWN = 30_000; // 30 seconds
@@ -124,6 +125,17 @@ if (session.expiresAt && session.expiresAt.getTime() <= now) {
   },
   { upsert: true }
 );
+
+await emitQuestEvent(claimerId, {
+  type: 'summon',
+  card: {
+    cardCode: card.cardCode,
+    version: card.version,
+    group: card.group,
+    era: card.era,
+  },
+}, interaction);
+
 
   // 🎁 Give card (worker-safe if you already enqueue elsewhere)
   // If you already do this elsewhere, keep it there
