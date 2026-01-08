@@ -16,9 +16,15 @@ async function prerequisiteMet(userId, prerequisiteKey) {
 
 function matchesCardFilters(conditions, card) {
   if (!card) return false;
-  if (conditions.version != null && card.version !== conditions.version) return false;
+
+  if (
+    conditions.version != null &&
+    Number(card.version) !== Number(conditions.version)
+  ) return false;
+
   if (conditions.group != null && card.group !== conditions.group) return false;
   if (conditions.era != null && card.era !== conditions.era) return false;
+
   return true;
 }
 
@@ -62,7 +68,7 @@ async function emitQuestEvent(userId, payload, interactionForNotify = null) {
       const met = await isCompletionMet(userId, quest);
       if (met) {
         await completeQuest(userId, quest);
-        await notify(interactionForNotify, `✅ Quest completed: **${quest.name}**`);
+        await notify(interactionForNotify, `Quest completed: **${quest.name}**`);
       }
       continue;
     }
