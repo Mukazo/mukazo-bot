@@ -9,7 +9,6 @@ const cooldowns = require('../../utils/cooldownManager');
 const CardInventory = require('../../models/CardInventory');
 const { emitQuestEvent } = require('../../utils/quest/tracker');
 
-
 const CLAIM_COOLDOWN = 30_000; // 30 seconds
 const COOLDOWN_NAME = 'Claim';
 
@@ -22,32 +21,45 @@ module.exports = async function summonButtonHandler(interaction) {
   if (Number.isNaN(index)) return;
 
   const messageId = interaction.message.id;
-
   const session = await SummonSession.findOne({ messageId });
   const now = Date.now();
 
-if (session.expiresAt && session.expiresAt.getTime() <= now) {
-  // Disable all buttons globally
-  const disabledRow = new ActionRowBuilder().addComponents(
-    interaction.message.components[0].components.map(btn =>
-      ButtonBuilder.from(btn).setDisabled(true)
-    )
-  );
+  if (!session) {
+    console.log('[SUMMON DEBUG] No session found for message', messageId);
+    return;
+  }
 
-  await interaction.message.edit({
-    components: [disabledRow],
-  });
+  if (session.expiresAt && session.expiresAt.getTime() <= now) {
+    console.log('[SUMMON DEBUG] Session expired');
 
-  return interaction.followUp({
-    content: 'This summon has expired.',
-    ephemeral: true,
-  });
-}
+    const disabledRow = new ActionRowBuilder().addComponents(
+      interaction.message.components[0].components.map(btn =>
+        ButtonBuilder.from(btn).setDisabled(true)
+      )
+    );
+
+    await interaction.message.edit({ components: [disabledRow] });
+
+    return interaction.followUp({
+      content: 'This summon has expired.',
+      ephemeral: true,
+    });
+  }
 
   const card = session.cards[index];
-  if (!card) return;
+  if (!card) {
+    console.log('[SUMMON DEBUG] Card index invalid', index);
+    return;
+  }
 
-  // ❌ Already claimed
+  console.log('[SUMMON DEBUG] Claim attempt', {
+    userId: interaction.user.id,
+    cardCode: card.cardCode,
+    version: card.version,
+    group: card.group,
+    era: card.era,
+  });
+
   if (card.claimedBy) {
     return interaction.followUp({
       content: 'This card has already been claimed.',
@@ -62,7 +74,6 @@ if (session.expiresAt && session.expiresAt.getTime() <= now) {
     });
   }
 
-  // ⏳ Claim cooldown
   if (await cooldowns.isOnCooldown(interaction.user.id, COOLDOWN_NAME)) {
     const ts = await cooldowns.getCooldownTimestamp(
       interaction.user.id,
@@ -75,7 +86,6 @@ if (session.expiresAt && session.expiresAt.getTime() <= now) {
     });
   }
 
-  // 🚫 Owner claim rule (if you have one)
   if (
     interaction.user.id === session.ownerId &&
     session.ownerHasClaimed
@@ -86,7 +96,6 @@ if (session.expiresAt && session.expiresAt.getTime() <= now) {
     });
   }
 
-  // 🔒 Atomic claim in DB
   const result = await SummonSession.updateOne(
     {
       _id: session._id,
@@ -103,43 +112,45 @@ if (session.expiresAt && session.expiresAt.getTime() <= now) {
   );
 
   if (result.modifiedCount === 0) {
+    console.log('[SUMMON DEBUG] Atomic claim failed');
     return interaction.followUp({
       content: 'Someone else claimed this card first.',
       ephemeral: true,
     });
   }
 
-  // ✅ Update in-memory session (CRITICAL)
   session.cards[index].claimedBy = interaction.user.id;
   if (interaction.user.id === session.ownerId) {
     session.ownerHasClaimed = true;
   }
 
   await CardInventory.updateOne(
-  {
-    userId: interaction.user.id,
-    cardCode: card.cardCode,
-  },
-  {
-    $inc: { quantity: 1 },
-  },
-  { upsert: true }
-);
+    { userId: interaction.user.id, cardCode: card.cardCode },
+    { $inc: { quantity: 1 } },
+    { upsert: true }
+  );
 
-await emitQuestEvent(interaction.user.id, {
-  type: 'summon',
-  card: {
-    cardCode: card.cardCode,
-    version: card.version,
-    group: card.group,
-    era: card.era,
-  },
-}, interaction);
+  console.log('[SUMMON DEBUG] Emitting quest event');
+  console.log('[SUMMON DEBUG] emitQuestEvent typeof:', typeof emitQuestEvent);
 
-
-  // 🎁 Give card (worker-safe if you already enqueue elsewhere)
-  // If you already do this elsewhere, keep it there
-  // Otherwise enqueue here
+  try {
+    await emitQuestEvent(
+      interaction.user.id,
+      {
+        type: 'summon',
+        card: {
+          cardCode: card.cardCode,
+          version: card.version,
+          group: card.group,
+          era: card.era,
+        },
+      },
+      interaction
+    );
+    console.log('[SUMMON DEBUG] emitQuestEvent finished');
+  } catch (err) {
+    console.error('[SUMMON DEBUG] emitQuestEvent ERROR', err);
+  }
 
   await cooldowns.setCooldown(
     interaction.user.id,
@@ -152,7 +163,6 @@ await emitQuestEvent(interaction.user.id, {
     ephemeral: true,
   });
 
-  // 🔄 Rebuild buttons from SESSION STATE (authoritative)
   const oldRow = interaction.message.components[0];
 
   const newRow = new ActionRowBuilder().addComponents(
@@ -165,7 +175,5 @@ await emitQuestEvent(interaction.user.id, {
     )
   );
 
-  await interaction.message.edit({
-    components: [newRow],
-  });
+  await interaction.message.edit({ components: [newRow] });
 };

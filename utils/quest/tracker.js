@@ -10,20 +10,37 @@ function isExpired(quest) {
 
 async function prerequisiteMet(userId, prerequisiteKey) {
   if (!prerequisiteKey) return true;
-  const uq = await UserQuest.findOne({ userId, questKey: prerequisiteKey, completed: true }).lean();
+  const uq = await UserQuest.findOne({
+    userId,
+    questKey: prerequisiteKey,
+    completed: true,
+  }).lean();
   return Boolean(uq);
 }
 
 function matchesCardFilters(conditions, card) {
-  if (!card) return false;
+  if (!card) {
+    console.log('[QUEST DEBUG] No card payload');
+    return false;
+  }
 
   if (
     conditions.version != null &&
     Number(card.version) !== Number(conditions.version)
-  ) return false;
+  ) {
+    console.log('[QUEST DEBUG] Version mismatch', card.version, conditions.version);
+    return false;
+  }
 
-  if (conditions.group != null && card.group !== conditions.group) return false;
-  if (conditions.era != null && card.era !== conditions.era) return false;
+  if (conditions.group != null && card.group !== conditions.group) {
+    console.log('[QUEST DEBUG] Group mismatch', card.group, conditions.group);
+    return false;
+  }
+
+  if (conditions.era != null && card.era !== conditions.era) {
+    console.log('[QUEST DEBUG] Era mismatch', card.era, conditions.era);
+    return false;
+  }
 
   return true;
 }
@@ -35,14 +52,13 @@ async function notify(interaction, text) {
   } catch {}
 }
 
-/**
- * payload shapes:
- * - summon/enchant: { type:'summon', card:{version,group,era,cardCode} }
- * - route:          { type:'route', rewards:{wirlies,keys}, routeName? }
- * - command usage:  { type:'command', commandName:'inventory' }
- */
 async function emitQuestEvent(userId, payload, interactionForNotify = null) {
-  // ensure daily/weekly exist for this cycle
+  console.log('[QUEST DEBUG] emitQuestEvent START', {
+    userId,
+    type: payload?.type,
+    card: payload?.card,
+  });
+
   await ensureAssigned(userId, 'daily', 3);
   await ensureAssigned(userId, 'weekly', 3);
 
@@ -50,17 +66,29 @@ async function emitQuestEvent(userId, payload, interactionForNotify = null) {
     $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
   }).lean();
 
-  for (const quest of quests) {
-    if (isExpired(quest)) continue;
-    if (!(await prerequisiteMet(userId, quest.prerequisiteKey))) continue;
+  console.log('[QUEST DEBUG] Quest templates found:', quests.length);
 
-    // Filter by trigger
+  for (const quest of quests) {
+    console.log('[QUEST DEBUG] Checking quest', quest.key);
+
+    if (isExpired(quest)) {
+      console.log('[QUEST DEBUG] Skipped expired');
+      continue;
+    }
+
+    if (!(await prerequisiteMet(userId, quest.prerequisiteKey))) {
+      console.log('[QUEST DEBUG] Prerequisite not met');
+      continue;
+    }
+
     const trigger = quest.trigger;
     const type = payload.type;
 
-    if (trigger !== 'any' && trigger !== type) continue;
+    if (trigger !== 'any' && trigger !== type) {
+      console.log('[QUEST DEBUG] Trigger mismatch', trigger, type);
+      continue;
+    }
 
-    // COMPLETION QUESTS (own all)
     if (quest.mode === 'completion') {
       const uq = await UserQuest.findOne({ userId, questKey: quest.key }).lean();
       if (uq?.completed) continue;
@@ -73,55 +101,52 @@ async function emitQuestEvent(userId, payload, interactionForNotify = null) {
       continue;
     }
 
-    // PROGRESS QUESTS
     const c = quest.conditions || {};
-    if (!c.count || c.count <= 0) continue; // must have count for progress quests
-
-    // summon/enchant card filter quests
-    if (type === 'summon' || type === 'enchant') {
-      if (!matchesCardFilters(c, payload.card)) continue;
-      // passes filters -> +1 progress
+    if (!c.count || c.count <= 0) {
+      console.log('[QUEST DEBUG] Invalid count', c.count);
+      continue;
     }
 
-    // route earn quests
+    if (type === 'summon' || type === 'enchant') {
+      if (!matchesCardFilters(c, payload.card)) continue;
+    }
+
     if (type === 'route') {
       if (c.minWirlies != null) {
         const earned = payload.rewards?.wirlies || 0;
         if (earned < c.minWirlies) continue;
       }
-      // passes -> +1 progress (or you could add earned amount, but keeping it consistent)
     }
 
-    // command usage quests
     if (type === 'command') {
       if (c.commandName && payload.commandName !== c.commandName) continue;
-      // passes -> +1 progress
     }
 
     const uq = await UserQuest.findOneAndUpdate(
-  { userId, questKey: quest.key },
-  {
-    $setOnInsert: {
-      progress: 0,
-      completed: false,
-    },
-  },
-  { upsert: true, new: true }
-);
+      { userId, questKey: quest.key },
+      { $setOnInsert: { progress: 0, completed: false } },
+      { upsert: true, new: true }
+    );
 
-if (uq.completed) continue;
+    if (uq.completed) {
+      console.log('[QUEST DEBUG] Already completed');
+      continue;
+    }
 
+    console.log('[QUEST DEBUG] Incrementing quest', quest.key, 'from', uq.progress);
     uq.progress += 1;
-uq.updatedAt = new Date();
+    uq.updatedAt = new Date();
 
-if (uq.progress >= c.count) {
-  uq.completed = true;
-  await uq.save();
-  await completeQuest(userId, quest);
-  await notify(interactionForNotify, `Quest completed: **${quest.name}**`);
-} else {
-  await uq.save();
-}
+    if (uq.progress >= c.count) {
+      uq.completed = true;
+      await uq.save();
+      await completeQuest(userId, quest);
+      await notify(interactionForNotify, `Quest completed: **${quest.name}**`);
+      console.log('[QUEST DEBUG] Quest completed');
+    } else {
+      await uq.save();
+      console.log('[QUEST DEBUG] Progress saved', uq.progress);
+    }
   }
 }
 
