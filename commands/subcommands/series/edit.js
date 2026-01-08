@@ -82,7 +82,7 @@ module.exports = {
           return interaction.followUp(`❌ ${result.error}`);
         }
 
-        interaction.followUp(`✅ Series \`${code}\` updated.`);
+        interaction.followUp(`Series \`${code}\` updated.`);
       });
     });
   }

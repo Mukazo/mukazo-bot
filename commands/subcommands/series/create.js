@@ -90,7 +90,7 @@ module.exports = {
           return interaction.followUp({ content: result.error, ephemeral: true });
         }
 
-        interaction.followUp(`✅ Series \`${payload.code}\` created.`);
+        interaction.followUp(`Series \`${payload.code}\` created.`);
       });
     });
   }

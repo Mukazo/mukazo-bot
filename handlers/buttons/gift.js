@@ -108,7 +108,7 @@ module.exports = async function giftButtonHandler(interaction) {
         embeds: [
           new EmbedBuilder()
             .setDescription(
-              `## Gift Summary\n### + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
+              `# Gift Summary\n### + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
             ),
         ],
         components: [],

@@ -195,7 +195,7 @@ module.exports = {
 
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 120_000,
+      time: 240_000,
     });
 
     collector.on('collect', async btn => {
