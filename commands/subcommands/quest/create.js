@@ -26,6 +26,7 @@ module.exports = {
         count: interaction.options.getInteger('count') ?? null,
         commandName: interaction.options.getString('command_name') || null,
         minWirlies: interaction.options.getInteger('min_wirlies') ?? null,
+        minKeys: interaction.options.getInteger('min_keys') ?? null,
 
         version: interaction.options.getInteger('version') ?? null,
         group: interaction.options.getString('group') ?? null,
