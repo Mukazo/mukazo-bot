@@ -6,6 +6,7 @@ const {
 
 const SummonSession = require('../../models/SummonSession');
 const cooldowns = require('../../utils/cooldownManager');
+const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const { emitQuestEvent } = require('../../utils/quest/tracker');
 
@@ -133,24 +134,34 @@ module.exports = async function summonButtonHandler(interaction) {
   console.log('[SUMMON DEBUG] Emitting quest event');
   console.log('[SUMMON DEBUG] emitQuestEvent typeof:', typeof emitQuestEvent);
 
-  try {
-    await emitQuestEvent(
-      interaction.user.id,
-      {
-        type: 'summon',
-        card: {
-          cardCode: card.cardCode,
-          version: card.version,
-          group: card.group,
-          era: card.era,
-        },
-      },
-      interaction
-    );
-    console.log('[SUMMON DEBUG] emitQuestEvent finished');
-  } catch (err) {
-    console.error('[SUMMON DEBUG] emitQuestEvent ERROR', err);
-  }
+  // 🔥 FETCH FULL CARD DATA FIRST
+const fullCard = await Card.findOne({ cardCode: card.cardCode }).lean();
+
+if (!fullCard) {
+  console.error('[SUMMON DEBUG] Card not found in DB:', card.cardCode);
+  return;
+}
+
+console.log('[SUMMON DEBUG] Full card loaded for quest:', {
+  cardCode: fullCard.cardCode,
+  version: fullCard.version,
+  group: fullCard.group,
+  era: fullCard.era,
+});
+
+await emitQuestEvent(
+  interaction.user.id,
+  {
+    type: 'summon',
+    card: {
+      cardCode: fullCard.cardCode,
+      version: fullCard.version,
+      group: fullCard.group,
+      era: fullCard.era,
+    },
+  },
+  interaction
+);
 
   await cooldowns.setCooldown(
     interaction.user.id,
