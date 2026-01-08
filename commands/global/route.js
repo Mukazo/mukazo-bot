@@ -7,6 +7,7 @@ const {
 
 const cooldowns = require('../../utils/cooldownManager');
 const { giveCurrency } = require('../../utils/giveCurrency');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 const ROUTES = [
   {

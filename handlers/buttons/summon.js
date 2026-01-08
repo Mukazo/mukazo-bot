@@ -126,7 +126,7 @@ if (session.expiresAt && session.expiresAt.getTime() <= now) {
   { upsert: true }
 );
 
-await emitQuestEvent(claimerId, {
+await emitQuestEvent(interaction.user.id, {
   type: 'summon',
   card: {
     cardCode: card.cardCode,
