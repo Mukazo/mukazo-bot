@@ -107,6 +107,10 @@ module.exports = {
 
         // route condition
         .addIntegerOption(o => o.setName('min_wirlies').setDescription('Min wirlies earned in a route run (trigger=route)'))
+        .addIntegerOption(o =>
+  o.setName('min_keys')
+   .setDescription('Minimum keys to obtain')
+)
 
         // card filters
         .addIntegerOption(o => o.setName('version').setDescription('Card version filter'))

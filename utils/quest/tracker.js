@@ -112,11 +112,22 @@ async function emitQuestEvent(userId, payload, interactionForNotify = null) {
     }
 
     if (type === 'route') {
-      if (c.minWirlies != null) {
-        const earned = payload.rewards?.wirlies || 0;
-        if (earned < c.minWirlies) continue;
-      }
+  if (c.minWirlies != null) {
+    const earned = payload.rewards?.wirlies || 0;
+    if (earned < c.minWirlies) {
+      console.log('[QUEST DEBUG] Wirlies condition not met', earned, c.minWirlies);
+      continue;
     }
+  }
+
+  if (c.minKeys != null) {
+    const earnedKeys = payload.rewards?.keys || 0;
+    if (earnedKeys < c.minKeys) {
+      console.log('[QUEST DEBUG] Keys condition not met', earnedKeys, c.minKeys);
+      continue;
+    }
+  }
+}
 
     if (type === 'command') {
       if (c.commandName && payload.commandName !== c.commandName) continue;
