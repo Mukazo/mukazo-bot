@@ -30,6 +30,7 @@ module.exports = {
         .setDescription('Reroll a daily/weekly quest (costs Wirlies)')
         .addStringOption(o =>
           o.setName('category')
+          .setDescription('which category')
             .addChoices(
               { name: 'Daily', value: 'daily' },
               { name: 'Weekly', value: 'weekly' }
