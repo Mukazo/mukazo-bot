@@ -4,7 +4,7 @@ module.exports = {
   async execute(interaction) {
     // ADMIN CHECK HERE (since subcommand perms are not supported)
     if (!interaction.memberPermissions?.has('Administrator')) {
-      return interaction.editReply({ content: '❌ Admin only.' });
+      return interaction.editReply({ content: 'Admin only.' });
     }
 
     const now = new Date();
@@ -38,6 +38,6 @@ module.exports = {
       },
     });
 
-    await interaction.editReply({ content: `✅ Quest created: **${quest.name}** (\`${quest.key}\`)` });
+    await interaction.editReply({ content: `Quest created: **${quest.name}** (\`${quest.key}\`)` });
   },
 };

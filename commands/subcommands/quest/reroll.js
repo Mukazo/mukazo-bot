@@ -4,7 +4,7 @@ const UserQuestAssignment = require('../../../models/UserQuestAssignment');
 const UserQuest = require('../../../models/UserQuest');
 const { ensureAssigned } = require('../../../utils/quest/assign');
 
-const REROLL_COST_WIRLIES = 250; // change this
+const REROLL_COST_WIRLIES = 500; // change this
 
 function pickReplacement(pool, currentKeys) {
   const available = pool.filter(q => !currentKeys.includes(q.key));
@@ -19,7 +19,7 @@ module.exports = {
     const slot = interaction.options.getInteger('slot') - 1; // 0-based
 
     if (category !== 'daily' && category !== 'weekly') {
-      return interaction.editReply({ content: '❌ Only daily/weekly can be rerolled.' });
+      return interaction.editReply({ content: 'Only Daily & Weekly Quests can be rerolled.' });
     }
 
     await ensureAssigned(userId, category, 3);
@@ -29,13 +29,13 @@ module.exports = {
 
     if (!user || wirlies < REROLL_COST_WIRLIES) {
       return interaction.editReply({
-        content: `❌ You need **${REROLL_COST_WIRLIES} Wirlies** to reroll.`,
+        content: `You need **${REROLL_COST_WIRLIES} Wirlies** to reroll.`,
       });
     }
 
     const assignment = await UserQuestAssignment.findOne({ userId, category });
     if (!assignment || !assignment.questKeys[slot]) {
-      return interaction.editReply({ content: '❌ Invalid quest slot.' });
+      return interaction.editReply({ content: 'Invalid quest slot.' });
     }
 
     const now = new Date();
@@ -46,7 +46,7 @@ module.exports = {
 
     const replacement = pickReplacement(pool, assignment.questKeys);
     if (!replacement) {
-      return interaction.editReply({ content: '❌ No replacement quests available right now.' });
+      return interaction.editReply({ content: 'No replacement quests available right now.' });
     }
 
     // Deduct wirlies
@@ -60,7 +60,7 @@ module.exports = {
     await UserQuest.deleteOne({ userId, questKey: replacement.key });
 
     await interaction.editReply({
-      content: `✅ Rerolled slot **${slot + 1}**.\nNew quest: **${replacement.name}**\nCost: **${REROLL_COST_WIRLIES} Wirlies**`,
+      content: `Rerolled slot **${slot + 1}**.\nNew quest: **${replacement.name}**\nCost: **${REROLL_COST_WIRLIES} Wirlies**`,
     });
   },
 };

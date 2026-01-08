@@ -93,18 +93,29 @@ async function emitQuestEvent(userId, payload, interactionForNotify = null) {
     }
 
     const uq = await UserQuest.findOneAndUpdate(
-      { userId, questKey: quest.key, completed: false },
-      { $inc: { progress: 1 }, $set: { updatedAt: new Date() } },
-      { upsert: true, new: true }
-    );
+  { userId, questKey: quest.key },
+  {
+    $setOnInsert: {
+      progress: 0,
+      completed: false,
+    },
+  },
+  { upsert: true, new: true }
+);
 
-    if (uq.progress >= c.count) {
-      await completeQuest(userId, quest);
-      await notify(interactionForNotify, `✅ Quest completed: **${quest.name}**`);
-    } else {
-      // optional progress pings (commented out)
-      // await notify(interactionForNotify, `📌 **${quest.name}**: ${uq.progress}/${c.count}`);
-    }
+if (uq.completed) continue;
+
+    uq.progress += 1;
+uq.updatedAt = new Date();
+
+if (uq.progress >= c.count) {
+  uq.completed = true;
+  await uq.save();
+  await completeQuest(userId, quest);
+  await notify(interactionForNotify, `Quest completed: **${quest.name}**`);
+} else {
+  await uq.save();
+}
   }
 }
 

@@ -22,9 +22,27 @@ function fmtQuest(q, uq) {
 
 async function getAssigned(userId, category) {
   await ensureAssigned(userId, category, 3);
+
   const a = await UserQuestAssignment.findOne({ userId, category }).lean();
   if (!a) return [];
-  return Quest.find({ key: { $in: a.questKeys } }).lean();
+
+  const quests = await Quest.find({ key: { $in: a.questKeys } }).lean();
+
+  // 🔑 CREATE UserQuest rows for assigned quests
+  for (const q of quests) {
+    await UserQuest.findOneAndUpdate(
+      { userId, questKey: q.key },
+      {
+        $setOnInsert: {
+          progress: 0,
+          completed: false,
+        },
+      },
+      { upsert: true }
+    );
+  }
+
+  return quests;
 }
 
 module.exports = {
@@ -62,8 +80,10 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('Quests')
-      .setDescription(sections.join('\n\n') || 'No quests available.');
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+      .setDescription([
+        '# Quests',
+        sections.join('\n') || 'No quests available.'].join('\n'));
 
     await interaction.editReply({ embeds: [embed] });
   },
