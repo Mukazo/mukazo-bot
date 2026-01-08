@@ -42,6 +42,24 @@ async function getAssigned(userId, category) {
     );
   }
 
+  // 🔥 FORCE completion re-check for completion quests
+for (const q of quests) {
+  if (q.mode !== 'completion') continue;
+
+  const uq = await UserQuest.findOne({ userId, questKey: q.key });
+  if (!uq || uq.completed) continue;
+
+  const met = await require('../../../utils/quest/completion')
+    .isCompletionMet(userId, q);
+
+  if (met) {
+    uq.completed = true;
+    await uq.save();
+
+    console.log('[QUEST] Completion quest auto-completed on list:', q.key);
+  }
+}
+
   return quests;
 }
 
