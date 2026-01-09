@@ -148,7 +148,7 @@ if (['lifetime', 'event'].includes(category)) {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setFooter({
   text: ['lifetime', 'event'].includes(category)
-    ? `Category: ${category.toUpperCase()} • Page ${page + 1}/${totalPages}`
+    ? `Category: ${category.toUpperCase()} • Page ${page + 1}`
     : `Category: ${category.toUpperCase()}`,
 })
       .setDescription([

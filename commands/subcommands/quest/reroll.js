@@ -2,7 +2,7 @@ const User = require('../../../models/User');
 const UserQuestAssignment = require('../../../models/UserQuestAssignment');
 const { ensureAssigned } = require('../../../utils/quest/assign');
 
-const REROLL_COST = 1500; // change to whatever you want
+const REROLL_COST = 750; // change to whatever you want
 
 module.exports = {
   async execute(interaction) {
