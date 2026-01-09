@@ -117,7 +117,11 @@ const targetKeys =
 
       if (groups.length && !groups.includes(normalize(card.group))) return false;
       if (eras.length && !eras.includes(normalize(card.era))) return false;
-      if (categories.length && !categories.includes(normalize(card.category))) return false;
+      if (categories.length) {
+        const category = normalize(card.category);
+        const alias = normalize(card.categoryalias); // ✅ your field name
+        if (!categories.some(c => category.includes(c) || alias.includes(c))) return false;
+      }
 
       // ✅ numeric compare against numeric list
       if (versions.length) {

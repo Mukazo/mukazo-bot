@@ -97,6 +97,7 @@ if (cardCodeFilter) filters.cardCode = cardCodeFilter;
 
     if (interaction.options.getString('setname')) updates.name = interaction.options.getString('setname');
     if (interaction.options.getString('setnamealias')) updates.namealias = interaction.options.getString('setnamealias');
+    if (interaction.options.getString('setcategoryalias')) updates.namealias = interaction.options.getString('setcategoryalias');
     if (interaction.options.getString('setcategory')) updates.category = interaction.options.getString('setcategory');
     if (interaction.options.getString('setversion')) updates.version = interaction.options.getString('setversion');
     if (interaction.options.getString('setemoji')) updates.emoji = interaction.options.getString('setemoji');

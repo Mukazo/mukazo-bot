@@ -21,8 +21,6 @@ module.exports = {
           { name: 'Animanga', value: 'animanga' },
           { name: 'Video Games', value: 'video games' },
           { name: 'Entertainment', value: 'entertainment' },
-          { name: 'Monthlies', value: 'monthlies' },
-          { name: 'Events', value: 'events' },
           { name: 'Specials', value: 'specials' }
         ).setRequired(true))
       .addStringOption(opt =>
@@ -57,6 +55,14 @@ module.exports = {
       opt.setName('availablequantity').setDescription('limited quantity').setRequired(false))
       .addStringOption(opt =>
       opt.setName('namealias').setDescription('alternate name of card').setRequired(false))
+      .addStringOption(opt =>
+      opt.setName('categoryalias')
+        .setDescription('alternate category of card')
+        .setRequired(false)
+        .addChoices(
+          { name: 'Monthlies', value: 'monthlies' },
+          { name: 'Events', value: 'events' },
+        ))
 
     )
     .addSubcommand(sub =>
@@ -75,6 +81,7 @@ module.exports = {
         .addStringOption(opt => opt.setName('setversion').setDescription('New version'))
         .addStringOption(opt => opt.setName('setemoji').setDescription('New emoji override'))
         .addStringOption(opt => opt.setName('setnamealias').setDescription('new alternate name of card'))
+        .addStringOption(opt => opt.setName('setcategoryalias').setDescription('new alternate category of card'))
         .addStringOption(opt => opt.setName('setgroup').setDescription('New group'))
         .addStringOption(opt => opt.setName('setera').setDescription('New era'))
         .addStringOption(opt => opt.setName('setbatch').setDescription('New batch or "null" to remove'))
