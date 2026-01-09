@@ -14,18 +14,18 @@ async function emitQuestEvent(userId, payload) {
   for (const quest of quests) {
     const c = quest.conditions || {};
 
-    // STRICT trigger matching
-if (quest.trigger !== 'any' && quest.trigger !== payload.type) {
-  continue;
+    // ---------- STRICT EVENT MATCHING ----------
+
+// 1. If quest is command-specific, FORCE command matching first
+if (quest.conditions?.commandName) {
+  if (payload.type !== 'command') continue;
+  if (payload.commandName !== quest.conditions.commandName) continue;
 }
 
-// Command-based quests
-if (payload.type === 'command') {
-  // If quest expects a commandName, it MUST match
-  if (quest.conditions?.commandName) {
-    if (payload.commandName !== quest.conditions.commandName) {
-      continue;
-    }
+// 2. Otherwise, normal trigger matching
+else {
+  if (quest.trigger !== 'any' && quest.trigger !== payload.type) {
+    continue;
   }
 }
 
