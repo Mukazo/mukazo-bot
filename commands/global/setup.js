@@ -19,7 +19,7 @@ const Series = require('../../models/Series');
 =========================== */
 
 // Always enabled
-const AUTO_CATEGORIES = ['monthlies', 'events', 'specials'];
+const AUTO_CATEGORIES = ['specials'];
 const REQUIRED_CATEGORIES = [
   'entertainment',
   'video games',
