@@ -41,7 +41,6 @@ module.exports = {
       sub
         .setName('create')
         .setDescription('Create a quest (admin)')
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
 
         .addStringOption(o => o.setName('key').setDescription('Unique quest key').setRequired(true))
         .addStringOption(o => o.setName('name').setDescription('Quest name').setRequired(true))
