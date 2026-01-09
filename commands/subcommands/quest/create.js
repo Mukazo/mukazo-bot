@@ -11,7 +11,7 @@ module.exports = {
       name: interaction.options.getString('name'),
       description: interaction.options.getString('description'),
       category: interaction.options.getString('category'),
-      type: interaction.options.getString('type'),
+      trigger: interaction.options.getString('trigger'),
       mode: interaction.options.getString('mode'),
       conditions: {
         count: interaction.options.getInteger('count'),
