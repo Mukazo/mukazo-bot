@@ -1,25 +1,30 @@
+const User = require('../../models/User');
 const UserQuest = require('../../models/UserQuest');
-const { giveCurrency } = require('../giveCurrency'); // your combined wirlies/keys util
 
 async function completeQuest(userId, quest) {
-  await UserQuest.updateOne(
-    { userId, questKey: quest.key },
-    {
-      $set: {
-        completed: true,
-        completedAt: new Date(),
-        updatedAt: new Date(),
-      },
-    },
-    { upsert: true }
-  );
+  // Mark reward claimed once (prevents double payouts)
+  const uq = await UserQuest.findOne({ userId, questKey: quest.key });
+  if (!uq) return { ok: false, reason: 'missing-userquest' };
 
-  const wirlies = quest.rewards?.wirlies || 0;
-  const keys = quest.rewards?.keys || 0;
+  if (uq.rewardClaimed) return { ok: true, already: true };
 
-  if (wirlies !== 0 || keys !== 0) {
-    await giveCurrency(userId, { wirlies, keys });
+  const wirlies = Number(quest.rewards?.wirlies || 0);
+  const keys = Number(quest.rewards?.keys || 0);
+
+  // Apply rewards
+  const inc = {};
+  if (wirlies) inc.wirlies = wirlies;
+  if (keys) inc.keys = keys;
+
+  if (Object.keys(inc).length) {
+    await User.updateOne({ userId }, { $inc: inc }, { upsert: true });
   }
+
+  uq.rewardClaimed = true;
+  uq.rewardClaimedAt = new Date();
+  await uq.save();
+
+  return { ok: true, wirlies, keys };
 }
 
 module.exports = { completeQuest };

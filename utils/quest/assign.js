@@ -1,38 +1,58 @@
 const Quest = require('../../models/Quest');
 const UserQuestAssignment = require('../../models/UserQuestAssignment');
-const UserQuest = require('../../models/UserQuest');
-const { dailyCycleKey, weeklyCycleKey } = require('./time');
 
-function pickRandomUnique(arr, n) {
-  const copy = arr.slice();
-  copy.sort(() => 0.5 - Math.random());
-  return copy.slice(0, n);
+function pad2(n) {
+  return String(n).padStart(2, '0');
 }
 
-async function ensureAssigned(userId, category, slots = 3) {
+function getDailyKey(d = new Date()) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+// ISO-ish week key (good enough for rotation)
+function getWeeklyKey(d = new Date()) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return `${date.getUTCFullYear()}-W${pad2(weekNo)}`;
+}
+
+function cycleKeyFor(category) {
   const now = new Date();
-  const cycleKey = category === 'daily' ? dailyCycleKey(now) : weeklyCycleKey(now);
+  return category === 'weekly' ? getWeeklyKey(now) : getDailyKey(now);
+}
 
+async function ensureAssigned(userId, category, count = 3) {
+  if (!['daily', 'weekly'].includes(category)) return null;
+
+  const cycleKey = cycleKeyFor(category);
   const existing = await UserQuestAssignment.findOne({ userId, category }).lean();
-  if (existing && existing.cycleKey === cycleKey) return existing.questKeys;
 
+  if (existing && existing.cycleKey === cycleKey && existing.questKeys?.length) {
+    return existing;
+  }
+
+  const now = new Date();
+
+  // Only pick quests of that category that are not expired
   const pool = await Quest.find({
     category,
     $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }],
   }).lean();
 
-  const selected = pickRandomUnique(pool, Math.min(slots, pool.length)).map(q => q.key);
+  // If you have fewer than count quests available, just assign what exists
+  const shuffled = pool.sort(() => Math.random() - 0.5);
+  const chosen = shuffled.slice(0, Math.min(count, shuffled.length)).map(q => q.key);
 
-  await UserQuestAssignment.findOneAndUpdate(
+  const doc = await UserQuestAssignment.findOneAndUpdate(
     { userId, category },
-    { $set: { cycleKey, questKeys: selected, assignedAt: now } },
-    { upsert: true }
+    { $set: { cycleKey, questKeys: chosen, assignedAt: new Date() } },
+    { upsert: true, new: true }
   );
 
-  // Reset progress for the newly assigned set
-  await UserQuest.deleteMany({ userId, questKey: { $in: selected } });
-
-  return selected;
+  return doc.toObject ? doc.toObject() : doc;
 }
 
 module.exports = { ensureAssigned };

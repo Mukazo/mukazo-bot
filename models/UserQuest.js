@@ -6,10 +6,13 @@ const UserQuestSchema = new mongoose.Schema(
     questKey: { type: String, required: true, index: true },
 
     progress: { type: Number, default: 0 },
+    goal: { type: Number, default: 0 },
+
     completed: { type: Boolean, default: false },
     completedAt: { type: Date, default: null },
 
-    updatedAt: { type: Date, default: Date.now },
+    rewardClaimed: { type: Boolean, default: false },
+    rewardClaimedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

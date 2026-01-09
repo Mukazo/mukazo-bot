@@ -2,58 +2,35 @@ const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 
 /**
- * Completion check for state-based quests (era, group, version, etc.)
- * This scans the USER INVENTORY and joins back to Card.
+ * Completion = "own all cards matching conditions".
+ * Conditions supported now: era, group, version (any combination).
  */
-async function isCompletionMet(userId, quest) {
+async function checkCompletionProgress(userId, quest) {
   const c = quest.conditions || {};
 
-  // 1️⃣ Get all inventory card codes the user owns
-  const inventory = await CardInventory.find(
-    { userId, quantity: { $gt: 0 } },
-    { cardCode: 1 }
-  ).lean();
+  const cardQuery = {};
+  if (c.era) cardQuery.era = c.era;
+  if (c.group) cardQuery.group = c.group;
+  if (typeof c.version === 'number') cardQuery.version = c.version;
 
-  if (!inventory.length) {
-    return { owned: 0, total: 0, completed: false };
-  }
+  const required = await Card.find(cardQuery, { _id: 0, cardCode: 1 }).lean();
+  const total = required.length;
 
-  const ownedCodes = inventory.map(i => i.cardCode);
+  if (!total) return { owned: 0, total: 0, completed: false, percent: 0 };
 
-  // 2️⃣ Load the card documents for those inventory items
-  const ownedCards = await Card.find(
-    { cardCode: { $in: ownedCodes } },
-    { cardCode: 1, era: 1, group: 1, version: 1 }
-  ).lean();
+  const requiredCodes = required.map(x => x.cardCode);
 
-  // 3️⃣ Determine the FULL REQUIRED SET (what exists in DB)
-  const requiredCards = await Card.find(
-    {
-      ...(c.era != null ? { era: c.era } : {}),
-      ...(c.group != null ? { group: c.group } : {}),
-      ...(c.version != null ? { version: c.version } : {}),
-    },
-    { cardCode: 1 }
-  ).lean();
+  // User owns any cardCode in required with quantity > 0
+  const ownedCount = await CardInventory.countDocuments({
+    userId,
+    cardCode: { $in: requiredCodes },
+    quantity: { $gt: 0 },
+  });
 
-  const total = requiredCards.length;
-  if (!total) {
-    return { owned: 0, total: 0, completed: false };
-  }
+  const completed = ownedCount >= total;
+  const percent = total > 0 ? Math.floor((ownedCount / total) * 100) : 0;
 
-  const requiredSet = new Set(requiredCards.map(c => c.cardCode));
-  const ownedSet = new Set(ownedCards.map(c => c.cardCode));
-
-  let owned = 0;
-  for (const code of requiredSet) {
-    if (ownedSet.has(code)) owned++;
-  }
-
-  return {
-    owned,
-    total,
-    completed: owned === total,
-  };
+  return { owned: ownedCount, total, completed, percent };
 }
 
-module.exports = { isCompletionMet };
+module.exports = { checkCompletionProgress };

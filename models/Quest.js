@@ -2,53 +2,44 @@ const mongoose = require('mongoose');
 
 const QuestSchema = new mongoose.Schema(
   {
-    key: { type: String, required: true, unique: true, index: true },
+    key: { type: String, unique: true, required: true },
 
     name: { type: String, required: true },
     description: { type: String, required: true },
 
-    // Rotation bucket
     category: {
       type: String,
       enum: ['daily', 'weekly', 'lifetime', 'event'],
-      required: true,
+      default: 'daily',
+      index: true,
     },
 
-    // What event increments it
-    // - "command" = running a command X times (summon/enchant/route/etc)
-    // - "summon"/"enchant" = card-giving events
-    // - "route" = currency run event
-    trigger: {
-      type: String,
-      enum: ['summon', 'enchant', 'route', 'command', 'any'],
-      required: true,
-    },
+    // For count/progress quests: 'summon', 'route', 'enchant', 'command', etc.
+    // For completion quests: ignored (can be 'any')
+    trigger: { type: String, default: 'any', index: true },
 
-    // Progress vs completion (own all)
-    mode: {
-      type: String,
-      enum: ['progress', 'completion'],
-      required: true,
-    },
+    // 'count' = event-driven, uses emitQuestEvent increments
+    // 'completion' = inventory-driven, uses scan on list
+    mode: { type: String, enum: ['count', 'completion'], default: 'count', index: true },
 
-    // Optional chain prerequisite
-    prerequisiteKey: { type: String, default: null },
+    // Optional expiration
+    expiresAt: { type: Date, default: null, index: true },
 
-    // Optional expiry
-    expiresAt: { type: Date, default: null },
-
-    // Conditions:
-    // - progress: count required, plus optional filters
-    // - completion: filters define the full set to own
     conditions: {
-      count: { type: Number, default: null }, // required for progress
-      commandName: { type: String, default: null }, // for trigger="command"
-      minWirlies: { type: Number, default: null }, // for trigger="route" earn quests
-      minKeys: { type: Number, default: null }, // for trigger="route" earn quests
+      // Only used for mode:'count'
+      count: { type: Number, default: null },
 
+      // For trigger:'command' quests
+      commandName: { type: String, default: null },
+
+      // Optional filters
       version: { type: Number, default: null },
       group: { type: String, default: null },
       era: { type: String, default: null },
+
+      // Route/currency gating per event (only for mode:'count')
+      minWirlies: { type: Number, default: null },
+      minKeys: { type: Number, default: null },
     },
 
     rewards: {
