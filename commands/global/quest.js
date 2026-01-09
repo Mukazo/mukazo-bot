@@ -36,6 +36,12 @@ module.exports = {
             )
             .setRequired(true)
         )
+        .addStringOption(o =>
+  o
+    .setName('quest')
+    .setDescription('Quest name to reroll')
+    .setRequired(true)
+)
     )
     .addSubcommand(sub =>
       sub

@@ -1,6 +1,6 @@
 const User = require('../models/User');
 
-const MAX_KEYS = 200;
+const MAX_KEYS = 250;
 
 async function giveCurrency(userId, { wirlies = 0, keys = 0 }) {
   if (typeof wirlies !== 'number' || typeof keys !== 'number') {

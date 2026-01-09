@@ -72,6 +72,19 @@ module.exports = {
     if (category === 'event') quests = await Quest.find({ category: 'event' }).lean();
 
     quests = quests.filter(q => !q.expiresAt || q.expiresAt > now);
+    const PAGE_SIZE = 3;
+
+let totalPages = 1;
+let pagedQuests = quests;
+
+if (['lifetime', 'event'].includes(category)) {
+  totalPages = Math.max(1, Math.ceil(quests.length / PAGE_SIZE));
+  const pageIndex = Math.min(page, totalPages - 1);
+  pagedQuests = quests.slice(
+    pageIndex * PAGE_SIZE,
+    pageIndex * PAGE_SIZE + PAGE_SIZE
+  );
+}
     /* =========================
        Ensure UserQuest rows
     ========================= */
@@ -129,13 +142,15 @@ module.exports = {
        Build display
     ========================= */
 
-    const lines = quests.map(q => fmtQuest(q, uqMap.get(q.key)));
+    const lines = pagedQuests.map(q => fmtQuest(q, uqMap.get(q.key)));
 
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setFooter({
-        text: `Category: ${category.toUpperCase()} • Page ${PAGE_ORDER.indexOf(category) + 1}/${PAGE_ORDER.length}`,
-      })
+  text: ['lifetime', 'event'].includes(category)
+    ? `Category: ${category.toUpperCase()} • Page ${page + 1}/${totalPages}`
+    : `Category: ${category.toUpperCase()}`,
+})
       .setDescription([
         '# Quests',
         lines.join('\n\n') || 'No quests available.'].join('\n'));
