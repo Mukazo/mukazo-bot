@@ -5,6 +5,22 @@ module.exports = {
     if (!interaction.memberPermissions?.has('Administrator')) {
       return interaction.editReply({ content: 'Admin only.' });
     }
+
+    const expiresOn = interaction.options.getString('expires_on');
+
+let expiresAt = null;
+
+if (expiresOn) {
+  // Force end-of-day UTC to avoid timezone bugs
+  expiresAt = new Date(`${expiresOn}T23:59:59.999Z`);
+
+  if (isNaN(expiresAt.getTime())) {
+    return interaction.reply({
+      content: 'Invalid date format. Use YYYY-MM-DD.',
+      ephemeral: true,
+    });
+  }
+}
     
     const quest = await Quest.create({
       key: interaction.options.getString('key'),
@@ -25,6 +41,7 @@ module.exports = {
         wirlies: interaction.options.getInteger('reward_wirlies') || 0,
         keys: interaction.options.getInteger('reward_keys') || 0,
       },
+      expiresAt,
     });
 
     await interaction.editReply({ content: `Created quest **${quest.name}**` });

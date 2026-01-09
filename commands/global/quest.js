@@ -99,7 +99,12 @@ module.exports = {
         .addIntegerOption(o => o.setName('reward_keys').setDescription('Reward keys').setRequired(false))
 
         // expiry
-        .addIntegerOption(o => o.setName('expires_in_hours').setDescription('Expire in N hours').setRequired(false))
+        .addStringOption(o =>
+  o
+    .setName('expires_at')
+    .setDescription('Quest expiration date (YYYY-MM-DD)')
+    .setRequired(false)
+)
     ),
 
   async execute(interaction) {
