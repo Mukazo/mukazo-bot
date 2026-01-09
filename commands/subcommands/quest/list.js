@@ -21,7 +21,7 @@ function fmtQuest(q, uq) {
     return [
       `${uq?.completed ? '<:check:1458968004066017332>' : '<:dashy:1458967877796364546>'} **${q.name}**`,
       `> ${q.description}`,
-      max > 0 ? `Progress: ${cur}/${max} (${pct}%)` : `Progress: 0/0 (0%)`,
+      max > 0 ? `-# Progress: ${cur}/${max} (${pct}%)` : `-# Progress: 0/0 (0%)`,
     ].join('\n');
   }
 
@@ -30,7 +30,7 @@ function fmtQuest(q, uq) {
   return [
     `${uq?.completed ? '<:check:1458968004066017332>' : '<:dashy:1458967877796364546>'} **${q.name}**`,
     `> ${q.description}`,
-    `${bar(cur, max)} ${cur}/${max}`,
+    `-# ${bar(cur, max)} ${cur}/${max}`,
   ].join('\n');
 }
 
@@ -91,7 +91,7 @@ module.exports = {
       }
 
       const lines = active.map(q => fmtQuest(q, uqMap.get(q.key)));
-      sections.push(`### ${title}\n${lines.join('\n\n')}`);
+      sections.push(`### __${title}__\n${lines.join('\n\n')}`);
     }
 
     if (!filter || filter === 'daily') {
@@ -112,7 +112,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
-        '# Your Quests',
+        '# Quests',
         sections.join('\n') || 'No quests available.'].join('\n'));
 
     await interaction.editReply({ embeds: [embed] });
