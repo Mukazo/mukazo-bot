@@ -16,6 +16,7 @@ const cooldowns = require('../../utils/cooldownManager');
 const { giveCurrency } = require('../../utils/giveCurrency');
 
 const CardInventory = require('../../models/CardInventory');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 const SummonSession = require('../../models/SummonSession');
 const User = require('../../models/User');
 
@@ -203,5 +204,14 @@ const pulls = shuffled.slice(0, 3);
       ownerHasClaimed: false,
       expiresAt: new Date(Date.now() + 180_000),
     });
+
+await emitQuestEvent(
+  interaction.user.id,
+  {
+    type: 'command',
+    commandName: 'enchant',
+  },
+  interaction
+);
   },
 };

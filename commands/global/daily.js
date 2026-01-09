@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const cooldowns = require('../../utils/cooldownManager');
 const cooldownConfig = require('../../utils/cooldownConfig');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 const { giveCurrency } = require('../../utils/giveCurrency');
 const User = require('../../models/User'); // Adjust path if needed
 
@@ -81,6 +82,15 @@ module.exports = {
         `> **Daily Streak:** ${streak}`,
         `> __**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()} & <:Key:1456059698582392852> ${user.keys}`
       ].join('\n'))
+
+          await emitQuestEvent(
+      interaction.user.id,
+      {
+        type: 'command',
+        commandName: 'daily',
+      },
+      interaction
+    );
 
     return interaction.editReply({ embeds: [embed] });
   }

@@ -1,42 +1,39 @@
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 
-async function isCompletionMet(userId, quest) {
-  const q = quest.conditions || {};
+async function checkCompletion(userId, quest) {
+  const c = quest.conditions || {};
 
-  // 1️⃣ Get all required card codes (NO active/batch filters)
-  const required = await Card.find(
+  // Fetch all required cards (NO active/batch filters)
+  const requiredCards = await Card.find(
     {
-      ...(q.version != null ? { version: q.version } : {}),
-      ...(q.group != null ? { group: q.group } : {}),
-      ...(q.era != null ? { era: q.era } : {}),
+      ...(c.version != null ? { version: c.version } : {}),
+      ...(c.group != null ? { group: c.group } : {}),
+      ...(c.era != null ? { era: c.era } : {}),
     },
     { _id: 0, cardCode: 1 }
   ).lean();
 
-  if (!required.length) return false;
+  if (!requiredCards.length) {
+    return { owned: 0, total: 0, completed: false };
+  }
 
-  const requiredSet = new Set(
-    required.map(c => String(c.cardCode).toUpperCase())
-  );
+  const requiredCodes = requiredCards.map(c => String(c.cardCode).toUpperCase());
 
-  // 2️⃣ Fetch owned codes with quantity > 0
-  const ownedCodes = await CardInventory.distinct('cardCode', {
+  // Count how many the user owns (quantity > 0)
+  const ownedCount = await CardInventory.countDocuments({
     userId,
-    cardCode: { $in: [...requiredSet] },
+    cardCode: { $in: requiredCodes },
     quantity: { $gt: 0 },
   });
 
-  const ownedSet = new Set(
-    ownedCodes.map(c => String(c).toUpperCase())
-  );
-
-  // 3️⃣ Ensure every required card is owned
-  for (const code of requiredSet) {
-    if (!ownedSet.has(code)) return false;
-  }
-
-  return true;
+  return {
+    owned: ownedCount,
+    total: requiredCodes.length,
+    completed: ownedCount === requiredCodes.length,
+  };
 }
 
-module.exports = { isCompletionMet };
+module.exports = {
+  checkCompletion,
+};

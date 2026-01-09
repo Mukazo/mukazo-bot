@@ -10,6 +10,7 @@ const {
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 const User = require('../../models/User');
 
 const PAGE_SIZE = 6;
@@ -264,5 +265,14 @@ const targetKeys =
       row.components.forEach(b => b.setDisabled(true));
       await message.edit({ components: [row] });
     });
+
+    await emitQuestEvent(
+      interaction.user.id,
+      {
+        type: 'command',
+        commandName: 'inventory',
+      },
+      interaction
+    );
   },
 };
