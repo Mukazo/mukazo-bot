@@ -101,7 +101,7 @@ module.exports = {
         // expiry
         .addStringOption(o =>
   o
-    .setName('expires_at')
+    .setName('expires_on')
     .setDescription('Quest expiration date (YYYY-MM-DD)')
     .setRequired(false)
 )

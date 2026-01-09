@@ -29,7 +29,6 @@ if (expiresOn) {
       category: interaction.options.getString('category'),
       trigger: interaction.options.getString('trigger'),
       mode: interaction.options.getString('mode'),
-      expiresAt: interaction.options.getInteger('expires_in_hours'),
       conditions: {
         count: interaction.options.getInteger('count'),
         commandName: interaction.options.getString('command_name'),
