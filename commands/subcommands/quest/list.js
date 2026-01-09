@@ -19,8 +19,8 @@ function fmtQuest(q, uq) {
     const pct = max > 0 ? Math.floor((cur / max) * 100) : 0;
 
     return [
-      `${uq?.completed ? '✅' : '❌'} **${q.name}**`,
-      q.description,
+      `${uq?.completed ? '<:check:1458968004066017332>' : '<:dashy:1458967877796364546>'} **${q.name}**`,
+      `> ${q.description}`,
       max > 0 ? `Progress: ${cur}/${max} (${pct}%)` : `Progress: 0/0 (0%)`,
     ].join('\n');
   }
@@ -28,8 +28,8 @@ function fmtQuest(q, uq) {
   const cur = uq?.progress ?? 0;
   const max = uq?.goal ?? (q.conditions?.count ?? 0);
   return [
-    `${uq?.completed ? '✅' : '❌'} **${q.name}**`,
-    q.description,
+    `${uq?.completed ? '<:check:1458968004066017332>' : '<:dashy:1458967877796364546>'} **${q.name}**`,
+    `> ${q.description}`,
     `${bar(cur, max)} ${cur}/${max}`,
   ].join('\n');
 }
@@ -91,7 +91,7 @@ module.exports = {
       }
 
       const lines = active.map(q => fmtQuest(q, uqMap.get(q.key)));
-      sections.push(`## ${title}\n${lines.join('\n\n')}`);
+      sections.push(`### ${title}\n${lines.join('\n\n')}`);
     }
 
     if (!filter || filter === 'daily') {
@@ -110,9 +110,10 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('Quests')
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-      .setDescription(sections.join('\n\n') || 'No quests available.');
+      .setDescription([
+        '# Your Quests',
+        sections.join('\n\n') || 'No quests available.']);
 
     await interaction.editReply({ embeds: [embed] });
   },
