@@ -12,7 +12,7 @@ let expiresAt = null;
 
 if (expiresOn) {
   // Force end-of-day UTC to avoid timezone bugs
-  expiresAt = new Date(`${expiresOn}T23:59:59.999Z`);
+  expiresAt = new Date(`${expiresOn}T00:00:00.000Z`);
 
   if (isNaN(expiresAt.getTime())) {
     return interaction.reply({
