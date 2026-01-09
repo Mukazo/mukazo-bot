@@ -113,7 +113,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
         '# Your Quests',
-        sections.join('\n\n') || 'No quests available.']);
+        sections.join('\n') || 'No quests available.'].join('\n'));
 
     await interaction.editReply({ embeds: [embed] });
   },
