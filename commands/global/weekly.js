@@ -59,7 +59,14 @@ module.exports = {
     const userId = interaction.user.id;
     const commandName = 'Weekly';
     const cooldownDuration = cooldownConfig[commandName];
-    const user = await User.findOne({ userId: interaction.user.id }).lean();
+    let user = await User.findOne({ userId });
+
+if (!user) {
+  user = await User.create({
+    userId,
+    enabledCategories: [],
+  });
+}
 
     if (!user || !user.enabledCategories || user.enabledCategories.length === 0) {
   return interaction.editReply({
@@ -82,6 +89,7 @@ module.exports = {
     =========================== */
     const now = new Date();
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    
     if (!user) user = await User.create({ userId });
 
     const lastClaim = new Date(user.weeklystreak?.lastClaim || 0);
@@ -108,6 +116,7 @@ module.exports = {
     const v1to4Pool = await Card.find({
       active: true,
       version: { $gte: 1, $lte: 4 },
+      category: { $in: user.enabledCategories },
       batch: null,
     }).lean();
 
