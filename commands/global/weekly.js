@@ -55,9 +55,17 @@ module.exports = {
     .setDescription('Claim your weekly rewards'),
 
   async execute(interaction) {
+    
     const userId = interaction.user.id;
     const commandName = 'Weekly';
     const cooldownDuration = cooldownConfig[commandName];
+    const user = await User.findOne({ userId: interaction.user.id }).lean();
+
+    if (!user || !user.enabledCategories || user.enabledCategories.length === 0) {
+  return interaction.editReply({
+    content: 'You have no enabled categories. Please run `/setup` first.',
+  });
+}
 
     /* ===========================
        COOLDOWN
@@ -74,7 +82,6 @@ module.exports = {
     =========================== */
     const now = new Date();
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    let user = await User.findOne({ userId });
     if (!user) user = await User.create({ userId });
 
     const lastClaim = new Date(user.weeklystreak?.lastClaim || 0);
@@ -94,6 +101,7 @@ module.exports = {
     const v5Pool = await Card.find({
       active: true,
       version: 5,
+      category: { $in: user.enabledCategories },
       batch: null,
     }).lean();
 
