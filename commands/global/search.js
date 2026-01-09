@@ -120,7 +120,12 @@ module.exports = {
 
       if (group && card.group !== group) return false;
       if (era && card.era !== era) return false;
-      if (category && card.category !== category) return false;
+      if (category) {
+        const q = category.toLowerCase();
+        const n = card.category?.toLowerCase() ?? '';
+        const a = card.categoryalias?.toLowerCase() ?? '';
+        if (!n.includes(q) && !a.includes(q)) return false;
+      }
       if (version && card.version !== version) return false;
 
       return true;
