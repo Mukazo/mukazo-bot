@@ -13,7 +13,7 @@ module.exports = {
     const balance = Number(user?.wirlies || 0);
 
     if (balance < REROLL_COST) {
-      return interaction.editReply({ content: `❌ You need ${REROLL_COST} wirlies to reroll.` });
+      return interaction.editReply({ content: `You need ${REROLL_COST} wirlies to reroll.` });
     }
 
     // deduct
@@ -25,6 +25,6 @@ module.exports = {
     // reassign
     await ensureAssigned(userId, category, 3);
 
-    return interaction.editReply({ content: `✅ Rerolled **${category}** quests for ${REROLL_COST} wirlies.` });
+    return interaction.editReply({ content: `Rerolled **${category}** quests for ${REROLL_COST} wirlies.` });
   },
 };

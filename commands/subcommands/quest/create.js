@@ -20,8 +20,8 @@ module.exports = {
         era: interaction.options.getString('era'),
       },
       rewards: {
-        wirlies: interaction.options.getInteger('wirlies') || 0,
-        keys: interaction.options.getInteger('keys') || 0,
+        wirlies: interaction.options.getInteger('reward_wirlies') || 0,
+        keys: interaction.options.getInteger('reward_keys') || 0,
       },
     });
 
