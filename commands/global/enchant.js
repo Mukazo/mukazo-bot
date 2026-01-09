@@ -20,7 +20,7 @@ const { emitQuestEvent } = require('../../utils/quest/tracker');
 const SummonSession = require('../../models/SummonSession');
 const User = require('../../models/User');
 
-const ENCHANT_CATEGORIES = new Set(['monthlies', 'events', 'specials']);
+const user = await User.findOne({ userId: interaction.user.id }).lean();
 
 function grayscaleRegion(ctx, x, y, w, h) {
   const imgData = ctx.getImageData(x, y, w, h);
@@ -57,6 +57,11 @@ module.exports = {
 
   async execute(interaction) {
     const ownerId = interaction.user.id;
+    if (!user || !user.enabledCategories || user.enabledCategories.length === 0) {
+  return interaction.editReply({
+    content: 'You have no enabled categories. Please run `/setup` first.',
+  });
+}
     const commandName = 'Enchant';
         const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
             if (await cooldowns.isOnCooldown(ownerId, commandName)) {
@@ -87,7 +92,7 @@ module.exports = {
 const pool = await Card.find({
   active: true,
   version: 5,
-  category: { $in: ['monthlies', 'events', 'specials'] },
+   category: { $in: user.enabledCategories },
 }).lean();
 
 if (pool.length < 3) {
