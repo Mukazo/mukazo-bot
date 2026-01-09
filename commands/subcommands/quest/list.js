@@ -48,10 +48,17 @@ async function getAssigned(userId, category) {
 ========================= */
 
 module.exports = {
-  async execute(interaction) {
-    const userId = interaction.user.id;
-    const filter = interaction.options.getString('category');
-    const page = interaction.options.getInteger('page') ?? 0;
+  async execute(interaction, injected = {}) {
+  const userId = interaction.user.id;
+
+  const filter =
+    injected.category ??
+    interaction.options?.getString('category');
+
+  const page =
+    injected.page ??
+    interaction.options?.getInteger('page') ??
+    0;
 
     const PAGE_ORDER = ['daily', 'weekly', 'lifetime', 'event'];
     const category = filter ?? PAGE_ORDER[page] ?? 'daily';
