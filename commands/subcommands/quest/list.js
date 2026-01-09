@@ -3,7 +3,7 @@ const Quest = require('../../../models/Quest');
 const UserQuest = require('../../../models/UserQuest');
 const UserQuestAssignment = require('../../../models/UserQuestAssignment');
 const { ensureAssigned } = require('../../../utils/quest/assign');
-const completion = require('../../../utils/quest/completion');
+const { isCompletionMet } = require('../../../utils/quest/completion');
 const rewards = require('../../../utils/quest/rewards');
 
 function bar(cur, max) {
@@ -70,7 +70,7 @@ async function getAssigned(userId, category) {
     const uq = await UserQuest.findOne({ userId, questKey: q.key });
     if (!uq) continue;
 
-    const result = await completion.checkCompletion(userId, q);
+    const result = await isCompletionMet(userId, q);
 
     uq.progress = result.owned;
     uq.goal = result.total;

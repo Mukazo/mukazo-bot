@@ -89,18 +89,6 @@ async function emitQuestEvent(userId, payload, interactionForNotify = null) {
       continue;
     }
 
-    if (quest.mode === 'completion') {
-      const uq = await UserQuest.findOne({ userId, questKey: quest.key }).lean();
-      if (uq?.completed) continue;
-
-      const met = await isCompletionMet(userId, quest);
-      if (met) {
-        await completeQuest(userId, quest);
-        await notify(interactionForNotify, `Quest completed: **${quest.name}**`);
-      }
-      continue;
-    }
-
     const c = quest.conditions || {};
     if (!c.count || c.count <= 0) {
       console.log('[QUEST DEBUG] Invalid count', c.count);
