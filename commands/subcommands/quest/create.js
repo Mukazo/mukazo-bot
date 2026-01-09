@@ -15,6 +15,7 @@ module.exports = {
       mode: interaction.options.getString('mode'),
       conditions: {
         count: interaction.options.getInteger('count'),
+        commandName: interaction.options.getString('command_name'),
         version: interaction.options.getInteger('version'),
         group: interaction.options.getString('group'),
         era: interaction.options.getString('era'),
