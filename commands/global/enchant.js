@@ -20,8 +20,6 @@ const { emitQuestEvent } = require('../../utils/quest/tracker');
 const SummonSession = require('../../models/SummonSession');
 const User = require('../../models/User');
 
-const user = await User.findOne({ userId: interaction.user.id }).lean();
-
 function grayscaleRegion(ctx, x, y, w, h) {
   const imgData = ctx.getImageData(x, y, w, h);
   const data = imgData.data;
@@ -57,6 +55,8 @@ module.exports = {
 
   async execute(interaction) {
     const ownerId = interaction.user.id;
+    const user = await User.findOne({ userId: interaction.user.id }).lean();
+
     if (!user || !user.enabledCategories || user.enabledCategories.length === 0) {
   return interaction.editReply({
     content: 'You have no enabled categories. Please run `/setup` first.',
