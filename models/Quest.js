@@ -16,7 +16,7 @@ const QuestSchema = new mongoose.Schema(
 
     // For count/progress quests: 'summon', 'route', 'enchant', 'command', etc.
     // For completion quests: ignored (can be 'any')
-    trigger: { type: String, default: 'any', index: true },
+    trigger: { type: String, enum: ['any', 'summon', 'route', 'enchant', 'command'], default: 'any', index: true },
 
     // 'count' = event-driven, uses emitQuestEvent increments
     // 'completion' = inventory-driven, uses scan on list
