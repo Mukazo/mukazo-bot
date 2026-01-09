@@ -1,6 +1,7 @@
 const summon = require('./summon');
 const enchant = require('./enchant');
 const gift = require('./gift')
+const questList = require('./questList')
 
 module.exports = async interaction => {
   if (!interaction.isButton()) return false;
@@ -17,6 +18,11 @@ module.exports = async interaction => {
 
   if (interaction.customId.startsWith('gift:')) {
     await gift(interaction);
+    return true;
+  }
+
+  if (interaction.customId.startsWith('quest:list:')) {
+    await questList(interaction);
     return true;
   }
 

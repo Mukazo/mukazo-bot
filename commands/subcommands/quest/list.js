@@ -27,8 +27,8 @@ function fmtQuest(q, uq) {
   return [
     `${uq?.completed ? '<:check:1458968004066017332>' : '<:dashy:1458967877796364546>'} **${q.name}**`,
     `> ${q.description}`,
-    `-# Progress: ${cur}/${max} (${pct}%)`,
-    `-# Rewards: ${fmtRewards(q.rewards)}`,
+    `-# **Progress:** ${cur} / ${max} ( ${pct}% )`,
+    `-# **Rewards:** ${fmtRewards(q.rewards)}`,
   ].join('\n');
 }
 
