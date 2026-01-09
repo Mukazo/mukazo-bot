@@ -78,7 +78,11 @@ module.exports = {
       choices = [...new Set(cards.map(c => c.era).filter(Boolean))];
     }
     if (focused.name === 'category') {
-      choices = [...new Set(cards.map(c => c.category).filter(Boolean))];
+      choices = [
+        ...new Set(
+          cards.flatMap(c => [c.category, c.categoryalias]).filter(Boolean)
+        ),
+      ];
     }
 
     await interaction.respond(
