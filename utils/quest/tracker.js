@@ -14,13 +14,20 @@ async function emitQuestEvent(userId, payload) {
   for (const quest of quests) {
     const c = quest.conditions || {};
 
-    // trigger match
-    if (quest.trigger !== 'any' && quest.trigger !== payload.type) continue;
+    // STRICT trigger matching
+if (quest.trigger !== 'any' && quest.trigger !== payload.type) {
+  continue;
+}
 
-    // command quests
-    if (payload.type === 'command') {
-      if (c.commandName && c.commandName !== payload.commandName) continue;
+// Command-based quests
+if (payload.type === 'command') {
+  // If quest expects a commandName, it MUST match
+  if (quest.conditions?.commandName) {
+    if (payload.commandName !== quest.conditions.commandName) {
+      continue;
     }
+  }
+}
 
     // summon/card filter quests (optional)
     if (payload.type === 'summon' && payload.card) {

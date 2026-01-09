@@ -2,7 +2,7 @@ const User = require('../../../models/User');
 const UserQuestAssignment = require('../../../models/UserQuestAssignment');
 const { ensureAssigned } = require('../../../utils/quest/assign');
 
-const REROLL_COST = 250; // change to whatever you want
+const REROLL_COST = 500; // change to whatever you want
 
 module.exports = {
   async execute(interaction) {
@@ -13,7 +13,7 @@ module.exports = {
     const balance = Number(user?.wirlies || 0);
 
     if (balance < REROLL_COST) {
-      return interaction.editReply({ content: `You need ${REROLL_COST} wirlies to reroll.` });
+      return interaction.editReply({ content: `You need <:Wirlies:1455924065972785375> ${REROLL_COST} to reroll.` });
     }
 
     // deduct
@@ -25,6 +25,6 @@ module.exports = {
     // reassign
     await ensureAssigned(userId, category, 3);
 
-    return interaction.editReply({ content: `Rerolled **${category}** quests for ${REROLL_COST} wirlies.` });
+    return interaction.editReply({ content: `Rerolled **${category}** quests for <:Wirlies:1455924065972785375> ${REROLL_COST}.` });
   },
 };

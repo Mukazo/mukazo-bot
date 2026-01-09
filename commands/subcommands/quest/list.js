@@ -138,7 +138,7 @@ module.exports = {
       })
       .setDescription([
         '# Quests',
-        lines.join('\n') || 'No quests available.'].join('\n'));
+        lines.join('\n\n') || 'No quests available.'].join('\n'));
 
     /* =========================
        Pagination buttons
