@@ -85,6 +85,13 @@ if (category === 'weekly') {
   assignment = res.assignment;
   quests = res.quests;
 }
+
+if (['daily', 'weekly'].includes(category) && !assignment) {
+  assignment = await UserQuestAssignment.findOne({
+    userId,
+    category,
+  }).lean();
+}
     if (category === 'lifetime') quests = await Quest.find({ category: 'lifetime' }).lean();
     if (category === 'event') quests = await Quest.find({ category: 'event' }).lean();
 
