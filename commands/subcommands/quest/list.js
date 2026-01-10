@@ -38,8 +38,15 @@ function fmtQuest(q, uq) {
 
 async function getAssigned(userId, category) {
   const assignment = await ensureAssigned(userId, category, 3);
-  if (!assignment?.questKeys?.length) return [];
-  return Quest.find({ key: { $in: assignment.questKeys } }).lean();
+  if (!assignment?.questKeys?.length) {
+    return { assignment, quests: [] };
+  }
+
+  const quests = await Quest.find({
+    key: { $in: assignment.questKeys },
+  }).lean();
+
+  return { assignment, quests };
 }
 
 /* =========================
@@ -65,8 +72,19 @@ module.exports = {
 
     let quests = [];
 
-    if (category === 'daily') quests = await getAssigned(userId, 'daily');
-    if (category === 'weekly') quests = await getAssigned(userId, 'weekly');
+    let assignment = null;
+
+if (category === 'daily') {
+  const res = await getAssigned(userId, 'daily');
+  assignment = res.assignment;
+  quests = res.quests;
+}
+
+if (category === 'weekly') {
+  const res = await getAssigned(userId, 'weekly');
+  assignment = res.assignment;
+  quests = res.quests;
+}
     if (category === 'lifetime') quests = await Quest.find({ category: 'lifetime' }).lean();
     if (category === 'event') quests = await Quest.find({ category: 'event' }).lean();
 
