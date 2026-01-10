@@ -52,8 +52,11 @@ async function ensureAssigned(userId, category, count = 3) {
   const existing = await UserQuestAssignment.findOne({ userId, category }).lean();
 
   if (existing && existing.cycleKey === cycleKey && existing.questKeys?.length) {
-    return existing;
-  }
+  return {
+    ...existing,
+    resetAt: nextResetAt(category),
+  };
+}
 
   // Cycle changed → wipe progress + assignment
 if (existing && existing.cycleKey !== cycleKey) {
