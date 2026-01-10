@@ -24,6 +24,27 @@ function cycleKeyFor(category) {
   return category === 'weekly' ? getWeeklyKey(now) : getDailyKey(now);
 }
 
+function nextDailyReset() {
+  const d = new Date();
+  d.setUTCHours(24, 0, 0, 0); // next UTC midnight
+  return d;
+}
+
+function nextWeeklyReset() {
+  const d = new Date();
+  const day = d.getUTCDay() || 7; // ISO week
+  const diff = 8 - day;
+  d.setUTCDate(d.getUTCDate() + diff);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
+function nextResetAt(category) {
+  return category === 'weekly'
+    ? nextWeeklyReset()
+    : nextDailyReset();
+}
+
 async function ensureAssigned(userId, category, count = 3) {
   if (!['daily', 'weekly'].includes(category)) return null;
 
@@ -33,6 +54,21 @@ async function ensureAssigned(userId, category, count = 3) {
   if (existing && existing.cycleKey === cycleKey && existing.questKeys?.length) {
     return existing;
   }
+
+  // Cycle changed → wipe progress + assignment
+if (existing && existing.cycleKey !== cycleKey) {
+  const UserQuest = require('../../models/UserQuest');
+
+  await UserQuest.deleteMany({
+    userId,
+    category,
+  });
+
+  await UserQuestAssignment.deleteOne({
+    userId,
+    category,
+  });
+}
 
   const now = new Date();
 
@@ -52,7 +88,12 @@ async function ensureAssigned(userId, category, count = 3) {
     { upsert: true, new: true }
   );
 
-  return doc.toObject ? doc.toObject() : doc;
+  const resetAt = nextResetAt(category);
+
+return {
+  ...(doc.toObject ? doc.toObject() : doc),
+  resetAt,
+};
 }
 
 module.exports = { ensureAssigned };

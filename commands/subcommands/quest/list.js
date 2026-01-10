@@ -37,8 +37,7 @@ function fmtQuest(q, uq) {
 ========================= */
 
 async function getAssigned(userId, category) {
-  await ensureAssigned(userId, category, 3);
-  const assignment = await UserQuestAssignment.findOne({ userId, category }).lean();
+  const assignment = await ensureAssigned(userId, category, 3);
   if (!assignment?.questKeys?.length) return [];
   return Quest.find({ key: { $in: assignment.questKeys } }).lean();
 }
@@ -142,6 +141,13 @@ if (['lifetime', 'event'].includes(category)) {
        Build display
     ========================= */
 
+    let resetLine = '';
+
+if (['daily', 'weekly'].includes(category) && assignment?.resetAt) {
+  const ts = Math.floor(new Date(assignment.resetAt).getTime() / 1000);
+  resetLine = `-# **Resets:** <t:${ts}:R>`;
+}
+
     const lines = pagedQuests.map(q => fmtQuest(q, uqMap.get(q.key)));
 
     const embed = new EmbedBuilder()
@@ -152,8 +158,10 @@ if (['lifetime', 'event'].includes(category)) {
     : `Category: ${category.toUpperCase()}`,
 })
       .setDescription([
-        '# Quests',
-        lines.join('\n\n') || 'No quests available.'].join('\n'));
+  '# Quests',
+  resetLine,
+  lines.join('\n\n') || 'No quests available.',
+].filter(Boolean).join('\n'));
 
     /* =========================
        Pagination buttons
