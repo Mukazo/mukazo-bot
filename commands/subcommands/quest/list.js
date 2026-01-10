@@ -175,7 +175,7 @@ console.log('assignment.resetAt:', assignment?.resetAt);
 
 if (['daily', 'weekly'].includes(category) && assignment?.resetAt) {
   const ts = Math.floor(new Date(assignment.resetAt).getTime() / 1000);
-  resetLine = `-# **Resets:** <t:${ts}:R>`;
+  resetLine = `-# ╰ **Category Resets:** <t:${ts}:R>`;
 }
 
     const lines = pagedQuests.map(q => fmtQuest(q, uqMap.get(q.key)));
@@ -190,6 +190,7 @@ if (['daily', 'weekly'].includes(category) && assignment?.resetAt) {
       .setDescription([
   '# Quests',
   resetLine,
+  '\n',
   lines.join('\n\n') || 'No quests available.',
 ].filter(Boolean).join('\n'));
 
