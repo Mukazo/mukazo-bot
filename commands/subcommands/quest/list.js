@@ -166,6 +166,11 @@ if (['lifetime', 'event'].includes(category)) {
        Build display
     ========================= */
 
+    console.log('QUEST LIST DEBUG');
+console.log('category:', category);
+console.log('assignment exists:', !!assignment);
+console.log('assignment.resetAt:', assignment?.resetAt);
+
     let resetLine = '';
 
 if (['daily', 'weekly'].includes(category) && assignment?.resetAt) {
