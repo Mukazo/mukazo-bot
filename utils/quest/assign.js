@@ -63,9 +63,9 @@ if (existing && existing.cycleKey !== cycleKey) {
   const UserQuest = require('../../models/UserQuest');
 
   await UserQuest.deleteMany({
-    userId,
-    category,
-  });
+  userId,
+  questKey: { $in: existing.questKeys },
+});
 
   await UserQuestAssignment.deleteOne({
     userId,
