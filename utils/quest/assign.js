@@ -50,6 +50,7 @@ async function ensureAssigned(userId, category, count = 3) {
 
   const cycleKey = cycleKeyFor(category);
   const existing = await UserQuestAssignment.findOne({ userId, category }).lean();
+  const oldQuestKeys = existing?.questKeys ? [...existing.questKeys] : null;
 
   if (existing && existing.cycleKey === cycleKey && existing.questKeys?.length) {
   return {
@@ -62,10 +63,12 @@ async function ensureAssigned(userId, category, count = 3) {
 if (existing && existing.cycleKey !== cycleKey) {
   const UserQuest = require('../../models/UserQuest');
 
+  if (oldQuestKeys?.length) {
   await UserQuest.deleteMany({
-  userId,
-  questKey: { $in: existing.questKeys },
-});
+    userId,
+    questKey: { $in: oldQuestKeys },
+  });
+}
 
   await UserQuestAssignment.deleteOne({
     userId,
