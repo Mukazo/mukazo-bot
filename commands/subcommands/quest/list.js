@@ -57,7 +57,7 @@ module.exports = {
   async execute(interaction, injected = {}) {
   const ownerId = interaction.message?.interaction?.user?.id;
       if (ownerId && interaction.user.id !== ownerId) {
-        await interaction.followUp({ content: "These buttons aren't yours.", flags: 1 << 6 }).catch(()=>{});
+        await interaction.followUp({ content: "Those buttons are not yours!", flags: 1 << 6 }).catch(()=>{});
         return;
       }
   const userId = interaction.user.id;
