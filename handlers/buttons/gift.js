@@ -132,45 +132,40 @@ if (!hasCards && !hasCurrency) {
     session.page = page;
     await session.save();
 
-    const slice = session.cards.slice(
-      page * PAGE_SIZE,
-      (page + 1) * PAGE_SIZE
-    );
+    const slice = session.cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-    const cards = await Card.find({
-      cardCode: { $in: slice.map(c => c.cardCode) },
-    }).lean();
+const [cards, inventory] = await Promise.all([
+  Card.find({ cardCode: { $in: slice.map(c => c.cardCode) } }).lean(),
+  CardInventory.find({ userId: session.userId, cardCode: { $in: slice.map(c => c.cardCode) } }).lean(),
+]);
 
-    const map = new Map(cards.map(c => [c.cardCode, c]));
-    const ordered = slice.map(s => map.get(s.cardCode));
+const cardMap = new Map(cards.map(c => [c.cardCode, c]));
+const invMap = new Map(inventory.map(i => [i.cardCode, i.quantity]));
+
+const ordered = slice.map(s => cardMap.get(s.cardCode));
 
     const attachment =
       ordered.length > 0 ? await renderCardCanvas(ordered) : null;
 
       const descriptionLines = [];
-      if (ordered.length > 0) {
-  descriptionLines.push(
-    ...ordered.map((card, i) =>
-      formatInventoryLine(card, slice[i].qty)
-    )
-  );
+for (let i = 0; i < ordered.length; i++) {
+  const card = ordered[i];
+  const qty = slice[i].qty;
+  const owned = invMap.get(card.cardCode) ?? 0;
+  descriptionLines.push(`${formatInventoryLine(card, qty)} (Total: **${owned}**)`);
 }
 
 if (session.wirlies > 0) {
-  descriptionLines.push(
-    `# + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
-  );
+  descriptionLines.push(`# + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`);
 }
 
 if (session.keys > 0) {
-  descriptionLines.push(
-    `# + <:Key:1456059698582392852> ${session.keys.toLocaleString()}`
-  );
+  descriptionLines.push(`# + <:Key:1456059698582392852> ${session.keys.toLocaleString()}`);
 }
 
 const embed = new EmbedBuilder()
   .setTitle('Confirm Gift')
-  .setDescription(descriptionLines.join('\n'))
+  .setDescription(descriptionLines.filter(Boolean).join('\n'))
   .setFooter({
     text: `Page ${page + 1} / ${Math.ceil(
       session.cards.length / PAGE_SIZE
