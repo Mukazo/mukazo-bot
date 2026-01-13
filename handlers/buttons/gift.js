@@ -13,7 +13,7 @@ const Card = require('../../models/Card');
 const generateVersion = require('../../utils/generateVersion');
 const CardInventory = require('../../models/CardInventory');
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 6;
 
 /* ===========================
    Canvas renderer (preview only)

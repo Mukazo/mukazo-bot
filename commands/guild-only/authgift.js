@@ -12,7 +12,7 @@ const Card = require('../../models/Card');
 const GiftSession = require('../../models/GiftSession');
 const generateVersion = require('../../utils/generateVersion');
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 6;
 
 function parseCardCodes(input) {
   return input
