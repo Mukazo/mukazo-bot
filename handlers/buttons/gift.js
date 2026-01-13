@@ -108,7 +108,7 @@ if (!hasCards && !hasCurrency) {
     enqueueInteraction('gift', {
   from: session.userId,
   to: session.targetId,
-  cards: hasCards ? session.cards : [],
+  cards: session.cards ?? [],
   wirlies: session.wirlies || 0,
   keys: session.keys || 0,
   auth: session.auth === true,
@@ -216,6 +216,42 @@ const embed = new EmbedBuilder()
    SUMMARY RENDERER
 =========================== */
 async function renderSummary(interaction, session, page, pingRecipient) {
+
+  if (!session.cards || session.cards.length === 0) {
+  const embed = new EmbedBuilder()
+    .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+    .setDescription('### Gift Summary');
+
+  if (session.wirlies > 0) {
+    embed.addFields({
+      name: 'Wirlies',
+      value: `+ <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`,
+      inline: true,
+    });
+  }
+
+  if (session.keys > 0) {
+    embed.addFields({
+      name: 'Keys',
+      value: `+ <:Key:1456059698582392852> ${session.keys.toLocaleString()}`,
+      inline: true,
+    });
+  }
+
+  await interaction.editReply({
+    embeds: [embed],
+    components: [],
+  });
+
+  if (pingRecipient) {
+    await interaction.followUp({
+      content: `-# <@${session.targetId}> received currency!`,
+    });
+  }
+
+  return;
+}
+
   const allCardCodes = session.cards.map(c => c.cardCode);
 const cardQtyMap = new Map();
 for (const c of session.cards) {
