@@ -80,9 +80,17 @@ module.exports = {
     const cardcodeRaw = interaction.options.getString('cardcode');
     const wirlies = interaction.options.getInteger('wirlies') ?? 0;
 
+    // Prevent gifting to self or to bots
+if (!target || target.bot || target.id === senderId) {
+  return interaction.editReply({
+    content: 'You cannot gift to yourself or to a bot',
+    ephemeral: true,
+  });
+}
+
     if (!cardcodeRaw && wirlies <= 0) {
       return interaction.editReply({
-        content: 'You must gift at least cards or Wirlies.',
+        content: 'You must gift at least a card or wirlies.',
       });
     }
 
