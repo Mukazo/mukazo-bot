@@ -92,33 +92,32 @@ module.exports = async function giftButtonHandler(interaction) {
      CONFIRM
   =========================== */
   if (action === 'confirm') {
+  const hasCards = session.cards && session.cards.length > 0;
+  const hasCurrency = session.wirlies > 0 || session.keys > 0;
 
-    const hasCards = session.cards && session.cards.length > 0;
-const hasCurrency = session.wirlies > 0 || session.keys > 0;
-
-if (!hasCards && !hasCurrency) {
-  return interaction.editReply({
-    content: 'Nothing to gift.',
-    components: [],
-    embeds: [],
-  });
-}
-
-
-    const result = await enqueueInteraction('gift', {
-  from: session.userId,
-  to: session.targetId,
-  cards: session.cards ?? [],
-  wirlies: session.wirlies || 0,
-  keys: session.keys || 0,
-  auth: session.auth === true,
-});
-
-session.page = 0;
-await session.save();
-
-return renderSummary(interaction, session, 0, true, result.cards);
+  if (!hasCards && !hasCurrency) {
+    return interaction.editReply({
+      content: 'Nothing to gift.',
+      components: [],
+      embeds: [],
+    });
   }
+
+  const result = await enqueueInteraction('gift', {
+    from: session.userId,
+    to: session.targetId,
+    cards: session.cards ?? [],
+    wirlies: session.wirlies || 0,
+    keys: session.keys || 0,
+    auth: session.auth === true,
+  });
+
+  session.page = 0;
+  session.resultCards = result.cards; // 🔥 store t.total cards in session
+  await session.save();
+
+  return renderSummary(interaction, session, 0, true, result.cards);
+}
 
   /* ===========================
      PREVIEW PAGINATION
@@ -215,7 +214,7 @@ const embed = new EmbedBuilder()
 /* ===========================
    SUMMARY RENDERER
 =========================== */
-async function renderSummary(interaction, session, page, pingRecipient, updatedTotals =[]) {
+async function renderSummary(interaction, session, page, pingRecipient, resultCards =[]) {
 
   if (!session.cards || session.cards.length === 0) {
   const embed = new EmbedBuilder()
@@ -253,10 +252,6 @@ async function renderSummary(interaction, session, page, pingRecipient, updatedT
 }
 
   const allCardCodes = session.cards.map(c => c.cardCode);
-const cardQtyMap = new Map();
-for (const c of session.cards) {
-  cardQtyMap.set(c.cardCode, (cardQtyMap.get(c.cardCode) || 0) + c.qty);
-}
 
 const [cards, invDocs] = await Promise.all([
   Card.find({ cardCode: { $in: allCardCodes } }).lean(),
@@ -267,9 +262,9 @@ const cardMap = new Map(cards.map(c => [c.cardCode, c]));
 const invMap = new Map(invDocs.map(d => [d.cardCode, d.quantity]));
 
 const slice = session.cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-const liveTotalMap = new Map();
-for (const card of updatedTotals) {
-  liveTotalMap.set(card.cardCode, card.total);
+const resultMap = new Map();
+for (const r of resultCards) {
+  resultMap.set(r.cardCode, r.total);
 }
 
   const description = slice
