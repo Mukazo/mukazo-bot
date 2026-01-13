@@ -63,12 +63,11 @@ async function ensureAssigned(userId, category, count = 3) {
 if (existing && existing.cycleKey !== cycleKey) {
   const UserQuest = require('../../models/UserQuest');
 
-  if (oldQuestKeys?.length) {
+  // 🔥 ALWAYS wipe previous cycle progress for this category
   await UserQuest.deleteMany({
     userId,
-    questKey: { $in: oldQuestKeys },
+    category,
   });
-}
 
   await UserQuestAssignment.deleteOne({
     userId,

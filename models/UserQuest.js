@@ -4,6 +4,11 @@ const UserQuestSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true, index: true },
     questKey: { type: String, required: true, index: true },
+    category: {
+  type: String,
+  enum: ['daily', 'weekly', 'lifetime', 'event'],
+  required: true,
+},
 
     progress: { type: Number, default: 0 },
     goal: { type: Number, default: 0 },
