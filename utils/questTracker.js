@@ -21,6 +21,7 @@ async function emitQuestEvent(userId, event) {
       {
         userId,
         questKey: quest.key,
+        category: quest.category,
         completed: false,
       },
       {
