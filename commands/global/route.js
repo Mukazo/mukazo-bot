@@ -156,6 +156,15 @@ await emitQuestEvent(interaction.user.id, {
   },
 });
 
+await emitQuestEvent(
+      interaction.user.id,
+      {
+        type: 'command',
+        commandName: 'route',
+      },
+      interaction
+    );
+
 
       const resultEmbed = new EmbedBuilder()
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))

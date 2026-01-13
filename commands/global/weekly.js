@@ -218,6 +218,15 @@ if (!user) {
         ].join('\n')
       );
 
+      await emitQuestEvent(
+            interaction.user.id,
+            {
+              type: 'command',
+              commandName: 'weekly',
+            },
+            interaction
+          );
+
     return interaction.editReply({
       embeds: [embed],
       files: [attachment],

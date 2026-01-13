@@ -216,5 +216,14 @@ async function renderSummary(interaction, session, page, pingRecipient) {
 
   if (pingRecipient) {
     await interaction.followUp({ content: `-# <@${session.targetId}> received a gift!` });
+
+    await emitQuestEvent(
+          interaction.user.id,
+          {
+            type: 'command',
+            commandName: 'gift',
+          },
+          interaction
+        );
   }
 }
