@@ -139,7 +139,7 @@ const pageResults = results.slice(0, PAGE_SIZE);
         ? await renderCardCanvas(pageResults.map(r => r.card))
         : null;
 
-    const description =
+    const description = [
       pageResults.length > 0
         ? pageResults
             .map(r => {
@@ -148,13 +148,9 @@ const pageResults = results.slice(0, PAGE_SIZE);
                 `${emoji} **${r.card.group}** ${r.card.name}\n` +
                 `\`${r.card.cardCode}\` × **${r.qty}**`
               );
-            })
-            .join('\n\n')
-        : [
+            }):
             wirlies > 0 ? `# + <:Wirlies:1455924065972785375> ${wirlies}` : null,
-          ]
-            .filter(Boolean)
-            .join('\n');
+          ].filter(Boolean).join('\n');
 
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
