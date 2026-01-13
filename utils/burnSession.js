@@ -11,8 +11,9 @@ function toList(str) {
 
 function formatBurnLine(card, qty) {
   const versionKey = `V${card.version}`;
-  const emoji = card.overrideemoji || card.versionemoji || versionKey || '';
-  return `${emoji} **${card.group}** __${card.name}__ (${versionKey})\n ×**${qty}** ✮ \`${card.cardCode}\``;
+  const eraText = card.era ? ` ( ${card.era} )` : '';
+  const emoji = card.emoji || card.versionemoji || versionKey || '';
+  return `${emoji} **${card.group}** __${card.name}__\n ( ${eraText} )×**${qty}** ✮ \`${card.cardCode}\``;
 }
 
 function calculateBurnRewards(cards) {
@@ -84,16 +85,16 @@ module.exports = async function burnSession(interaction) {
   const embed = new EmbedBuilder()
     .setDescription([
         '## Burn Preview',
-      pageCards.map(c => formatBurnLine(c, c.qty))].join('\n') +
-      `\n**Total Wirlies:** ${totalWirlies}\n**Total Keys:** ${totalKeys}`
+      pageCards.map(c => formatBurnLine(c, c.qty))].filter(Boolean).join('\n') +
+      `\n\n**Total <:Wirlies:1455924065972785375> Wirlies:** ${totalWirlies.toLocaleString()}\n**Total Keys:** ${totalKeys.toLocaleString()}`
     )
     .setFooter({ text: `Page ${page + 1} / ${Math.ceil(matched.length / PAGE_SIZE)}` });
 
   const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`burn:page:${page - 1}`).setLabel('◀').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
+    new ButtonBuilder().setCustomId(`burn:page:${page - 1}`).setLabel('Previous').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
     new ButtonBuilder().setCustomId(`burn:confirm`).setLabel('Confirm Burn').setStyle(ButtonStyle.Danger),
     new ButtonBuilder().setCustomId(`burn:cancel`).setLabel('Cancel').setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder().setCustomId(`burn:page:${page + 1}`).setLabel('▶').setStyle(ButtonStyle.Secondary)
+    new ButtonBuilder().setCustomId(`burn:page:${page + 1}`).setLabel('Next').setStyle(ButtonStyle.Secondary)
       .setDisabled((page + 1) * PAGE_SIZE >= matched.length)
   );
 

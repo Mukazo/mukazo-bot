@@ -61,10 +61,10 @@ module.exports = async function handleBurnButton(interaction) {
     const embed = new EmbedBuilder()
       .setDescription([
         '## Burn Complete',
-        session.map(c => formatBurnLine(c, c.qty))].join('\n'))
+        session.map(c => formatBurnLine(c, c.qty))].filter(Boolean).join('\n'))
       .addFields(
-        { name: 'Wirlies', value: `+${totalWirlies}`, inline: true },
-        { name: 'Keys', value: `+${totalKeys}`, inline: true }
+        { name: 'Wirlies', value: `+ <:Wirlies:1455924065972785375> ${totalWirlies.toLocaleString()}`, inline: true },
+        { name: 'Keys', value: `+ <:Key:1456059698582392852> ${totalKeys.toLocaleString()}`, inline: true }
       );
 
     return interaction.editReply({ embeds: [embed], components: [] });
@@ -75,26 +75,26 @@ module.exports = async function handleBurnButton(interaction) {
   const embed = new EmbedBuilder()
     .setDescription([
         '## Burn Summary',
-        pageCards.map(c => formatBurnLine(c, c.qty))].join('\n'))
+        pageCards.map(c => formatBurnLine(c, c.qty))].filter(Boolean).join('\n'))
     .setFooter({ text: `Page ${page + 1} / ${Math.ceil(session.length / PAGE_SIZE)}` });
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`burn:page:${page - 1}`)
-      .setLabel('◀')
+      .setLabel('• Previous')
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(page === 0),
     new ButtonBuilder()
       .setCustomId(`burn:confirm`)
-      .setLabel('Confirm Burn')
-      .setStyle(ButtonStyle.Danger),
+      .setLabel('Confirm • Burn')
+      .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId(`burn:cancel`)
       .setLabel('Cancel')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId(`burn:page:${page + 1}`)
-      .setLabel('▶')
+      .setLabel('Next • ')
       .setStyle(ButtonStyle.Secondary)
       .setDisabled((page + 1) * PAGE_SIZE >= session.length)
   );
