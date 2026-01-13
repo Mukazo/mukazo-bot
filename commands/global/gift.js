@@ -66,7 +66,7 @@ module.exports = {
     .addStringOption(o =>
       o
         .setName('cardcode')
-        .setDescription('CARDCODE or CARDCODE=+N (comma separated)')
+        .setDescription('CARDCODE or CARDCODE=+N')
     )
     .addIntegerOption(o =>
       o
