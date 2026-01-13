@@ -1,4 +1,3 @@
-// worker-commands/gift.js
 const CardInventory = require('../models/CardInventory');
 const User = require('../models/User');
 
@@ -13,15 +12,9 @@ module.exports = {
       auth = false,
     } = data;
 
-    /* ===========================
-       CARD TRANSFER
-    =========================== */
-
     const results = [];
 
     for (const { cardCode, qty } of cards) {
-
-      // ❌ AUTHGIFT: skip sender deduction
       if (!auth) {
         const dec = await CardInventory.findOneAndUpdate(
           { userId: from, cardCode, quantity: { $gte: qty } },
@@ -30,26 +23,21 @@ module.exports = {
         );
 
         if (!dec) throw new Error(`Not enough copies of ${cardCode}`);
-
         if (dec.quantity <= 0) {
           await CardInventory.deleteOne({ userId: from, cardCode });
         }
       }
 
-      // ✅ Always add to recipient
       await CardInventory.updateOne(
         { userId: to, cardCode },
         { $setOnInsert: { userId: to, cardCode }, $inc: { quantity: qty } },
         { upsert: true }
       );
+
+      const updated = await CardInventory.findOne({ userId: to, cardCode });
+      results.push({ cardCode, qty, total: updated?.quantity ?? qty });
     }
 
-    const updated = await CardInventory.findOne({ userId: to, cardCode });
-  results.push({ cardCode, qty, total: updated?.quantity ?? qty });
-
-    /* ===========================
-       WIRLIES
-    =========================== */
     if (wirlies > 0) {
       if (!auth) {
         const sender = await User.findOneAndUpdate(
@@ -57,7 +45,6 @@ module.exports = {
           { $inc: { wirlies: -wirlies } },
           { new: true }
         );
-
         if (!sender) throw new Error('Not enough Wirlies.');
       }
 
@@ -68,9 +55,6 @@ module.exports = {
       );
     }
 
-    /* ===========================
-       KEYS
-    =========================== */
     if (keys > 0) {
       if (!auth) {
         const sender = await User.findOneAndUpdate(
@@ -78,7 +62,6 @@ module.exports = {
           { $inc: { keys: -keys } },
           { new: true }
         );
-
         if (!sender) throw new Error('Not enough Keys.');
       }
 
@@ -92,6 +75,11 @@ module.exports = {
       );
     }
 
-    return { ok: true, cards: results, wirlies, keys };
+    return {
+      ok: true,
+      ...(results.length > 0 ? { cards: results } : {}),
+      ...(wirlies > 0 ? { wirlies } : {}),
+      ...(keys > 0 ? { keys } : {})
+    };
   },
 };
