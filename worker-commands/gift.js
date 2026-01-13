@@ -16,7 +16,11 @@ module.exports = {
     /* ===========================
        CARD TRANSFER
     =========================== */
+
+    const results = [];
+
     for (const { cardCode, qty } of cards) {
+
       // ❌ AUTHGIFT: skip sender deduction
       if (!auth) {
         const dec = await CardInventory.findOneAndUpdate(
@@ -39,6 +43,9 @@ module.exports = {
         { upsert: true }
       );
     }
+
+    const updated = await CardInventory.findOne({ userId: to, cardCode });
+  results.push({ cardCode, qty, total: updated?.quantity ?? qty });
 
     /* ===========================
        WIRLIES
@@ -85,6 +92,6 @@ module.exports = {
       );
     }
 
-    return { ok: true };
+    return { ok: true, cards: results, wirlies, keys };
   },
 };

@@ -105,7 +105,7 @@ if (!hasCards && !hasCurrency) {
 }
 
 
-    enqueueInteraction('gift', {
+    const result = await enqueueInteraction('gift', {
   from: session.userId,
   to: session.targetId,
   cards: session.cards ?? [],
@@ -114,10 +114,10 @@ if (!hasCards && !hasCurrency) {
   auth: session.auth === true,
 });
 
-    session.page = 0;
-    await session.save();
+session.page = 0;
+await session.save();
 
-    return renderSummary(interaction, session, 0, true);
+return renderSummary(interaction, session, 0, true, result.cards);
   }
 
   /* ===========================
@@ -215,7 +215,7 @@ const embed = new EmbedBuilder()
 /* ===========================
    SUMMARY RENDERER
 =========================== */
-async function renderSummary(interaction, session, page, pingRecipient) {
+async function renderSummary(interaction, session, page, pingRecipient, updatedTotals =[]) {
 
   if (!session.cards || session.cards.length === 0) {
   const embed = new EmbedBuilder()
@@ -267,14 +267,18 @@ const cardMap = new Map(cards.map(c => [c.cardCode, c]));
 const invMap = new Map(invDocs.map(d => [d.cardCode, d.quantity]));
 
 const slice = session.cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+const liveTotalMap = new Map();
+for (const card of updatedTotals) {
+  liveTotalMap.set(card.cardCode, card.total);
+}
 
   const description = slice
   .map(s => {
     const card = cardMap.get(s.cardCode);
     if (!card) return null;
     const owned = invMap.get(s.cardCode) ?? 0;
-    const postGiftTotal = owned + (cardQtyMap.get(s.cardCode) ?? s.qty);
-return `${formatInventoryLine(card, s.qty)} Total: **${postGiftTotal}**`;
+    const total = liveTotalMap.get(s.cardCode) ?? (owned + s.qty);
+return `${formatInventoryLine(card, s.qty)} Total: **${total}**`;
   })
   .filter(Boolean)
   .join('\n');
