@@ -11,6 +11,7 @@ const { enqueueInteraction } = require('../../queue');
 const GiftSession = require('../../models/GiftSession');
 const Card = require('../../models/Card');
 const generateVersion = require('../../utils/generateVersion');
+const CardInventory = require('../../models/CardInventory');
 
 const PAGE_SIZE = 3;
 
@@ -95,13 +96,14 @@ module.exports = async function giftButtonHandler(interaction) {
 
     // 🟡 WIRLIES ONLY
     if (session.cards.length === 0 && session.wirlies > 0) {
-      await enqueueInteraction('gift', {
-        from: session.userId,
-        to: session.targetId,
-        cards: [],
-        wirlies: session.wirlies,
-      });
-
+      enqueueInteraction('gift', {
+  from: session.userId,
+  to: session.targetId,
+  cards: slice,
+  wirlies: session.wirlies,
+  keys: session.keys ?? 0,
+  auth: session.auth === true, // 🔑 THIS IS CRITICAL
+});
       await GiftSession.deleteOne({ _id: sessionId });
 
       await interaction.editReply({
@@ -127,12 +129,14 @@ module.exports = async function giftButtonHandler(interaction) {
       session.page * PAGE_SIZE + PAGE_SIZE
     );
 
-    await enqueueInteraction('gift', {
-      from: session.userId,
-      to: session.targetId,
-      cards: slice,
-      wirlies: session.wirlies,
-    });
+    enqueueInteraction('gift', {
+  from: session.userId,
+  to: session.targetId,
+  cards: slice,
+  wirlies: session.wirlies,
+  keys: session.keys ?? 0,
+  auth: session.auth === true, // 🔑 THIS IS CRITICAL
+});
 
     session.page = 0;
     await session.save();
@@ -167,7 +171,7 @@ module.exports = async function giftButtonHandler(interaction) {
       .setDescription(
         ordered
           .map((card, i) => formatInventoryLine(card, slice[i].qty))
-          .join('\n\n')
+          .join('\n')
       )
       .setFooter({
         text: `Page ${page + 1} / ${Math.ceil(
@@ -232,6 +236,13 @@ async function renderSummary(interaction, session, page, pingRecipient) {
   }).lean();
 
   const map = new Map(cards.map(c => [c.cardCode, c]));
+  // ✅ Fetch recipient totals for cards on this summary page
+  const invDocs = await CardInventory.find({
+    userId: session.targetId,
+    cardCode: { $in: slice.map(s => s.cardCode) },
+  }).lean();
+
+  const invMap = new Map(invDocs.map(d => [d.cardCode, d.quantity]));
 
   const embed = new EmbedBuilder()
     .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
@@ -241,10 +252,11 @@ async function renderSummary(interaction, session, page, pingRecipient) {
         .map(s => {
           const card = map.get(s.cardCode);
           if (!card) return null;
-          return formatInventoryLine(card, s.qty);
+          const total = invMap.get(s.cardCode) ?? 0;
+return `${formatInventoryLine(card, s.qty)} Total: **${total}**`;
         })
         .filter(Boolean)
-        .join('\n\n')
+        .join('\n')
     )
     .setFooter({
       text: `Page ${page + 1} / ${Math.ceil(

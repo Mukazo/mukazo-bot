@@ -174,16 +174,23 @@ module.exports = {
         });
 
       slice.forEach(card => {
-        embed.addFields({
-          name: `${card.emoji || generateVersion(card)} ${card.name}`,
-          value: [
-            `**Group:** ${card.group}`,
-            card.era ? `**Era:** ${card.era}` : null,
-            `> **Code:** \`${card.cardCode}\``,
-            `**Owned:** ${ownedMap.get(card.cardCode) > 0 ? 'Yes' : 'No'}`,
-          ].filter(Boolean).join('\n'),
-          inline: true,
-        });
+        const copies = ownedMap.get(card.cardCode) || 0;
+
+embed.addFields({
+  name: `${card.emoji || generateVersion(card)} ${card.name}`,
+  value: [
+  `**Group:** ${card.group}`,
+  card.era ? `**Era:** ${card.era}` : null,
+
+  card.designerIds?.length
+    ? `> **Designers:** ${card.designerIds.map(id => `<@${id}>`).join(', ')}`
+    : null,
+
+  `> **Code:** \`${card.cardCode}\``,
+  `> **Copies:** ${ownedMap.get(card.cardCode) ?? 0}`,
+].filter(Boolean).join('\n'),
+  inline: true,
+});
       });
 
       return { embed, attachment };
