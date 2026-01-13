@@ -47,7 +47,7 @@ function formatInventoryLine(card, qty) {
     generateVersion(card);
 
   return (
-    `${emoji} **${card.group}** __${card.name}__ ${card.era ? `${card.era}` : ''}\n \`${card.cardCode}\` × **${qty}**`
+    `${emoji} **${card.group}** __${card.name}__ ${card.era ? `${card.era}` : ''}\n ×**${qty}** ✮ \`${card.cardCode}\``
   );
 }
 
@@ -148,7 +148,7 @@ for (let i = 0; i < ordered.length; i++) {
   const card = ordered[i];
   const qty = slice[i].qty;
   const owned = invMap.get(card.cardCode) ?? 0;
-  descriptionLines.push(`${formatInventoryLine(card, qty)} (Total: **${owned}**)`);
+  descriptionLines.push(`${formatInventoryLine(card, qty)} Total: **${owned}**`);
 }
 
 if (session.wirlies > 0) {
@@ -241,7 +241,7 @@ async function renderSummary(interaction, session, page, pingRecipient) {
           const card = map.get(s.cardCode);
           if (!card) return null;
           const owned = invMap.get(s.cardCode) ?? 0;
-return `${formatInventoryLine(card, s.qty)} ( Total: **${owned}** )`;
+return `${formatInventoryLine(card, s.qty)} Total: **${owned}**`;
         })
         .filter(Boolean)
         .join('\n')
