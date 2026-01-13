@@ -1,7 +1,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const CardInventory = require('../models/CardInventory');
 const Card = require('../models/Card');
-const generateVersion = require('../../utils/generateVersion');
+const generateVersion = require('./utils/generateVersion');
 
 const PAGE_SIZE = 6;
 const V_WIRLIES = { V1: 10, V2: 20, V3: 30, V4: 40 };
