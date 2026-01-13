@@ -6,12 +6,13 @@ const PAGE_SIZE = 6;
 const V_WIRLIES = { V1: 10, V2: 20, V3: 30, V4: 40 };
 
 function toList(str) {
-  return str?.split(',').map(x => x.trim().toLowerCase()).filter(Boolean) || [];
+  return str?.split(',').map(x => x.trim()).filter(Boolean) || [];
 }
 
 function formatBurnLine(card, qty) {
-  const emoji = card.overrideemoji || card.versionemoji || card.version || '';
-  return `${emoji} **${card.group}** __${card.name}__ (${card.version})\n ×**${qty}** ✮ \`${card.cardCode}\``;
+  const versionKey = `V${card.version}`;
+  const emoji = card.overrideemoji || card.versionemoji || versionKey || '';
+  return `${emoji} **${card.group}** __${card.name}__ (${versionKey})\n ×**${qty}** ✮ \`${card.cardCode}\``;
 }
 
 function calculateBurnRewards(cards) {
@@ -20,9 +21,11 @@ function calculateBurnRewards(cards) {
 
   for (const card of cards) {
     const qty = card.qty || 0;
-    if (['V1', 'V2', 'V3', 'V4'].includes(card.version)) {
-      totalWirlies += (V_WIRLIES[card.version] || 0) * qty;
-    } else if (card.version === 'V5') {
+    const versionKey = `V${card.version}`;
+
+    if ([1, 2, 3, 4].includes(card.version)) {
+      totalWirlies += (V_WIRLIES[versionKey] || 0) * qty;
+    } else if (card.version === 5) {
       totalKeys += Math.floor(qty / 2);
       totalWirlies += (qty % 2) * 1000;
     }
@@ -30,17 +33,17 @@ function calculateBurnRewards(cards) {
 
   return { totalWirlies, totalKeys };
 }
-
 module.exports = async function burnSession(interaction) {
+  await interaction.deferReply({ ephemeral: true });
 
   const userId = interaction.user.id;
 
-  const group = toList(interaction.options.getString('group'));
-  const name = toList(interaction.options.getString('name'));
-  const era = toList(interaction.options.getString('era'));
-  const version = toList(interaction.options.getString('version'));
-  const excludeName = toList(interaction.options.getString('exclude_name'));
-  const excludeEra = toList(interaction.options.getString('exclude_era'));
+  const group = toList(interaction.options.getString('group')).map(x => x.toLowerCase());
+  const name = toList(interaction.options.getString('name')).map(x => x.toLowerCase());
+  const era = toList(interaction.options.getString('era')).map(x => x.toLowerCase());
+  const version = toList(interaction.options.getString('version')).map(x => parseInt(x));
+  const excludeName = toList(interaction.options.getString('exclude_name')).map(x => x.toLowerCase());
+  const excludeEra = toList(interaction.options.getString('exclude_era')).map(x => x.toLowerCase());
   const excludeV5 = interaction.options.getBoolean('exclude_v5') === true;
 
   const inventory = await CardInventory.find({ userId }).lean();
@@ -52,14 +55,13 @@ module.exports = async function burnSession(interaction) {
       const g = (card.group || '').toLowerCase();
       const n = (card.name || '').toLowerCase();
       const e = (card.era || '').toLowerCase();
-      const v = (card.version || '').toUpperCase();
+      const v = Number(card.version);
 
-      if (excludeV5 && v === 'V5') return false;
-
+      if (excludeV5 && v === 5) return false;
       if (group.length && !group.includes(g)) return false;
       if (name.length && !name.includes(n)) return false;
       if (era.length && !era.includes(e)) return false;
-      if (version.length && !version.includes(v.toLowerCase())) return false;
+      if (version.length && !version.includes(v)) return false;
       if (excludeName.length && excludeName.includes(n)) return false;
       if (excludeEra.length && excludeEra.includes(e)) return false;
 
@@ -82,10 +84,10 @@ module.exports = async function burnSession(interaction) {
 
   const embed = new EmbedBuilder()
     .setDescription([
-      '## Burn Summary',
-      pageCards.map(c => formatBurnLine(c, c.qty)).join('\n') +
-      `\n\n**Total Wirlies:** ${totalWirlies}\n**Total Keys:** ${totalKeys}`
-    ].join('\n'))
+        '## Burn Preview',
+      pageCards.map(c => formatBurnLine(c, c.qty))].join('\n') +
+      `\n**Total Wirlies:** ${totalWirlies}\n**Total Keys:** ${totalKeys}`
+    )
     .setFooter({ text: `Page ${page + 1} / ${Math.ceil(matched.length / PAGE_SIZE)}` });
 
   const row = new ActionRowBuilder().addComponents(
