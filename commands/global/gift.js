@@ -132,30 +132,6 @@ module.exports = {
       wirlies,
     });
 
-    // ── WIRLIES ONLY ─────────────────────────────
-if (results.length === 0 && wirlies > 0) {
-  const embed = new EmbedBuilder()
-    .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-    .setDescription(`## Confirm Gift\n### + <:Wirlies:1455924065972785375> ${wirlies.toLocaleString()}`);
-
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`gift:confirm:${session.id}`)
-      .setLabel('Confirm')
-      .setStyle(ButtonStyle.Secondary),
-
-    new ButtonBuilder()
-      .setCustomId(`gift:cancel:${session.id}`)
-      .setLabel('Cancel')
-      .setStyle(ButtonStyle.Secondary)
-  );
-
-  return interaction.editReply({
-    embeds: [embed],
-    components: [row],
-  });
-}
-
 const pageResults = results.slice(0, PAGE_SIZE);
 
     const attachment =
@@ -173,7 +149,7 @@ const pageResults = results.slice(0, PAGE_SIZE);
               r.card.emoji ||
               generateVersion(r.card);
             return (
-              `${emoji} **${r.card.group}**` +
+              `${emoji} **${r.card.group}** ` +
               `${r.card.name}\n` +
               `\`${r.card.cardCode}\` × **${r.qty}**`
             );

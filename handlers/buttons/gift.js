@@ -94,6 +94,17 @@ module.exports = async function giftButtonHandler(interaction) {
   =========================== */
   if (action === 'confirm') {
 
+    const hasCards = session.cards && session.cards.length > 0;
+const hasCurrency = session.wirlies > 0 || session.keys > 0;
+
+if (!hasCards && !hasCurrency) {
+  return interaction.editReply({
+    content: 'Nothing to gift.',
+    components: [],
+    embeds: [],
+  });
+}
+
     // 🔵 CARDS (WITH OPTIONAL WIRLIES)
     const slice = session.cards.slice(
       session.page * PAGE_SIZE,
@@ -103,10 +114,10 @@ module.exports = async function giftButtonHandler(interaction) {
     enqueueInteraction('gift', {
   from: session.userId,
   to: session.targetId,
-  cards: slice,
-  wirlies: session.wirlies,
-  keys: session.keys ?? 0,
-  auth: session.auth === true, // 🔑 THIS IS CRITICAL
+  cards: hasCards ? slice : [],
+  wirlies: session.wirlies || 0,
+  keys: session.keys || 0,
+  auth: session.auth === true,
 });
 
     session.page = 0;
@@ -137,16 +148,18 @@ module.exports = async function giftButtonHandler(interaction) {
     const attachment =
       ordered.length > 0 ? await renderCardCanvas(ordered) : null;
 
-      const descriptionLines = [
-  ...ordered.map((card, i) =>
-    formatInventoryLine(card, slice[i].qty)
-  ),
-];
+      const descriptionLines = [];
+      if (ordered.length > 0) {
+  descriptionLines.push(
+    ...ordered.map((card, i) =>
+      formatInventoryLine(card, slice[i].qty)
+    )
+  );
+}
 
-// ➕ Show currency in preview
 if (session.wirlies > 0) {
   descriptionLines.push(
-    `\n# + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
+    `# + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
   );
 }
 
@@ -230,20 +243,24 @@ async function renderSummary(interaction, session, page, pingRecipient) {
 
   const invMap = new Map(invDocs.map(d => [d.cardCode, d.quantity]));
 
-  const embed = new EmbedBuilder()
-    .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-    .setTitle('Gift Summary')
-    .setDescription(
-      slice
+  const description =
+  slice.length > 0
+    ? slice
         .map(s => {
           const card = map.get(s.cardCode);
           if (!card) return null;
-          const total = invMap.get(s.cardCode) ?? 0;
-return `${formatInventoryLine(card, s.qty)} Total: **${total}**`;
+          const existing = invMap.get(s.cardCode) ?? 0;
+const total = existing + s.qty;
+          return `${formatInventoryLine(card, s.qty)} Total: **${total}**`;
         })
         .filter(Boolean)
         .join('\n')
-    )
+    : null;
+
+  const embed = new EmbedBuilder()
+    .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+    .setTitle('Gift Summary')
+    .setDescription(description)
     .setFooter({
       text: `Page ${page + 1} / ${Math.ceil(
         session.cards.length / PAGE_SIZE
