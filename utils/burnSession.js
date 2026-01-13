@@ -32,7 +32,6 @@ function calculateBurnRewards(cards) {
 }
 
 module.exports = async function burnSession(interaction) {
-  await interaction.deferReply({ ephemeral: true });
 
   const userId = interaction.user.id;
 
