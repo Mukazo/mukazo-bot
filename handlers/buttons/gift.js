@@ -62,6 +62,14 @@ module.exports = async function giftButtonHandler(interaction) {
   }
 
   if (action === 'confirm') {
+    await emitQuestEvent(
+          interaction.user.id,
+          {
+            type: 'command',
+            commandName: 'gift',
+          },
+          interaction
+        );
     const hasCards = session.cards && session.cards.length > 0;
     const hasCurrency = session.wirlies > 0 || session.keys > 0;
 
@@ -216,14 +224,5 @@ async function renderSummary(interaction, session, page, pingRecipient) {
 
   if (pingRecipient) {
     await interaction.followUp({ content: `-# <@${session.targetId}> received a gift!` });
-
-    await emitQuestEvent(
-          interaction.user.id,
-          {
-            type: 'command',
-            commandName: 'gift',
-          },
-          interaction
-        );
   }
 }

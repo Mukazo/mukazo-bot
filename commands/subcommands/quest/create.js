@@ -35,6 +35,8 @@ if (expiresOn) {
         version: interaction.options.getInteger('version'),
         group: interaction.options.getString('group'),
         era: interaction.options.getString('era'),
+        minWirlies: interaction.options.getInteger('min_wirlies'),
+        minKeys: interaction.options.getInteger('min_keys'),
       },
       rewards: {
         wirlies: interaction.options.getInteger('reward_wirlies') || 0,
