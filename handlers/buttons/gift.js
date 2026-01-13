@@ -274,7 +274,7 @@ const slice = session.cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
     if (!card) return null;
     const totalGiftQty = cardQtyMap.get(s.cardCode) ?? s.qty;
     const owned = invMap.get(s.cardCode) ?? 0;
-    return `${formatInventoryLine(card, s.qty)} Total: **${totalGiftQty}**`;
+    return `${formatInventoryLine(card, s.qty)} Total: **${owned}**`;
   })
   .filter(Boolean)
   .join('\n');
