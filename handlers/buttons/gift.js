@@ -104,16 +104,11 @@ if (!hasCards && !hasCurrency) {
   });
 }
 
-    // 🔵 CARDS (WITH OPTIONAL WIRLIES)
-    const slice = session.cards.slice(
-      session.page * PAGE_SIZE,
-      session.page * PAGE_SIZE + PAGE_SIZE
-    );
 
     enqueueInteraction('gift', {
   from: session.userId,
   to: session.targetId,
-  cards: hasCards ? slice : [],
+  cards: hasCards ? session.cards : [],
   wirlies: session.wirlies || 0,
   keys: session.keys || 0,
   auth: session.auth === true,
@@ -144,8 +139,9 @@ const invMap = new Map(inventory.map(i => [i.cardCode, i.quantity]));
 
 const ordered = slice.map(s => cardMap.get(s.cardCode));
 
-    const attachment =
-      ordered.length > 0 ? await renderCardCanvas(ordered) : null;
+    const attachment = ordered.length > 0 && !session.auth
+  ? await renderCardCanvas(ordered)
+  : null;
 
       const descriptionLines = [];
 for (let i = 0; i < ordered.length; i++) {
@@ -170,7 +166,8 @@ const embed = new EmbedBuilder()
     text: `Page ${page + 1} / ${Math.ceil(
       session.cards.length / PAGE_SIZE
     )}`,
-  });
+  })
+  .setImage(attachment);
 
     if (attachment) embed.setImage('attachment://gift.png');
     const row = new ActionRowBuilder().addComponents(
@@ -243,9 +240,8 @@ async function renderSummary(interaction, session, page, pingRecipient) {
         .map(s => {
           const card = map.get(s.cardCode);
           if (!card) return null;
-          const existing = invMap.get(s.cardCode) ?? 0;
-const total = existing + s.qty;
-          return `${formatInventoryLine(card, s.qty)} Total: **${total}**`;
+          const owned = invMap.get(s.cardCode) ?? 0;
+return `${formatInventoryLine(card, s.qty)} ( Total: **${owned}** )`;
         })
         .filter(Boolean)
         .join('\n')
