@@ -94,61 +94,6 @@ module.exports = async function giftButtonHandler(interaction) {
   =========================== */
   if (action === 'confirm') {
 
-    // 🟡 WIRLIES ONLY
-    if (session.cards.length === 0 && session.wirlies > 0) {
-      enqueueInteraction('gift', {
-  from: session.userId,
-  to: session.targetId,
-  wirlies: session.wirlies,
-  keys: session.keys ?? 0,
-  auth: session.auth === true, // 🔑 THIS IS CRITICAL
-});
-      await GiftSession.deleteOne({ _id: sessionId });
-
-      await interaction.editReply({
-        embeds: [
-          new EmbedBuilder()
-            .setDescription(
-              `# Gift Summary\n### + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
-            ),
-        ],
-        components: [],
-      });
-
-      await interaction.followUp({
-        content: `-# <@${session.targetId}> received <:Wirlies:1455924065972785375> Wirlies!`,
-      });
-
-      return;
-    }
-
-    if (session.cards.length === 0 && session.keys > 0) {
-      enqueueInteraction('gift', {
-  from: session.userId,
-  to: session.targetId,
-  wirlies: session.wirlies,
-  keys: session.keys ?? 0,
-  auth: session.auth === true, // 🔑 THIS IS CRITICAL
-});
-      await GiftSession.deleteOne({ _id: sessionId });
-
-      await interaction.editReply({
-        embeds: [
-          new EmbedBuilder()
-            .setDescription(
-              `# Gift Summary\n### + <:Key:1456059698582392852> ${session.keys.toLocaleString()}`
-            ),
-        ],
-        components: [],
-      });
-
-      await interaction.followUp({
-        content: `-# <@${session.targetId}> received <:Key:1456059698582392852> Keys!`,
-      });
-
-      return;
-    }
-
     // 🔵 CARDS (WITH OPTIONAL WIRLIES)
     const slice = session.cards.slice(
       session.page * PAGE_SIZE,
@@ -309,6 +254,14 @@ return `${formatInventoryLine(card, s.qty)} Total: **${total}**`;
     embed.addFields({
       name: 'Wirlies',
       value: `+ <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`,
+      inline: true,
+    });
+  }
+
+  if (session.keys > 0 && page === 0) {
+    embed.addFields({
+      name: 'Keys',
+      value: `+ <:Key:1456059698582392852> ${session.keys.toLocaleString()}`,
       inline: true,
     });
   }
