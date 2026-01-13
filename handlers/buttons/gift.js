@@ -272,7 +272,7 @@ for (const r of resultCards) {
     const card = cardMap.get(s.cardCode);
     if (!card) return null;
     const owned = invMap.get(s.cardCode) ?? 0;
-    const total = liveTotalMap.get(s.cardCode) ?? (owned + s.qty);
+    const total = resultMap.get(s.cardCode) ?? (owned);
 return `${formatInventoryLine(card, s.qty)} Total: **${total}**`;
   })
   .filter(Boolean)
