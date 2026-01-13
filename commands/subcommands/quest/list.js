@@ -118,6 +118,7 @@ if (['lifetime', 'event'].includes(category)) {
         { userId, questKey: q.key },
         {
           $setOnInsert: {
+            cateogry: q.category,
             progress: 0,
             goal: q.conditions?.count ?? 0,
             completed: false,

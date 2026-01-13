@@ -1,5 +1,6 @@
 const Quest = require('../../models/Quest');
 const UserQuestAssignment = require('../../models/UserQuestAssignment');
+const UserQuest = require('../../models/UserQuest');
 
 function pad2(n) {
   return String(n).padStart(2, '0');
@@ -61,7 +62,6 @@ async function ensureAssigned(userId, category, count = 3) {
 
   // Cycle changed → wipe progress + assignment
 if (existing && existing.cycleKey !== cycleKey) {
-  const UserQuest = require('../../models/UserQuest');
 
   // 🔥 ALWAYS wipe previous cycle progress for this category
   await UserQuest.deleteMany({
