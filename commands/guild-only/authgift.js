@@ -101,8 +101,8 @@ module.exports = {
         })
         .join('\n\n')
     : [
-        wirlies > 0 ? `+ <:Wirlies:1455924065972785375> ${wirlies}` : null,
-        keys > 0 ? `+ <:Key:1456059698582392852> ${keys}` : null,
+        wirlies > 0 ? `# + <:Wirlies:1455924065972785375> ${wirlies}` : null,
+        keys > 0 ? `# + <:Key:1456059698582392852> ${keys}` : null,
       ]
         .filter(Boolean)
         .join('\n');

@@ -122,6 +122,33 @@ module.exports = async function giftButtonHandler(interaction) {
       return;
     }
 
+    if (session.cards.length === 0 && session.keys > 0) {
+      enqueueInteraction('gift', {
+  from: session.userId,
+  to: session.targetId,
+  wirlies: session.wirlies,
+  keys: session.keys ?? 0,
+  auth: session.auth === true, // 🔑 THIS IS CRITICAL
+});
+      await GiftSession.deleteOne({ _id: sessionId });
+
+      await interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              `# Gift Summary\n### + <:Key:1456059698582392852> ${session.keys.toLocaleString()}`
+            ),
+        ],
+        components: [],
+      });
+
+      await interaction.followUp({
+        content: `-# <@${session.targetId}> received <:Key:1456059698582392852> Keys!`,
+      });
+
+      return;
+    }
+
     // 🔵 CARDS (WITH OPTIONAL WIRLIES)
     const slice = session.cards.slice(
       session.page * PAGE_SIZE,
@@ -165,18 +192,33 @@ module.exports = async function giftButtonHandler(interaction) {
     const attachment =
       ordered.length > 0 ? await renderCardCanvas(ordered) : null;
 
-    const embed = new EmbedBuilder()
-      .setTitle('Confirm Gift')
-      .setDescription(
-        ordered
-          .map((card, i) => formatInventoryLine(card, slice[i].qty))
-          .join('\n')
-      )
-      .setFooter({
-        text: `Page ${page + 1} / ${Math.ceil(
-          session.cards.length / PAGE_SIZE
-        )}`,
-      });
+      const descriptionLines = [
+  ...ordered.map((card, i) =>
+    formatInventoryLine(card, slice[i].qty)
+  ),
+];
+
+// ➕ Show currency in preview
+if (session.wirlies > 0) {
+  descriptionLines.push(
+    `\n# + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`
+  );
+}
+
+if (session.keys > 0) {
+  descriptionLines.push(
+    `# + <:Key:1456059698582392852> ${session.keys.toLocaleString()}`
+  );
+}
+
+const embed = new EmbedBuilder()
+  .setTitle('Confirm Gift')
+  .setDescription(descriptionLines.join('\n'))
+  .setFooter({
+    text: `Page ${page + 1} / ${Math.ceil(
+      session.cards.length / PAGE_SIZE
+    )}`,
+  });
 
     if (attachment) embed.setImage('attachment://gift.png');
     const row = new ActionRowBuilder().addComponents(
