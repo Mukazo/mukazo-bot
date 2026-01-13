@@ -216,36 +216,32 @@ const embed = new EmbedBuilder()
    SUMMARY RENDERER
 =========================== */
 async function renderSummary(interaction, session, page, pingRecipient) {
-  const slice = session.cards.slice(
-    page * PAGE_SIZE,
-    (page + 1) * PAGE_SIZE
-  );
+  const allCardCodes = session.cards.map(c => c.cardCode);
+const cardQtyMap = new Map();
+for (const c of session.cards) {
+  cardQtyMap.set(c.cardCode, (cardQtyMap.get(c.cardCode) || 0) + c.qty);
+}
 
-  const cards = await Card.find({
-    cardCode: { $in: slice.map(c => c.cardCode) },
-  }).lean();
+const [cards, invDocs] = await Promise.all([
+  Card.find({ cardCode: { $in: allCardCodes } }).lean(),
+  CardInventory.find({ userId: session.targetId, cardCode: { $in: allCardCodes } }).lean(),
+]);
 
-  const map = new Map(cards.map(c => [c.cardCode, c]));
-  // ✅ Fetch recipient totals for cards on this summary page
-  const invDocs = await CardInventory.find({
-    userId: session.targetId,
-    cardCode: { $in: slice.map(s => s.cardCode) },
-  }).lean();
+const cardMap = new Map(cards.map(c => [c.cardCode, c]));
+const invMap = new Map(invDocs.map(d => [d.cardCode, d.quantity]));
 
-  const invMap = new Map(invDocs.map(d => [d.cardCode, d.quantity]));
+const slice = session.cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const description =
-  slice.length > 0
-    ? slice
-        .map(s => {
-          const card = map.get(s.cardCode);
-          if (!card) return null;
-          const owned = invMap.get(s.cardCode) ?? 0;
-return `${formatInventoryLine(card, s.qty)} Total: **${owned}**`;
-        })
-        .filter(Boolean)
-        .join('\n')
-    : null;
+  const description = slice
+  .map(s => {
+    const card = cardMap.get(s.cardCode);
+    if (!card) return null;
+    const totalGiftQty = cardQtyMap.get(s.cardCode) ?? s.qty;
+    const owned = invMap.get(s.cardCode) ?? 0;
+    return `${formatInventoryLine(card, s.qty)} Total: **${totalGiftQty}**`;
+  })
+  .filter(Boolean)
+  .join('\n');
 
   const embed = new EmbedBuilder()
     .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
