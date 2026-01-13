@@ -50,7 +50,7 @@ else {
 
     const uq = await UserQuest.findOneAndUpdate(
       { userId, questKey: quest.key },
-      { $setOnInsert: { progress: 0, goal: c.count, completed: false, rewardClaimed: false } },
+      { $setOnInsert: { progress: 0, goal: c.count, category: quest.category, completed: false, rewardClaimed: false } },
       { upsert: true, new: true }
     );
 

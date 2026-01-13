@@ -150,6 +150,8 @@ if (['lifetime', 'event'].includes(category)) {
       uq.progress = result.owned;
       uq.goal = result.total;
 
+      if (!uq.category) uq.category = q.category;
+
       if (result.completed && !uq.completed) {
         uq.completed = true;
         uq.completedAt = new Date();
