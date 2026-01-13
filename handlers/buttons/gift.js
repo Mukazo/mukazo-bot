@@ -272,9 +272,9 @@ const slice = session.cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   .map(s => {
     const card = cardMap.get(s.cardCode);
     if (!card) return null;
-    const totalGiftQty = cardQtyMap.get(s.cardCode) ?? s.qty;
     const owned = invMap.get(s.cardCode) ?? 0;
-    return `${formatInventoryLine(card, s.qty)} Total: **${owned}**`;
+    const postGiftTotal = owned + (cardQtyMap.get(s.cardCode) ?? s.qty);
+return `${formatInventoryLine(card, s.qty)} Total: **${postGiftTotal}**`;
   })
   .filter(Boolean)
   .join('\n');
