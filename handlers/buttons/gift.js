@@ -1,6 +1,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
 const Canvas = require('canvas');
 const { enqueueInteraction } = require('../../queue');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 const GiftSession = require('../../models/GiftSession');
 const Card = require('../../models/Card');
