@@ -88,20 +88,28 @@ module.exports = {
 
     const pageResults = results.slice(0, PAGE_SIZE);
 
+    const description =
+  pageResults.length > 0
+    ? pageResults
+        .map(r => {
+          const emoji = r.card.emoji || generateVersion(r.card);
+          return (
+            `${emoji} **${r.card.group}**` +
+            `${r.card.name}\n` +
+            `\`${r.card.cardCode}\` × **${r.qty}**`
+          );
+        })
+        .join('\n\n')
+    : [
+        wirlies > 0 ? `+ <:Wirlies:1455924065972785375> ${wirlies}` : null,
+        keys > 0 ? `+ <:Key:1456059698582392852> ${keys}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n');
+
     const embed = new EmbedBuilder()
       .setTitle('Confirm Authorized Gift')
-      .setDescription(
-        pageResults
-          .map(r => {
-            const emoji = r.card.emoji || generateVersion(r.card);
-            return (
-              `**${r.card.group}**\n` +
-              `${emoji} ${r.card.name}\n` +
-              `\`${r.card.cardCode}\` × **${r.qty}**`
-            );
-          })
-          .join('\n\n')
-      )
+      .setDescription(description)
       .setFooter({
         text: `Page 1 / ${Math.max(
           1,

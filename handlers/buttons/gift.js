@@ -47,8 +47,8 @@ function formatInventoryLine(card, qty) {
     generateVersion(card);
 
   return (
-    `${emoji} **${card.group}** __${card.name}__ ` +
-    `${card.era ? `${card.era}` : ''} \`${card.cardCode}\` × **${qty}**`
+    `${emoji} **${card.group}** __${card.name}__` +
+    `${card.era ? `${card.era}` : ''}\n \`${card.cardCode}\` × **${qty}**`
   );
 }
 
@@ -99,7 +99,6 @@ module.exports = async function giftButtonHandler(interaction) {
       enqueueInteraction('gift', {
   from: session.userId,
   to: session.targetId,
-  cards: slice,
   wirlies: session.wirlies,
   keys: session.keys ?? 0,
   auth: session.auth === true, // 🔑 THIS IS CRITICAL

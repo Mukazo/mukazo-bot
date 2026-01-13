@@ -173,8 +173,8 @@ const pageResults = results.slice(0, PAGE_SIZE);
               r.card.emoji ||
               generateVersion(r.card);
             return (
-              `**${r.card.group}**\n` +
-              `${emoji} ${r.card.name}\n` +
+              `${emoji} **${r.card.group}**` +
+              `${r.card.name}\n` +
               `\`${r.card.cardCode}\` × **${r.qty}**`
             );
           })
