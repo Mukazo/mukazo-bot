@@ -1,6 +1,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const CardInventory = require('../models/CardInventory');
 const Card = require('../models/Card');
+const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 6;
 const V_WIRLIES = { V1: 10, V2: 20, V3: 30, V4: 40 };
@@ -10,10 +11,9 @@ function toList(str) {
 }
 
 function formatBurnLine(card, qty) {
-  const versionKey = `V${card.version}`;
   const eraText = card.era ? ` ( ${card.era} )` : '';
-  const emoji = card.emoji || card.versionemoji || versionKey || '';
-  return `${emoji} **${card.group}** __${card.name}__\n ( ${eraText} )×**${qty}** ✮ \`${card.cardCode}\``;
+  const emoji = card.emoji || generateVersion(card);
+  return `${emoji} **${card.group}** __${card.name}__ ${eraText}\n × **${qty}** ✮ \`${card.cardCode}\``;
 }
 
 function calculateBurnRewards(cards) {

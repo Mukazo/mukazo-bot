@@ -1,13 +1,14 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const CardInventory = require('../../models/CardInventory');
 const User = require('../../models/User');
+const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 6;
 const V_WIRLIES = { V1: 10, V2: 20, V3: 30, V4: 40 };
 
 function formatBurnLine(card, qty) {
-  const emoji = card.overrideemoji || card.versionemoji || card.version || '';
-  return `${emoji} **${card.group}** __${card.name}__ (${card.version})\n ×**${qty}** ✮ \`${card.cardCode}\``;
+  const emoji = card.emoji || generateVersion(card);
+  return `${emoji} **${card.group}** __${card.name}__ \n × **${qty}** ✮ \`${card.cardCode}\``;
 }
 
 module.exports = async function handleBurnButton(interaction) {
