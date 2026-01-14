@@ -81,11 +81,11 @@ module.exports = async function burnSession(interaction) {
       if (excludeEra.length && excludeEra.includes(e)) return null;
       if (excludeV5 && v === 5) return null;
       if (duplicatesOnly && quantity < 2) return null;
+      const maxQty = codeFilter[code] ?? quantity;
 const burnQty = Math.min(quantity - 1, maxQty); // keep 1
 if (burnQty <= 0) return null;
       if (Object.keys(codeFilter).length && !(code in codeFilter)) return null;
 
-      const maxQty = codeFilter[code] ?? quantity;
 
       return { ...card, qty: burnQty };
     })
