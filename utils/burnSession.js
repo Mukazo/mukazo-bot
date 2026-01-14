@@ -34,8 +34,8 @@ function calculateBurnRewards(cards) {
 
   return { totalWirlies, totalKeys };
 }
-module.exports = async function burnSession(interaction) {
 
+module.exports = async function burnSession(interaction) {
   const userId = interaction.user.id;
 
   const group = toList(interaction.options.getString('group')).map(x => x.toLowerCase());
@@ -44,7 +44,8 @@ module.exports = async function burnSession(interaction) {
   const version = toList(interaction.options.getString('version')).map(x => parseInt(x));
   const excludeName = toList(interaction.options.getString('exclude_name')).map(x => x.toLowerCase());
   const excludeEra = toList(interaction.options.getString('exclude_era')).map(x => x.toLowerCase());
-  const excludeV5 = interaction.options.getBoolean('exclude_v5') === true;
+  const excludeV5 = interaction.options.getBoolean('exclude_v5');
+  const duplicatesOnly = interaction.options.getBoolean('duplicates_only');
 
   const inventory = await CardInventory.find({ userId }).lean();
   const cardCodes = inventory.map(c => c.cardCode);
@@ -56,7 +57,9 @@ module.exports = async function burnSession(interaction) {
       const n = (card.name || '').toLowerCase();
       const e = (card.era || '').toLowerCase();
       const v = Number(card.version);
+      const inv = inventory.find(i => i.cardCode === card.cardCode);
 
+      if (duplicatesOnly && (inv?.quantity || 0) < 2) return false;
       if (excludeV5 && v === 5) return false;
       if (group.length && !group.includes(g)) return false;
       if (name.length && !name.includes(n)) return false;
@@ -84,9 +87,10 @@ module.exports = async function burnSession(interaction) {
 
   const embed = new EmbedBuilder()
     .setDescription([
-        '## Burn Preview',
-      pageCards.map(c => formatBurnLine(c, c.qty)).join('\n') +
-      `\n\n**Total <:Wirlies:1455924065972785375> Wirlies:** ${totalWirlies.toLocaleString()}\n**Total <:Key:1456059698582392852> Keys:** ${totalKeys.toLocaleString()}`
+      '## Burn Preview',
+      pageCards.map(c => formatBurnLine(c, c.qty)).join('\n'),
+      `\n\n**Total <:Wirlies:1455924065972785375> Wirlies:** ${totalWirlies.toLocaleString()}`,
+      `**Total <:Key:1456059698582392852> Keys:** ${totalKeys.toLocaleString()}`
     ].filter(Boolean).join('\n'))
     .setFooter({ text: `Page ${page + 1} / ${Math.ceil(matched.length / PAGE_SIZE)}` });
 
@@ -94,8 +98,7 @@ module.exports = async function burnSession(interaction) {
     new ButtonBuilder().setCustomId(`burn:page:${page - 1}`).setLabel(' • Previous').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
     new ButtonBuilder().setCustomId(`burn:confirm`).setLabel('Confirm • Burn').setStyle(ButtonStyle.Secondary),
     new ButtonBuilder().setCustomId(`burn:cancel`).setLabel('Cancel').setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder().setCustomId(`burn:page:${page + 1}`).setLabel('Next • ').setStyle(ButtonStyle.Secondary)
-      .setDisabled((page + 1) * PAGE_SIZE >= matched.length)
+    new ButtonBuilder().setCustomId(`burn:page:${page + 1}`).setLabel('Next • ').setStyle(ButtonStyle.Secondary).setDisabled((page + 1) * PAGE_SIZE >= matched.length)
   );
 
   interaction.client.burnSessions ??= new Map();
