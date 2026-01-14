@@ -72,6 +72,21 @@ module.exports = async function handleBurnButton(interaction) {
   }
 
   const pageCards = session.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  let totalWirlies = 0;
+    let totalKeys = 0;
+
+    for (const card of session) {
+      const qty = card.qty;
+      if (['V1', 'V2', 'V3', 'V4'].includes(card.version)) {
+        const value = V_WIRLIES[card.version] * qty;
+        totalWirlies += value;
+      } else if (card.version === 'V5') {
+        const keys = Math.floor(qty / 2);
+        const leftover = qty % 2;
+        totalKeys += keys;
+        totalWirlies += leftover * 1000;
+      }
+    }
 
   const embed = new EmbedBuilder()
     .setDescription([
