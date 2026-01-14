@@ -57,9 +57,11 @@ module.exports = async function burnSession(interaction) {
       const n = (card.name || '').toLowerCase();
       const e = (card.era || '').toLowerCase();
       const v = Number(card.version);
-      const inv = inventory.find(i => i.cardCode === card.cardCode);
 
-      if (duplicatesOnly && (inv?.quantity || 0) < 2) return false;
+      const inv = inventory.find(i => i.cardCode === card.cardCode);
+      const quantity = inv?.quantity ?? 0;
+
+      if (duplicatesOnly && quantity < 2) return false;
       if (excludeV5 && v === 5) return false;
       if (group.length && !group.includes(g)) return false;
       if (name.length && !name.includes(n)) return false;
