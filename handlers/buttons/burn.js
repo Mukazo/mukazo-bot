@@ -91,7 +91,7 @@ module.exports = async function handleBurnButton(interaction) {
   const embed = new EmbedBuilder()
     .setDescription([
         '## Burn Summary',
-        pageCards.map(c => formatBurnLine(c, c.qty)).join('\n')
+        pageCards.map(c => formatBurnLine(c, c.qty)).join('\n'),
         `\n\n**Total <:Wirlies:1455924065972785375> Wirlies:** ${totalWirlies.toLocaleString()}\n**Total <:Key:1456059698582392852> Keys:** ${totalKeys.toLocaleString()}`
     ].filter(Boolean).join('\n'))
         
