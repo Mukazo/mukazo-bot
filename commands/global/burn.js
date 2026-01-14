@@ -18,7 +18,8 @@ module.exports = {
     .addStringOption(o => o.setName('era').setDescription('Filter by eras'))
     .addStringOption(o => o.setName('version').setDescription('Filter by versions (e.g. 1,3,5)'))
     .addStringOption(o => o.setName('exclude_name').setDescription('Exclude names'))
-    .addStringOption(o => o.setName('exclude_era').setDescription('Exclude eras')),
+    .addStringOption(o => o.setName('exclude_era').setDescription('Exclude eras'))
+    .addStringOption(o => o.setName('cardcodes').setDescription('CARDCODE=+X or CARDCODE burns all')),
 
   async execute(interaction) {
     await burnSession(interaction);

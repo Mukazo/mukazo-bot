@@ -10,6 +10,17 @@ function toList(str) {
   return str?.split(',').map(x => x.trim()).filter(Boolean) || [];
 }
 
+function parseCodeQuantities(str) {
+  const result = {};
+  str?.split(',').forEach(entry => {
+    const [code, qty] = entry.split('=');
+    if (code) {
+      result[code.trim()] = qty?.startsWith('+') ? parseInt(qty.slice(1)) : Infinity;
+    }
+  });
+  return result;
+}
+
 function formatBurnLine(card, qty) {
   const eraText = card.era ? ` ( ${card.era} )` : '';
   const emoji = card.emoji || generateVersion(card);
@@ -23,7 +34,6 @@ function calculateBurnRewards(cards) {
   for (const card of cards) {
     const qty = card.qty || 0;
     const versionKey = `V${card.version}`;
-
     if ([1, 2, 3, 4].includes(card.version)) {
       totalWirlies += (V_WIRLIES[versionKey] || 0) * qty;
     } else if (card.version === 5) {
@@ -46,36 +56,39 @@ module.exports = async function burnSession(interaction) {
   const excludeEra = toList(interaction.options.getString('exclude_era')).map(x => x.toLowerCase());
   const excludeV5 = interaction.options.getBoolean('exclude_v5');
   const duplicatesOnly = interaction.options.getBoolean('duplicates_only');
+  const codeFilter = parseCodeQuantities(interaction.options.getString('cardcodes'));
 
   const inventory = await CardInventory.find({ userId }).lean();
   const cardCodes = inventory.map(c => c.cardCode);
+  const invMap = Object.fromEntries(inventory.map(i => [i.cardCode, i.quantity]));
   const cards = await Card.find({ cardCode: { $in: cardCodes } }).lean();
 
   const matched = cards
-    .filter(card => {
+    .map(card => {
       const g = (card.group || '').toLowerCase();
       const n = (card.name || '').toLowerCase();
       const e = (card.era || '').toLowerCase();
       const v = Number(card.version);
+      const code = card.cardCode;
+      const quantity = invMap[code] || 0;
 
-      const inv = inventory.find(i => i.cardCode === card.cardCode);
-      const quantity = inv?.quantity ?? 0;
+      if (!quantity) return null;
+      if (group.length && !group.includes(g)) return null;
+      if (name.length && !name.includes(n)) return null;
+      if (era.length && !era.includes(e)) return null;
+      if (version.length && !version.includes(v)) return null;
+      if (excludeName.length && excludeName.includes(n)) return null;
+      if (excludeEra.length && excludeEra.includes(e)) return null;
+      if (excludeV5 && v === 5) return null;
+      if (duplicatesOnly && quantity < 2) return null;
+      if (Object.keys(codeFilter).length && !(code in codeFilter)) return null;
 
-      if (duplicatesOnly && quantity < 2) return false;
-      if (excludeV5 && v === 5) return false;
-      if (group.length && !group.includes(g)) return false;
-      if (name.length && !name.includes(n)) return false;
-      if (era.length && !era.includes(e)) return false;
-      if (version.length && !version.includes(v)) return false;
-      if (excludeName.length && excludeName.includes(n)) return false;
-      if (excludeEra.length && excludeEra.includes(e)) return false;
+      const maxQty = codeFilter[code] ?? quantity;
+      const burnQty = Math.min(quantity, maxQty);
 
-      return true;
+      return { ...card, qty: burnQty };
     })
-    .map(card => {
-      const inv = inventory.find(i => i.cardCode === card.cardCode);
-      return { ...card, qty: inv?.quantity || 0 };
-    })
+    .filter(Boolean)
     .filter(c => c.qty > 0);
 
   if (!matched.length) {
@@ -83,9 +96,8 @@ module.exports = async function burnSession(interaction) {
   }
 
   const { totalWirlies, totalKeys } = calculateBurnRewards(matched);
-
   const page = 0;
-  const pageCards = matched.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const pageCards = matched.slice(0, PAGE_SIZE);
 
   const embed = new EmbedBuilder()
     .setDescription([
