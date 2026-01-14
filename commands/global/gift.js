@@ -195,7 +195,6 @@ const pageResults = results.slice(0, PAGE_SIZE);
     await interaction.editReply({
       embeds: [embed],
       components: [row],
-      files: attachment ? [attachment] : [],
     });
   },
 };

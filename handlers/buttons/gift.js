@@ -142,7 +142,6 @@ module.exports = async function giftButtonHandler(interaction) {
     return interaction.editReply({
       embeds: [embed],
       components: [row],
-      files: attachment ? [attachment] : [],
     });
   }
 
