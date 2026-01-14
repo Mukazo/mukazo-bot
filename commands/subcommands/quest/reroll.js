@@ -46,7 +46,15 @@ await assignment.save();
 await UserQuest.deleteOne({ userId, questKey: quest.key });
 
 // assign ONE replacement
-await ensureAssigned(userId, category, 3);
+const allQuests = await Quest.find({ category }).lean();
+const usedKeys = assignment.questKeys;
+const available = allQuests.filter(q => !usedKeys.includes(q.key));
+const replacement = available[Math.floor(Math.random() * available.length)];
+
+if (replacement) {
+  assignment.questKeys.push(replacement.key);
+  await assignment.save();
+}
     
     return interaction.editReply({ content: `Rerolled **${quest.name}** quests for <:Wirlies:1455924065972785375> ${REROLL_COST}.` });
   },
