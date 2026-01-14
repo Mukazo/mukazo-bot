@@ -13,6 +13,7 @@ const { giveCurrency } = require('../../utils/giveCurrency');
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const User = require('../../models/User');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 const generateVersion = require('../../utils/generateVersion');
 
