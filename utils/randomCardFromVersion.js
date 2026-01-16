@@ -62,18 +62,17 @@ const filter = {
         { $expr: { $lt: ['$timesPulled', '$availableQuantity'] } }
       ]
     },
-    ...(categories
-      ? [
-          {
-            $or: [
-              { categoryalias: { $exists: false } },
-              { categoryalias: { $in: categories } }
-            ]
-          }
-        ]
-      : [
-          { categoryalias: { $ne: 'other music' } }
-        ])
+...(categories
+  ? [
+      {
+        categoryalias: { $in: categories }
+      }
+    ]
+  : [
+      {
+        categoryalias: { $exists: false }
+      }
+    ])
   ]
 };
 
