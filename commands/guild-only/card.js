@@ -62,6 +62,7 @@ module.exports = {
         .addChoices(
           { name: 'Monthlies', value: 'monthlies' },
           { name: 'Events', value: 'events' },
+          { name: 'Other Music', value: 'other music' },
         ))
 
     )
