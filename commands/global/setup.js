@@ -38,21 +38,19 @@ const SELECTABLE_CATEGORIES = [
 
 // Display names
 const CATEGORY_LABELS = {
-  music: 'Music',
-  animanga: 'Animanga',
-  'video games': 'Video Games',
-  entertainment: 'Entertainment',
-  monthlies: 'Monthlies',
-  events: 'Events',
-  specials: 'Specials',
+  music: 'music',
+  animanga: 'animanga',
+  'video games': 'video games',
+  entertainment: 'entertainment',
+  specials: 'specials',
 };
 
 // Category descriptions
 const CATEGORY_DESCRIPTIONS = {
-  music: 'Asia Centered Artists, Groups, Soloists, etc',
+  music: 'Groups, Soloists, etc\n> Asia Region artists are automatically included\n> Other Region artists are disabled by default',
   animanga: 'Animes, Mangas, Donghuas, Manhwas, etc',
-  'video games': 'Shooter, Story, Gacha, Fighting, etc',
-  entertainment: 'Series, Movies, Cartoons, Dramas, etc',
+  'video games': 'Shooter, Story, Gacha, etc',
+  entertainment: 'Series, Movies, Dramas, etc',
 };
 
 // How many random series to show
