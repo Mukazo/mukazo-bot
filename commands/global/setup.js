@@ -38,16 +38,16 @@ const SELECTABLE_CATEGORIES = [
 
 // Display names
 const CATEGORY_LABELS = {
-  music: 'music',
-  animanga: 'animanga',
-  'video games': 'video games',
-  entertainment: 'entertainment',
+  music: 'Music',
+  animanga: 'Animanga',
+  'video games': 'Video games',
+  entertainment: 'Entertainment',
   specials: 'specials',
 };
 
 // Category descriptions
 const CATEGORY_DESCRIPTIONS = {
-  music: 'Groups, Soloists, etc\n> Asia Region artists are automatically included\n> Other Region artists are disabled by default',
+  music: 'Music Groups, Soloists, etc\n\n> Asia Region Artists are automatically included\n> Other Regions Artists are disabled by default',
   animanga: 'Animes, Mangas, Donghuas, Manhwas, etc',
   'video games': 'Shooter, Story, Gacha, etc',
   entertainment: 'Series, Movies, Dramas, etc',
