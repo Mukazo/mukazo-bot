@@ -61,14 +61,20 @@ const filter = {
         { availableQuantity: null },
         { $expr: { $lt: ['$timesPulled', '$availableQuantity'] } }
       ]
-    }
-  ],
-  ...(categories ? {
-    $or: [
-      { categoryalias: { $exists: false } },
-      { categoryalias: { $in: categories } }
-    ]
-  } : { categoryalias: { $ne: 'other music' } }) // Default: exclude if not opted in
+    },
+    ...(categories
+      ? [
+          {
+            $or: [
+              { categoryalias: { $exists: false } },
+              { categoryalias: { $in: categories } }
+            ]
+          }
+        ]
+      : [
+          { categoryalias: { $ne: 'other music' } }
+        ])
+  ]
 };
 
   const cards = await Card.find(filter).lean();
