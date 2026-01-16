@@ -201,7 +201,13 @@ if (category === 'music') {
   );
 }
 
-      return { embeds: [embed], files };
+      return {
+  embeds: [embed],
+  files,
+  components: musicSelectRow
+    ? [categoryControls(category), musicSelectRow]
+    : [categoryControls(category)]
+};
     }
 
     async function buildSummaryPage() {
@@ -362,9 +368,7 @@ if (category === 'music') {
       await interaction.editReply({
         embeds: data.embeds,
         files: data.files,
-        components: musicSelectRow
-  ? [categoryControls(category), musicSelectRow]
-  : [categoryControls(category)],
+        components: [categoryControls(category)],
       });
     });
 
