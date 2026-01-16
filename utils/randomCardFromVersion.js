@@ -65,8 +65,11 @@ const filter = {
 ...(categories
   ? [
       {
-        categoryalias: { $in: categories }
-      }
+  $or: [
+    { category: { $in: categories } },
+    { categoryalias: { $in: categories } }
+  ]
+}
     ]
   : [
       {
