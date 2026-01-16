@@ -366,10 +366,10 @@ if (category === 'music') {
       const data = await buildCategoryPage(category);
 
       await interaction.editReply({
-        embeds: data.embeds,
-        files: data.files,
-        components: [categoryControls(category)],
-      });
+  embeds: data.embeds,
+  files: data.files,
+  components: data.components, // ✅ will include select menu for "music" category
+});
     });
 
     /* ===========================
