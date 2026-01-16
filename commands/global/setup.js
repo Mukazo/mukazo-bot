@@ -48,7 +48,7 @@ const CATEGORY_LABELS = {
 
 // Category descriptions
 const CATEGORY_DESCRIPTIONS = {
-  music: 'Primarily Asian Artists, Groups, Soloists, etc',
+  music: 'Asia Centered Artists, Groups, Soloists, etc',
   animanga: 'Animes, Mangas, Donghuas, Manhwas, etc',
   'video games': 'Shooter, Story, Gacha, Fighting, etc',
   entertainment: 'Series, Movies, Cartoons, Dramas, etc',
@@ -185,6 +185,21 @@ module.exports = {
         files.push(attachment);
       }
 
+      // ✅ Add select menu only for Music category
+let musicSelectRow = null;
+
+if (category === 'music') {
+  musicSelectRow = new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId('setup:musicfilter')
+      .setPlaceholder('Disable Other Regions Music?')
+      .addOptions([
+        { label: 'Yes', value: 'disable' },
+        { label: 'No', value: 'enable' }
+      ])
+  );
+}
+
       return { embeds: [embed], files };
     }
 
@@ -281,7 +296,32 @@ module.exports = {
             ? { $pull: { enabledCategories: category } }
             : { $addToSet: { enabledCategories: category } }
         );
+
+      } else if (btn.isStringSelectMenu() && btn.customId === 'setup:musicfilter') {
+      const selected = btn.values?.[0];
+      const user = await User.findOne({ userId: interaction.user.id }) || new User({ userId });
+
+      if (selected === 'disable') {
+        user.enabledCategories = user.enabledCategories?.filter(c => c !== 'other music') || [];
+      } else if (selected === 'enable') {
+        if (!user.enabledCategories.includes('other music')) {
+          user.enabledCategories.push('other music');
+        }
       }
+
+      await user.save();
+
+      // ✅ Edit the CURRENT embed to include a status line
+      const currentEmbed = btn.message.embeds[0];
+      const updatedEmbed = EmbedBuilder.from(currentEmbed).setDescription(
+        currentEmbed.description + `\n\n**Other Regions Music have been ${selected === 'disable' ? 'disabled' : 'enabled'}**.`
+      );
+
+      return btn.update({
+        embeds: [updatedEmbed],
+        components: btn.message.components,
+      });
+    }
 
       if (btn.customId === 'finish') {
   const user = await User.findOne({ userId: interaction.user.id }).lean();
@@ -321,7 +361,9 @@ module.exports = {
       await interaction.editReply({
         embeds: data.embeds,
         files: data.files,
-        components: [categoryControls(category)],
+        components: musicSelectRow
+  ? [categoryControls(category), musicSelectRow]
+  : [categoryControls(category)],
       });
     });
 

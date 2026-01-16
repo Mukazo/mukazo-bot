@@ -39,17 +39,17 @@ await Card.updateMany(
 
 
   // ✅ Step 2: Prepare user preferences
-  const alwaysInclude = ['monthlies', 'events', 'specials'];
-  const prefs = user?.enabledCategories ?? [];
-  const categories = prefs.length
-    ? [...new Set([...prefs, ...alwaysInclude])]
-    : undefined;
+const alwaysInclude = ['specials'];
+const prefs = user?.enabledCategories ?? [];
+const categories = prefs.length
+  ? [...new Set([...prefs, ...alwaysInclude])]
+  : undefined;
 
-  // ✅ Step 3: Pull cards with filters
-  const filter = {
-    version,
-    active: true,
-    $and: [
+// ✅ Step 3: Pull cards with filters
+const filter = {
+  version,
+  active: true,
+  $and: [
     {
       $or: [
         { releaseAt: null },
@@ -63,8 +63,13 @@ await Card.updateMany(
       ]
     }
   ],
-    ...(categories ? { category: { $in: categories } } : {})
-  };
+  ...(categories ? {
+    $or: [
+      { categoryalias: { $exists: false } },
+      { categoryalias: { $in: categories } }
+    ]
+  } : { categoryalias: { $ne: 'other music' } }) // Default: exclude if not opted in
+};
 
   const cards = await Card.find(filter).lean();
   if (!cards.length) return null;
