@@ -22,9 +22,6 @@ module.exports = {
       });
     }
 
-    if (!user.pityData[pack]) user.pityData[pack] = {};
-user.pityData[pack].codes = codes;
-
     const user = await User.findOneAndUpdate(
       { userId },
       {
@@ -34,7 +31,10 @@ user.pityData[pack].codes = codes;
         }
       },
       { new: true, upsert: true }
-    );
+    )
+
+    if (!user.pityData[pack]) user.pityData[pack] = {};
+user.pityData[pack].codes = codes;
 
     const embed = new EmbedBuilder()
       .setColor('#2f3136')
