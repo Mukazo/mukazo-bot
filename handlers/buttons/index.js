@@ -3,13 +3,8 @@ const enchant = require('./enchant');
 const gift = require('./gift')
 const questList = require('./questList')
 const burn = require('./burn')
-const { handlePagination } = require('../../commands/subcommands/shop/buy');
 
 module.exports = async interaction => {
-
-  if (interaction.customId === 'page_prev' || interaction.customId === 'page_next') {
-    return handlePagination(interaction);
-  }
 
   if (!interaction.isButton()) return false;
 
