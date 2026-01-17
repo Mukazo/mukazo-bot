@@ -16,8 +16,8 @@ module.exports = {
   };
 }
 
-    const events = getPityData('events');
-    const monthlies = getPityData('monthlies');
+    const events = getPityData(user, 'events');
+    const monthlies = getPityData(user,'monthlies');
 
     const embed = new EmbedBuilder()
       .setTitle('Available Shop Packs')
@@ -33,7 +33,7 @@ module.exports = {
         '',
         `**Pity Preferences:**`,
         `• Events: ${events.codes.length ? events.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${events.until > 0 ? `in ${events.until} packs` : 'pity active'})`,
-        `• Monthlies: ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${events.until > 0 ? `in ${events.until} packs` : 'pity active'})`
+        `• Monthlies: ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${monthlies.until > 0 ? `in ${monthlies.until} packs` : 'pity active'})`
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });

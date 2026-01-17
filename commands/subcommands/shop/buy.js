@@ -46,7 +46,8 @@ if (pack === 'selective') {
     }
 
     const allPulled = [];
-    let pity = user.pityData?.[pack] || { count: 0, codes: [], lastUsed: null };
+    if (!user.pityData) user.pityData = new Map();
+let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
     let pityUsed = false;
 
     for (let i = 0; i < quantity; i++) {
@@ -182,7 +183,7 @@ user.pityData.set(pack, updated);
     });
 
     if (pages.length <= 1) return;
-    const collector = msg.createMessageComponentCollector({ time: 60000 });
+    const collector = msg.createMessageComponentCollector({ time: 120000 });
 
     collector.on('collect', async btn => {
       if (btn.user.id !== userId) {
