@@ -28,16 +28,16 @@ module.exports = {
           o.setName('quantity')
             .setDescription('How many packs (default: 1)')
             .setMinValue(1)
-            .setMaxValue(30)
+            .setMaxValue(5)
         )
         .addStringOption(o =>
           o.setName('groups')
-            .setDescription('Group names (comma separated)')
+            .setDescription('Group names')
             .setRequired(false)
         )
         .addStringOption(o =>
           o.setName('names')
-            .setDescription('Card names (comma separated)')
+            .setDescription('Card names')
             .setRequired(false)
         )
     )
@@ -47,7 +47,7 @@ module.exports = {
     .setDescription('Set your pity card codes')
     .addStringOption(o =>
       o.setName('codes')
-        .setDescription('Up to 3 card codes (comma-separated)')
+        .setDescription('Up to 3 card codes')
         .setRequired(true)
     )
     .addStringOption(o =>
