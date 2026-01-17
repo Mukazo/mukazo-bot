@@ -45,7 +45,7 @@ if (pack === 'selective') {
     }
 
     const allPulled = [];
-    const pity = user.pityData?.get(pack) || { count: 0, codes: [], lastUsed: null };
+    let pity = user.pityData?.[pack] || { count: 0, codes: [], lastUsed: null };
     let pityUsed = false;
 
     for (let i = 0; i < quantity; i++) {
@@ -126,13 +126,13 @@ if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
 
     user.wirlies -= totalCost;
     user.keys -= totalKeys;
-    if (!user.pityData) user.pityData = new Map();
-    user.pityData.set(pack, {
-      ...pity,
-      count: pityUsed ? 0 : pity.count,
-      lastUsed: pityUsed ? new Date() : pity.lastUsed,
-      codes: pity.codes
-    });
+    if (!user.pityData) user.pityData = {};
+
+user.pityData[pack] = {
+  count: pityUsed ? 0 : pity.count,
+  codes: pity.codes,
+  lastUsed: pityUsed ? new Date() : pity.lastUsed
+};
     await user.save();
     // Update inventory
     for (const pack of allPulled) {
