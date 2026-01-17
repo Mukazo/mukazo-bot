@@ -23,7 +23,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setColor('#2f3136')
       .setDescription([
-        `# Mukazo\'s Shop Packs`,
+        `# Mukazo\'s Packs Shop`,
         `## <:spack:1461915131767427338> Selective Pack`,
         `↪︎ Pack Price: <:Wirlies:1455924065972785375> 500`,
         `↪︎ Each pack contains 5 cards.`,
@@ -38,8 +38,8 @@ module.exports = {
         `↪︎ 75% chance for pity cards after 5 packs.`,
         '',
         `**✢ Pity Preferences:**`,
-        `-# Events: ${events.codes.length ? events.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${events.until > 0 ? `in ${events.until} packs` : 'pity active'})`,
-        `-# Monthlies: ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${monthlies.until > 0 ? `in ${monthlies.until} packs` : 'pity active'})`
+        `-# Events: (${events.until > 0 ? `In ${events.until} Packs` : 'Pity Active'}) ${events.codes.length ? events.codes.map(c => `\`${c}\``).join('\n') : '*None*'}`,
+        `-# Monthlies: (${monthlies.until > 0 ? `In ${monthlies.until} Packs` : 'Pity Active'}) ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join('\n') : '*None*'}`
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });
