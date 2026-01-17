@@ -147,7 +147,7 @@ user.pityData[pack] = {
 
     // Paginate display
     const pages = allPulled.map((cards, index) => {
-        const emoji = c.emoji || generateVersion(c);
+        const emoji = c.emoji || generateVersion(cards);
                 const eraText = c.era ? `( ${c.era} )` : '';
       const desc = cards.map(c => `• ${emoji} **${c.group}** __${c.name}__ ${eraText} \`${c.cardCode}\``).join('\n');
 
