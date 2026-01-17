@@ -25,9 +25,10 @@ module.exports = {
     const user = await User.findOne({ userId });
 if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
-if (!user.pityData) user.pityData = {};
-if (!user.pityData[pack]) user.pityData[pack] = {};
-user.pityData[pack].codes = codes;
+if (!user.pityData) user.pityData = new Map();
+const existing = user.pityData.get(pack) || {};
+existing.codes = codes;
+user.pityData.set(pack, existing);
 
 await user.save();
 
