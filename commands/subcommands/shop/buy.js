@@ -7,7 +7,7 @@ const {
 const Card = require('../../../models/Card');
 const User = require('../../../models/User');
 const CardInventory = require('../../../models/CardInventory');
-const generateVersion = require('../../utils/generateVersion');
+const generateVersion = require('../../../utils/generateVersion');
 
 const PACK_CONFIG = {
   selective: { cost: 500, keys: 0, cards: 5 },
