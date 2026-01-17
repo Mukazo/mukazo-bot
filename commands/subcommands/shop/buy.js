@@ -158,7 +158,7 @@ user.pityData.set(pack, updated);
       return new EmbedBuilder()
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
         .setDescription([
-            `# Mukazo\'s Pack ${index + 1} / ${allPulled.length}ノ`,
+            `# Mukazo\'s Pack ${index + 1} / ${allPulled.length}`,
             desc || '*No cards pulled.*'
         ].filter(Boolean).join('\n'))
         .setColor('#2f3136');
