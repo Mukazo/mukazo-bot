@@ -34,8 +34,8 @@ await user.save();
 
     const embed = new EmbedBuilder()
       .setColor('#2f3136')
-      .setTitle(`Pity Preference Set for ${pack.charAt(0).toUpperCase() + pack.slice(1)}`)
-      .setDescription(`Your pity card codes have been set:\n${codes.map(c => `• \`${c}\``).join('\n')}`);
+      .setTitle(`Shop Pity Preference Set ─ ${pack.charAt(0).toUpperCase() + pack.slice(1)}`)
+      .setDescription(`The following card codes have been set:\n${codes.map(c => `↝ \`${c}\``).join('\n')}`);
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });
   }

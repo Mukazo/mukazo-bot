@@ -55,7 +55,7 @@ const ROUTES = [
   {
     id: 'festival',
     label: 'Festival',
-    description: 'a celebration for the New Years',
+    description: 'A celebration for the New Years',
     emoji: '🎡',
     min: 285,
     max: 330,
@@ -64,6 +64,20 @@ const ROUTES = [
       title: 'Festival',
       description: 'You enjoyed the activities & found some wirlies.',
       color: 0xf37373,
+    },
+  },
+  {
+    id: 'the grove',
+    label: 'The Grove',
+    description: 'Where the fairies lay sleeping',
+    emoji: '🧚',
+    min: 290,
+    max: 370,
+    keyChance: 0.75,
+    embed: {
+      title: 'The Grove',
+      description: 'Hidden behind the sleeping fairies you find something. .',
+      color: 0xafec95,
     },
   },
 ];

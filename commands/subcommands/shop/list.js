@@ -20,20 +20,26 @@ module.exports = {
     const monthlies = getPityData(user,'monthlies');
 
     const embed = new EmbedBuilder()
-      .setTitle('Available Shop Packs')
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setColor('#2f3136')
       .setDescription([
-        `**Selective Pack** (500 Wirlies)`,
-        `• Each pack contains 5 cards.`,
-        `• 75% chance of getting matched input groups/names.`,
+        `# Mukazo\'s Shop Packs`,
+        `## <:spack:1461915131767427338> Selective Pack`,
+        `↪︎ Pack Price: <:Wirlies:1455924065972785375> 500`,
+        `↪︎ Each pack contains 5 cards.`,
+        `↪︎ 70% chance of getting groups/names.`,
+        `## <:epack:1461915053883129971> Events Pack`,
+        `↪︎ Pack Price: <:Wirlies:1455924065972785375> 500 & <:Key:1456059698582392852> 4`,
+        `↪︎ Each pack contains 4 cards.`,
+        `↪︎ 75% chance for pity cards after 5 packs.`,
+        `## <:mpack:1461915089497096263> Monthlies Pack`,
+        `↪︎ Pack Price: <:Wirlies:1455924065972785375> 500 & <:Key:1456059698582392852> 4`,
+        `↪︎ Each pack contains 4 cards.`,
+        `↪︎ 75% chance for pity cards after 5 packs.`,
         '',
-        `**Events & Monthlies Pack** (400 Wirlies + 4 Keys)`,
-        `• Each pack contains 4 cards.`,
-        `• 80% chance for pity cards after 5 packs.`,
-        '',
-        `**Pity Preferences:**`,
-        `• Events: ${events.codes.length ? events.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${events.until > 0 ? `in ${events.until} packs` : 'pity active'})`,
-        `• Monthlies: ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${monthlies.until > 0 ? `in ${monthlies.until} packs` : 'pity active'})`
+        `**✢ Pity Preferences:**`,
+        `-# Events: ${events.codes.length ? events.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${events.until > 0 ? `in ${events.until} packs` : 'pity active'})`,
+        `-# Monthlies: ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${monthlies.until > 0 ? `in ${monthlies.until} packs` : 'pity active'})`
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });

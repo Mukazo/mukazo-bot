@@ -11,13 +11,13 @@ const generateVersion = require('../../../utils/generateVersion');
 
 const PACK_CONFIG = {
   selective: { cost: 500, keys: 0, cards: 5 },
-  events: { cost: 400, keys: 4, cards: 4 },
-  monthlies: { cost: 400, keys: 4, cards: 4 }
+  events: { cost: 500, keys: 4, cards: 4 },
+  monthlies: { cost: 500, keys: 4, cards: 4 }
 };
 
 const eraByPack = {
-  events: ['Fairytale Grove 2026', 'event2'],
-  monthlies: ['January 2026', 'feb2024']
+  events: ['Fairytale Grove 2026'],
+  monthlies: ['January 2026']
 };
 
 module.exports = {
@@ -57,7 +57,7 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
         let pool = [];
 
         if (pack === 'selective' && (groups.length || names.length)) {
-          const isInputPick = Math.random() < 0.75;
+          const isInputPick = Math.random() < 0.7;
 
           if (isInputPick) {
             if (groups.length && names.length && groups.length === names.length) {
@@ -87,7 +87,7 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
           }
         }
 
-        if ((pack === 'events' || pack === 'monthlies') && pity.count >= 5 && Math.random() < 0.8 && pity.codes?.length) {
+        if ((pack === 'events' || pack === 'monthlies') && pity.count >= 5 && Math.random() < 0.75 && pity.codes?.length) {
           pool = await Card.find({
             cardCode: { $in: pity.codes },
             active: true
@@ -156,8 +156,11 @@ user.pityData.set(pack, updated);
 }).filter(Boolean).join('\n');
 
       return new EmbedBuilder()
-        .setTitle(`Pack ${index + 1} / ${allPulled.length}`)
-        .setDescription(desc || '*No cards pulled.*')
+        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+        .setDescription([
+            `# Mukazo\'s Pack ${index + 1} / ${allPulled.length}ノ`,
+            desc || '*No cards pulled.*'
+        ].filter(Boolean).join('\n'))
         .setColor('#2f3136');
     });
 
