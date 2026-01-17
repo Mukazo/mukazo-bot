@@ -28,7 +28,7 @@ module.exports = {
           o.setName('quantity')
             .setDescription('How many packs (default: 1)')
             .setMinValue(1)
-            .setMaxValue(5)
+            .setMaxValue(30)
         )
         .addStringOption(o =>
           o.setName('groups')

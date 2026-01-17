@@ -48,7 +48,7 @@ if (pack === 'selective') {
     const allPulled = [];
     if (!user.pityData) user.pityData = new Map();
 let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
-    let pityUsed = false;
+    let pityUsedThisSession = false;
 
     for (let i = 0; i < quantity; i++) {
       const packCards = [];
@@ -88,12 +88,17 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
         }
 
         if ((pack === 'events' || pack === 'monthlies') && pity.count >= 5 && Math.random() < 0.65 && pity.codes?.length) {
-          pool = await Card.find({
-            cardCode: { $in: pity.codes },
-            active: true
-          }).lean();
-          pityUsed = true;
-        }
+  pool = await Card.find({
+    cardCode: { $in: pity.codes },
+    active: true
+  }).lean();
+
+  if (pool.length) {
+    pity.count = 0;
+    pity.lastUsed = new Date();
+    pityUsedThisSession = true;
+  }
+}
 
         // If pool is empty and it's selective, try user's categories
 if (!pool.length && pack === 'selective' && user.enabledCategories?.length) {
@@ -129,12 +134,7 @@ if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
     user.wirlies -= totalCost;
     user.keys -= totalKeys;
     if (!user.pityData) user.pityData = new Map();
-const updated = {
-  count: pityUsed ? 0 : pity.count,
-  codes: pity.codes,
-  lastUsed: pityUsed ? new Date() : pity.lastUsed
-};
-user.pityData.set(pack, updated);
+user.pityData.set(pack, pity);
     await user.save();
     // Update inventory
     for (const pack of allPulled) {
