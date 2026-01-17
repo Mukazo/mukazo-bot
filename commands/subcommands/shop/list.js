@@ -6,14 +6,15 @@ module.exports = {
     const userId = interaction.user.id;
     const user = await User.findOne({ userId });
 
-    const getPityData = (type) => {
-      const data = user?.pityData?.[type] || {};
-      return {
-        codes: data.codes || [],
-        count: data.count || 0,
-        until: Math.max(0, 5 - (data.count || 0))
-      };
-    };
+    function getPityData(user, pack) {
+  const data = user.pityData?.get?.(pack) || {};  // ✅ safe access for Map
+  return {
+    codes: data.codes || [],
+    count: data.count || 0,
+    until: Math.max(0, 5 - (data.count || 0)),
+    lastUsed: data.lastUsed || null
+  };
+}
 
     const events = getPityData('events');
     const monthlies = getPityData('monthlies');

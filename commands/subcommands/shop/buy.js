@@ -127,13 +127,13 @@ if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
 
     user.wirlies -= totalCost;
     user.keys -= totalKeys;
-    if (!user.pityData) user.pityData = {};
-
-user.pityData[pack] = {
+    if (!user.pityData) user.pityData = new Map();
+const updated = {
   count: pityUsed ? 0 : pity.count,
   codes: pity.codes,
   lastUsed: pityUsed ? new Date() : pity.lastUsed
 };
+user.pityData.set(pack, updated);
     await user.save();
     // Update inventory
     for (const pack of allPulled) {
