@@ -9,13 +9,13 @@ module.exports = {
     const codes = codeInput.split(',').map(c => c.trim().toUpperCase()).filter(Boolean).slice(0, 3);
 
     if (codes.length === 0) {
-      return interaction.reply({ content: 'You must enter at least one valid card code.', ephemeral: true });
+      return interaction.editReply({ content: 'You must enter at least one valid card code.', ephemeral: true });
     }
 
     const foundCards = await Card.find({ cardCode: { $in: codes } });
 
     if (foundCards.length !== codes.length) {
-      return interaction.reply({
+      return interaction.editReply({
         content: `Some card codes were not found. Valid ones: ${foundCards.map(c => c.cardCode).join(', ')}`,
         ephemeral: true
       });
@@ -37,6 +37,6 @@ module.exports = {
       .setTitle('Pity Preference Updated')
       .setDescription(`Your pity card codes have been set:\n${codes.map(c => `• \`${c}\``).join('\n')}`);
 
-    return interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.editReply({ embeds: [embed], ephemeral: true });
   }
 };

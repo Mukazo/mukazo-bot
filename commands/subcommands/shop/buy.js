@@ -35,7 +35,7 @@ module.exports = {
     const totalKeys = keys * quantity;
 
     if (user.wirlies < totalCost || user.keys < totalKeys) {
-      return interaction.reply({
+      return interaction.editReply({
         content: `You need ${totalCost} Wirlies and ${totalKeys} Keys.`,
         ephemeral: true
       });
@@ -164,7 +164,7 @@ module.exports = {
         .setDisabled(currentPage === pages.length - 1)
     );
 
-    const msg = await interaction.reply({
+    const msg = await interaction.editReply({
       embeds: [pages[currentPage]],
       components: pages.length > 1 ? [getRow()] : [],
       fetchReply: true
@@ -175,7 +175,7 @@ module.exports = {
 
     collector.on('collect', async btn => {
       if (btn.user.id !== userId) {
-        return btn.reply({ content: 'These buttons aren’t for you.', ephemeral: true });
+        return btn.editReply({ content: 'These buttons aren’t for you.', ephemeral: true });
       }
 
       if (btn.customId === 'next' && currentPage < pages.length - 1) currentPage++;
