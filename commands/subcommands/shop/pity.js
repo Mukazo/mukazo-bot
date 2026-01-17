@@ -5,6 +5,7 @@ const User = require('../../../models/User');
 module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
+    const pack = interaction.options.getString('pack'); // Add this
     const codeInput = interaction.options.getString('codes');
     const codes = codeInput.split(',').map(c => c.trim().toUpperCase()).filter(Boolean).slice(0, 3);
 
@@ -21,6 +22,9 @@ module.exports = {
       });
     }
 
+    if (!user.pityData[pack]) user.pityData[pack] = {};
+user.pityData[pack].codes = codes;
+
     const user = await User.findOneAndUpdate(
       { userId },
       {
@@ -34,7 +38,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setColor('#2f3136')
-      .setTitle('Pity Preference Updated')
+      .setTitle(`Pity Preference Set for ${pack.charAt(0).toUpperCase() + pack.slice(1)}`)
       .setDescription(`Your pity card codes have been set:\n${codes.map(c => `• \`${c}\``).join('\n')}`);
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });

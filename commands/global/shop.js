@@ -42,15 +42,24 @@ module.exports = {
         )
     )
     .addSubcommand(sub =>
-      sub
-        .setName('pity')
-        .setDescription('Set your pity card codes')
-        .addStringOption(o =>
-          o.setName('codes')
-            .setDescription('Up to 3 card codes (comma-separated)')
-            .setRequired(true)
+  sub
+    .setName('pity')
+    .setDescription('Set your pity card codes')
+    .addStringOption(o =>
+      o.setName('codes')
+        .setDescription('Up to 3 card codes (comma-separated)')
+        .setRequired(true)
+    )
+    .addStringOption(o =>
+      o.setName('pack')
+        .setDescription('Which pack to apply the codes to')
+        .addChoices(
+          { name: 'Events', value: 'events' },
+          { name: 'Monthlies', value: 'monthlies' }
         )
-    ),
+        .setRequired(true)
+    )
+),
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
     if (sub === 'list') return list.execute(interaction);

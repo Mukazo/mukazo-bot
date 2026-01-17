@@ -24,8 +24,11 @@ module.exports = {
     const userId = interaction.user.id;
     const pack = interaction.options.getString('pack');
     const quantity = interaction.options.getInteger('quantity') || 1;
-    const groups = (interaction.options.getString('groups') || '').split(',').map(s => s.trim()).filter(Boolean);
-    const names = (interaction.options.getString('names') || '').split(',').map(s => s.trim()).filter(Boolean);
+    let groups = [], names = [];
+if (pack === 'selective') {
+  groups = (interaction.options.getString('groups') || '').split(',').map(s => s.trim()).filter(Boolean);
+  names = (interaction.options.getString('names') || '').split(',').map(s => s.trim()).filter(Boolean);
+}
 
     const user = await User.findOne({ userId });
     if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
@@ -90,23 +93,26 @@ module.exports = {
           pityUsed = true;
         }
 
-        if (!pool.length && user.enabledCategories?.length) {
-          pool = await Card.find({
-            active: true,
-            version: { $in: [1, 2, 3, 4] },
-            $or: [
-              { category: { $in: user.enabledCategories } },
-              { categoryalias: { $in: user.enabledCategories } }
-            ]
-          }).lean();
-        }
+        // If pool is empty and it's selective, try user's categories
+if (!pool.length && pack === 'selective' && user.enabledCategories?.length) {
+  pool = await Card.find({
+    active: true,
+    version: { $in: [1, 2, 3, 4] },
+    $or: [
+      { category: { $in: user.enabledCategories } },
+      { categoryalias: { $in: user.enabledCategories } }
+    ]
+  }).lean();
+}
 
-        if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
-          pool = await Card.find({
-            active: true,
-            era: { $in: eraByPack[pack] }
-          }).lean();
-        }
+// If still empty and this is events/monthlies, pull based on era + version 5
+if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
+  pool = await Card.find({
+    active: true,
+    version: 5,
+    era: { $in: eraByPack[pack] }
+  }).lean();
+}
 
         if (pool.length) {
           const chosen = pool[Math.floor(Math.random() * pool.length)];
@@ -141,7 +147,9 @@ module.exports = {
 
     // Paginate display
     const pages = allPulled.map((cards, index) => {
-      const desc = cards.map(c => `• ${c.emoji || ''} **${c.group}** ${c.name} (V${c.version}) \`${c.cardCode}\``).join('\n');
+        const emoji = c.emoji || generateVersion(c);
+                const eraText = c.era ? `( ${c.era} )` : '';
+      const desc = cards.map(c => `• ${emoji} **${c.group}** __${c.name}__ ${eraText} \`${c.cardCode}\``).join('\n');
 
       return new EmbedBuilder()
         .setTitle(`Pack ${index + 1} / ${allPulled.length}`)
