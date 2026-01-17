@@ -22,19 +22,14 @@ module.exports = {
       });
     }
 
-    const user = await User.findOneAndUpdate(
-      { userId },
-      {
-        $set: {
-          'pityData.events.codes': codes,
-          'pityData.monthlies.codes': codes
-        }
-      },
-      { new: true, upsert: true }
-    )
+    const user = await User.findOne({ userId });
+if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
-    if (!user.pityData[pack]) user.pityData[pack] = {};
+if (!user.pityData) user.pityData = {};
+if (!user.pityData[pack]) user.pityData[pack] = {};
 user.pityData[pack].codes = codes;
+
+await user.save();
 
     const embed = new EmbedBuilder()
       .setColor('#2f3136')

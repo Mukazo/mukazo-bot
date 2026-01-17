@@ -31,8 +31,8 @@ module.exports = {
         `• 80% chance for pity cards after 5 packs.`,
         '',
         `**Pity Preferences:**`,
-        `• Events: ${events.codes.length ? events.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (in ${events.until} packs)`,
-        `• Monthlies: ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (in ${monthlies.until} packs)`
+        `• Events: ${events.codes.length ? events.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${events.until > 0 ? `in ${events.until} packs` : 'pity active'})`,
+        `• Monthlies: ${monthlies.codes.length ? monthlies.codes.map(c => `\`${c}\``).join(', ') : '*None*'} (${events.until > 0 ? `in ${events.until} packs` : 'pity active'})`
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });
