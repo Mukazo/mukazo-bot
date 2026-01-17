@@ -17,6 +17,15 @@ weeklystreak: {
     count: { type: Number, default: 0},
     lastClaim: { type: Date, default: null }
   },
+  pityData: {
+  type: Map,
+  of: {
+    count: { type: Number, default: 0 },
+    codes: [{ type: String }],
+    lastUsed: { type: Date }
+  },
+  default: {}
+},
   questRerollTokens: { type: Number, default: 0 }
 
 }, { timestamps: true });
