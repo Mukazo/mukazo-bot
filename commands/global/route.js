@@ -29,7 +29,7 @@ const ROUTES = [
     label: 'Open Market',
     description: 'Navigate through the booming market',
     emoji: '🏪',
-    min: 250,
+    min: 265,
     max: 325,
     keyChance: 0.46,
     embed: {
@@ -43,8 +43,8 @@ const ROUTES = [
     label: 'Rooftops',
     description: 'Scavenge through the city rooftops',
     emoji: '🏙️',
-    min: 235,
-    max: 350,
+    min: 225,
+    max: 340,
     keyChance: 0.43,
     embed: {
       title: 'Rooftops',
@@ -57,7 +57,7 @@ const ROUTES = [
     label: 'Festival',
     description: 'A celebration for the New Years',
     emoji: '🎡',
-    min: 285,
+    min: 250,
     max: 330,
     keyChance: 0.45,
     embed: {
@@ -71,8 +71,8 @@ const ROUTES = [
     label: 'The Grove',
     description: 'Where the fairies lay sleeping',
     emoji: '🧚',
-    min: 290,
-    max: 370,
+    min: 260,
+    max: 350,
     keyChance: 0.75,
     embed: {
       title: 'The Grove',

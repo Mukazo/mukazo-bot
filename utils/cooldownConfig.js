@@ -9,6 +9,7 @@ module.exports = {
   { id: '1447006809419415622', percent: 40, group: 'patreon' }, // Stardust
 
   { id: '1447197066156703774', percent: 10 },  // Booster
+  { id: '1459260084034076823', percent: 5 },  // /mukazobot
     ]
   },
   
@@ -20,6 +21,7 @@ module.exports = {
   { id: '1447006809419415622', percent: 40, group: 'patreon' }, // Stardust
 
   { id: '1447197066156703774', percent: 10 },  // Booster
+  { id: '1459260084034076823', percent: 5 },  // /mukazobot
     ]
   },
   Daily: 24 * 60 * 60 * 1000,
