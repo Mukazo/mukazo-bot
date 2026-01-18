@@ -31,7 +31,7 @@ module.exports = {
                 await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
 
     let user = await User.findOne({ userId });
-    if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
+    if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
     const rng = Math.random(); // Between 0 and 1 first 20%, then 40%, then 25%, then 15% | 0-2 , 2-6, 6-8.5, 8.5-10
     let rewards = [];
@@ -71,6 +71,6 @@ module.exports = {
         ? `You received:\n${rewardMessages.map(r => `• ${r}`).join('\n')}`
         : 'You received nothing this time...'].filter(Boolean).join('\n'));
 
-    return interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.editReply({ embeds: [embed], ephemeral: true });
   }
 };

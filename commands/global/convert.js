@@ -18,7 +18,7 @@ module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
     let user = await User.findOne({ userId });
-    if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
+    if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
     const requested = interaction.options.getInteger('amount');
 
@@ -32,7 +32,7 @@ module.exports = {
 
     const remaining = WEEKLY_LIMIT - user.convertLog.count;
     if (remaining <= 0) {
-      return interaction.reply({
+      return interaction.editReply({
         embeds: [
           new EmbedBuilder()
             .setTitle('Limit Reached')
@@ -46,7 +46,7 @@ module.exports = {
     const totalCost = convertible * COST;
 
     if (user.wirlies < totalCost) {
-      return interaction.reply({ content: `You need **<:Wirlies:1455924065972785375> ${totalCost}** to convert <:Key:1456059698582392852> ${convertible}.`, ephemeral: true });
+      return interaction.editReply({ content: `You need **<:Wirlies:1455924065972785375> ${totalCost}** to convert <:Key:1456059698582392852> ${convertible}.`, ephemeral: true });
     }
 
     // Perform conversion
@@ -55,7 +55,7 @@ module.exports = {
     user.convertLog.count += convertible;
     await user.save();
 
-    return interaction.reply({
+    return interaction.editReply({
       embeds: [
         new EmbedBuilder()
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
