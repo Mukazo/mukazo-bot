@@ -28,7 +28,7 @@ module.exports = {
                 }
             
                 // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
-                await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
+                await cooldowns.setCooldown(userId, commandName, cooldownMs);
 
     let user = await User.findOne({ userId });
     if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
