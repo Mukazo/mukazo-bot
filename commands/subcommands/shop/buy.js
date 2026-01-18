@@ -87,7 +87,7 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
           }
         }
 
-        if ((pack === 'events' || pack === 'monthlies') && pity.count >= 5 && Math.random() < 0.65 && pity.codes?.length) {
+        if ((pack === 'events' || pack === 'monthlies') && pity.count >= 5 && Math.random() < 0.75 && pity.codes?.length) {
   pool = await Card.find({
     cardCode: { $in: pity.codes },
     active: true
