@@ -25,7 +25,7 @@ module.exports = {
     ]
   },
   Bewitch: {
-    default: 35 * 60 * 1000,
+    default: 30 * 60 * 1000,
     reductions: [
   { id: '1447006737042378772', percent: 15, group: 'patreon' }, // Daydream
   { id: '1447006766733725747', percent: 25, group: 'patreon' }, // Ethereal

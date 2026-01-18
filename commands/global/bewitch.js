@@ -19,15 +19,25 @@ module.exports = {
     ),
 
   async execute(interaction) {
-        const userId = interaction.user.id;
+    const ownerId = interaction.user.id;
+        const commandName = 'Bewitch';
+        const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
+            if (await cooldowns.isOnCooldown(ownerId, commandName)) {
+              const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
+              return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+            }
+        
+            // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
+            await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
 
+        const userId = interaction.user.id;
     let user = await User.findOne({ userId });
     if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
-    const rng = Math.random(); // Between 0 and 1 first 20%, then 40%, then 25%, then 15% | 0-2 , 2-6, 6-8.5, 8.5-10
+    const rng = Math.random(); // Between 0 and 1 first 15%, then 45%, then 25%, then 15% | 0-2 , 2-6, 6-8.5, 8.5-10
     let rewards = [];
 
-    if (rng < 0.2) {
+    if (rng < 0.15) {
       rewards = [];
     } else if (rng < 0.6) {
       rewards = ['wirlies'];
@@ -40,13 +50,13 @@ module.exports = {
     const rewardMessages = [];
 
     if (rewards.includes('wirlies')) {
-      const amount = Math.floor(Math.random() * 275) + 200;
+      const amount = Math.floor(Math.random() * 225) + 275;
       user.wirlies += amount;
       rewardMessages.push(`<:Wirlies:1455924065972785375> **${amount}**`);
     }
 
     if (rewards.includes('keys')) {
-  const keyAmount = Math.random() < 0.2 ? 2 : 1; // 20% chance for 2 keys
+  const keyAmount = Math.random() < 0.25 ? 2 : 1; // 25% chance for 2 keys
   user.keys += keyAmount;
   rewardMessages.push(`<:Key:1456059698582392852> **${keyAmount}**`);
 }
