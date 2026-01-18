@@ -20,15 +20,6 @@ module.exports = {
 
   async execute(interaction) {
         const userId = interaction.user.id;
-        const commandName = 'Bewitch';
-            const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
-                if (await cooldowns.isOnCooldown(userId, commandName)) {
-                  const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
-                  return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
-                }
-            
-                // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
-                await cooldowns.setCooldown(userId, commandName, cooldownMs);
 
     let user = await User.findOne({ userId });
     if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });

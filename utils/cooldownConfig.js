@@ -1,7 +1,5 @@
 // utils/cooldownConfig.js
 
-const bewitch = require("../commands/global/bewitch");
-
 module.exports = {
   Summon: {
     default: 150 * 1000,
