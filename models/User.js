@@ -26,6 +26,10 @@ weeklystreak: {
   },
   default: {}
 },
+convertLog: {
+  count: { type: Number, default: 0 },
+  resetAt: { type: Date }
+},
   questRerollTokens: { type: Number, default: 0 }
 
 }, { timestamps: true });
