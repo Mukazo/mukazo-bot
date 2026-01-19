@@ -25,7 +25,7 @@ module.exports = {
       .setDescription([
         `# Mukazo\'s Packs Shop`,
         `## <:spack:1461915131767427338> Selective Pack`,
-        `↪︎ Pack Price: <:Wirlies:1455924065972785375> 600`,
+        `↪︎ Pack Price: <:Wirlies:1455924065972785375> 700`,
         `↪︎ Each pack contains 5 cards.`,
         `↪︎ 60% chance ‹ getting groups or names.`,
         `## <:epack:1461915053883129971> Events Pack`,

@@ -50,7 +50,7 @@ module.exports = {
     const rewardMessages = [];
 
     if (rewards.includes('wirlies')) {
-      const amount = Math.floor(Math.random() * 125) + 225;
+      const amount = Math.floor(Math.random() * 150) + 225;
       user.wirlies += amount;
       rewardMessages.push(`<:Wirlies:1455924065972785375> **${amount}**`);
     }
