@@ -4,7 +4,7 @@ const User = require('../../models/User');
 const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 6;
-const V_WIRLIES = { V1: 12, V2: 24, V3: 36, V4: 48 };
+const V_WIRLIES = { V1: 15, V2: 30, V3: 45, V4: 60 };
 
 function formatBurnLine(card, qty) {
   const emoji = card.emoji || generateVersion(card);
