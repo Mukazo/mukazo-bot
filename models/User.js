@@ -30,6 +30,10 @@ convertLog: {
   count: { type: Number, default: 0 },
   resetAt: { type: Date }
 },
+castData: {
+  used: { type: Number, default: 0 },
+  month: { type: Number, default: new Date().getMonth() }
+},
   questRerollTokens: { type: Number, default: 0 }
 
 }, { timestamps: true });
