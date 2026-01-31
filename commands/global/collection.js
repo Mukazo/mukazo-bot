@@ -33,7 +33,10 @@ module.exports = {
     const groupFilter = groupInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
     const nameFilter = nameInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
     const eraFilter = eraInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-    const versionFilter = versionInput.split(',').map(v => Number(v.trim())).filter(n => Number.isFinite(n));
+    let versionFilter = options.getString('versions');
+versionFilter = versionFilter
+  ? versionFilter.split(',').map(v => Number(v.trim()))
+  : [1, 2, 3, 4, 5];
 
     const [allCards, ownedCards] = await Promise.all([
       Card.find({}).lean(),
@@ -62,7 +65,6 @@ module.exports = {
          (a.name || '').localeCompare(b.name || '');
 });
 
-
     if (!filtered.length) {
       return interaction.editReply('No cards matched your filters.');
     }
@@ -72,8 +74,8 @@ module.exports = {
     const buildCanvasPage = async () => {
       const pageCards = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
       const perRow = 5;
-      const cardW = 160;
-      const cardH = 240;
+      const cardW = 220;
+      const cardH = 300;
       const padding = 10;
       const rows = Math.ceil(pageCards.length / perRow);
 
@@ -113,9 +115,9 @@ module.exports = {
       const owned = filtered.filter(c => ownedMap.has(c.cardCode)).length;
 
       return new EmbedBuilder()
-        .setTitle(`${interaction.user.username}'s Collection`)
         .setDescription([
-         `## ᧔࿔᧓ ${interaction.user.username}'s ${owned} / ${total} Collection`,
+         `## ۰ ${interaction.user}'s Collection`,
+         ` Ი︵𐑼 Owned: ${owned} / Total: ${total}`,
           '',
           groupInput && `**Groups:** ${groupInput}`,
           nameInput && `**Names:** ${nameInput}`,
