@@ -167,7 +167,7 @@ module.exports = {
       const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'cards.png' });
 
       const embed = new EmbedBuilder()
-        .setDescription('## Searching for . . .\n> Here you can view & find all Mukazo\'s cards information!')
+        .setDescription('## Searching for . . .\n> Here you can view & find all \nMukazo\'s cards information!')
         .setImage('attachment://cards.png')
         .setFooter({
           text: `Page ${page + 1} / ${Math.ceil(results.length / PAGE_SIZE)}`,

@@ -141,7 +141,6 @@ if (until) {
       const canvas = Canvas.createCanvas(slice.length * 266, 384);
       const ctx = canvas.getContext('2d');
 
-      ctx.fillStyle = '#2f3136';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < slice.length; i++) {
