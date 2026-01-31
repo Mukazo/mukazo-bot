@@ -143,11 +143,14 @@ module.exports = {
 
     const renderPage = async () => {
       const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+      const imageSource = card.localImagePath ? `attachment://${card._id}.png`
+        : (card.discordPermalinkImage || card.imgurImageLink);
+    const files = card.localImagePath ? [{ attachment: card.localImagePath, name: `${card._id}.png` }] : [];
 
       const card = slice[0]; // since PAGE_SIZE = 1
       const embed = new EmbedBuilder()
         .setDescription('## Searching for . . .\n> Here you can view & find all Mukazo\'s cards information!')
-        .setImage(card.localImagePath)
+        .setImage(imageSource)
         .setFooter({
           text: `Page ${page + 1} / ${Math.ceil(results.length / PAGE_SIZE)}`,
         });
@@ -172,7 +175,7 @@ embed.addFields({
 });
       });
 
-      return { embed };
+      return { embed, files };
     };
 
     const row = new ActionRowBuilder().addComponents(
@@ -180,10 +183,11 @@ embed.addFields({
       new ButtonBuilder().setCustomId('next').setLabel('Next • ').setStyle(ButtonStyle.Secondary),
     );
 
-    const { embed } = await renderPage();
+    const { embed, files } = await renderPage();
 
     const message = await interaction.editReply({
       embeds: [embed],
+      files: [files],
       components: [row],
     });
 
@@ -199,7 +203,7 @@ embed.addFields({
       if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
 
       const { embed } = await renderPage();
-      await message.edit({ embeds: [embed] });
+      await message.edit({ embeds: [embed], files: [files] });
     });
 
     collector.on('end', async () => {
