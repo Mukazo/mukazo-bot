@@ -5,7 +5,7 @@ const CardInventory = require('../../models/CardInventory');
 
 // Use Discord Role IDs for accurate tier detection
 const ROLE_TIERS = {
-  '1465789192326873231': { name: 'Pixie', limit: 15, chance: 0.75 },
+  '1465789192326873231': { name: 'Pixie', limit: 15, chance: 0.7 },
   '1447006809419415622': { name: 'Stardust', limit: 10, chance: 0.65 },
   '1447006766733725747': { name: 'Ethereal', limit: 5, chance: 0.6 },
   '1447006737042378772': { name: 'Daydream', limit: 3, chance: 0.55 }
