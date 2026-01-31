@@ -7,6 +7,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('batch')
     .setDescription('Manage batches')
+    .setDefaultMemberPermissions(0)
     
     // CREATE
     .addSubcommand(sub =>
