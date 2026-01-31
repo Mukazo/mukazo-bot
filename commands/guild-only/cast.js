@@ -26,14 +26,14 @@ module.exports = {
     const codeInput = interaction.options.getString('cardcode')?.toUpperCase();
 
     const user = await User.findOne({ userId });
-    if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
+    if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
     // Identify the user's highest Patreon tier role
     const memberRoleIds = interaction.member.roles.cache.map(role => role.id);
     const matchedEntry = Object.entries(ROLE_TIERS).find(([roleId]) => memberRoleIds.includes(roleId));
 
     if (!matchedEntry) {
-      return interaction.reply({ content: 'You need Patreon role to use this command.', ephemeral: true });
+      return interaction.editReply({ content: 'You need Patreon role to use this command.', ephemeral: true });
     }
 
     const [matchedRoleId, { name: tierName, limit, chance }] = matchedEntry;
@@ -46,11 +46,11 @@ module.exports = {
     }
 
     if (user.castData.used >= limit) {
-      return interaction.reply({ content: `You've reached your monthly limit for Patreon ${tierName} Tier.`, ephemeral: true });
+      return interaction.editReply({ content: `You've reached your monthly limit for Patreon ${tierName} Tier.`, ephemeral: true });
     }
 
     if (user.wirlies < 2500) {
-      return interaction.reply({ content: 'You need <:Wirlies:1455924065972785375> **2,500** to cast.', ephemeral: true });
+      return interaction.editReply({ content: 'You need <:Wirlies:1455924065972785375> **2,500** to cast.', ephemeral: true });
     }
 
     let pulledCard = null;
@@ -80,7 +80,7 @@ module.exports = {
 
       const pool = await Card.find(filter).lean();
       if (!pool.length) {
-        return interaction.reply({ content: 'No valid cards found to cast.', ephemeral: true });
+        return interaction.editReply({ content: 'No valid cards found to cast.', ephemeral: true });
       }
 
       pulledCard = pool[Math.floor(Math.random() * pool.length)];
@@ -125,6 +125,6 @@ module.exports = {
       ? [{ attachment: pulledCard.localImagePath, name: `${pulledCard._id}.png` }]
       : [];
 
-    return interaction.reply({ embeds: [embed], files });
+    return interaction.editReply({ embeds: [embed], files });
   }
 };
