@@ -131,6 +131,9 @@ module.exports = async function summonButtonHandler(interaction) {
     { upsert: true }
   );
 
+  const inventory = await CardInventory.findOne({ userId: interaction.user.id, cardCode: card.cardCode });
+const quantity = inventory?.quantity || 1;
+
   console.log('[SUMMON DEBUG] Emitting quest event');
   console.log('[SUMMON DEBUG] emitQuestEvent typeof:', typeof emitQuestEvent);
 
@@ -170,9 +173,9 @@ await emitQuestEvent(
   );
 
   await interaction.followUp({
-    content: `You claimed **${card.cardCode}**`,
-    ephemeral: true,
-  });
+  content: `You claimed **${card.cardCode}**. You now have **${quantity}** copies.`,
+  ephemeral: true,
+});
 
   const oldRow = interaction.message.components[0];
 

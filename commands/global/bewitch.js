@@ -34,12 +34,12 @@ module.exports = {
     let user = await User.findOne({ userId });
     if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
-    const rng = Math.random(); // Between 0 and 1 first 20%, then 45%, then 25%, then 15% | 0-2 , 2-6, 6-8.5, 8.5-10
+    const rng = Math.random(); // Between 0 and 1 first 25%, then 40%, then 20%, then 15% | 0-2 , 2-6, 6-8.5, 8.5-10
     let rewards = [];
 
-    if (rng < 0.2) {
+    if (rng < 0.25) {
       rewards = [];
-    } else if (rng < 0.6) {
+    } else if (rng < 0.65) {
       rewards = ['wirlies'];
     } else if (rng < 0.85) {
       rewards = ['keys'];
@@ -50,7 +50,7 @@ module.exports = {
     const rewardMessages = [];
 
     if (rewards.includes('wirlies')) {
-      const amount = Math.floor(Math.random() * 150) + 225;
+      const amount = Math.floor(Math.random() * 100) + 225;
       user.wirlies += amount;
       rewardMessages.push(`<:Wirlies:1455924065972785375> **${amount}**`);
     }

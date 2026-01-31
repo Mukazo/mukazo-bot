@@ -14,7 +14,7 @@ const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 1;
 const CARD_WIDTH = 320;
 const CARD_HEIGHT = 480;
 
@@ -144,31 +144,10 @@ module.exports = {
     const renderPage = async () => {
       const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
-      const canvas = createCanvas(slice.length * CARD_WIDTH, CARD_HEIGHT);
-      const ctx = canvas.getContext('2d');
-
-      
-      for (let i = 0; i < slice.length; i++) {
-  const card = slice[i];
-
-  try {
-    // ✅ summon-style: load the local file path
-    const img = await loadImage(card.localImagePath);
-    ctx.drawImage(img, i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
-  } catch (err) {
-    console.error(`[SEARCH] Failed to load image for ${card.cardCode}:`, err?.message || err);
-
-    // placeholder instead of hanging/crashing
-    ctx.fillStyle = '#1e1e1e';
-    ctx.fillRect(i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
-  }
-}
-
-      const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'cards.png' });
-
+      const card = slice[0]; // since PAGE_SIZE = 1
       const embed = new EmbedBuilder()
         .setDescription('## Searching for . . .\n> Here you can view & find all Mukazo\'s cards information!')
-        .setImage('attachment://cards.png')
+        .setImage(card.localImagePath)
         .setFooter({
           text: `Page ${page + 1} / ${Math.ceil(results.length / PAGE_SIZE)}`,
         });
@@ -193,7 +172,7 @@ embed.addFields({
 });
       });
 
-      return { embed, attachment };
+      return { embed };
     };
 
     const row = new ActionRowBuilder().addComponents(
@@ -201,11 +180,10 @@ embed.addFields({
       new ButtonBuilder().setCustomId('next').setLabel('Next • ').setStyle(ButtonStyle.Secondary),
     );
 
-    const { embed, attachment } = await renderPage();
+    const { embed } = await renderPage();
 
     const message = await interaction.editReply({
       embeds: [embed],
-      files: [attachment],
       components: [row],
     });
 
@@ -220,8 +198,8 @@ embed.addFields({
       if (btn.customId === 'prev') page = Math.max(0, page - 1);
       if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
 
-      const { embed, attachment } = await renderPage();
-      await message.edit({ embeds: [embed], files: [attachment] });
+      const { embed } = await renderPage();
+      await message.edit({ embeds: [embed] });
     });
 
     collector.on('end', async () => {
