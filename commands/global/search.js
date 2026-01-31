@@ -143,11 +143,12 @@ module.exports = {
 
     const renderPage = async () => {
       const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+      const card = slice[0]; // since PAGE_SIZE = 1
       const imageSource = card.localImagePath ? `attachment://${card._id}.png`
         : (card.discordPermalinkImage || card.imgurImageLink);
     const files = card.localImagePath ? [{ attachment: card.localImagePath, name: `${card._id}.png` }] : [];
 
-      const card = slice[0]; // since PAGE_SIZE = 1
+
       const embed = new EmbedBuilder()
         .setDescription('## Searching for . . .\n> Here you can view & find all Mukazo\'s cards information!')
         .setImage(imageSource)
