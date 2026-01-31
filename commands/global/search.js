@@ -1,3 +1,4 @@
+const fs = require('fs'); // at the top of your file
 const {
   SlashCommandBuilder,
   EmbedBuilder,
@@ -7,8 +8,6 @@ const {
   ComponentType,
   AttachmentBuilder,
 } = require('discord.js');
-
-const { createCanvas, loadImage } = require('canvas');
 
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
@@ -143,10 +142,15 @@ module.exports = {
 
     const renderPage = async () => {
       const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
-      const card = slice[0]; // since PAGE_SIZE = 1
-      const imageSource = card.localImagePath ? `attachment://${card._id}.png`
-        : (card.discordPermalinkImage || card.imgurImageLink);
-    const files = card.localImagePath ? [{ attachment: card.localImagePath, name: `${card._id}.png` }] : [];
+
+const card = slice[0];
+let imageSource = card.discordPermalinkImage || card.imgurImageLink;
+let files = [];
+
+if (card.localImagePath && fs.existsSync(card.localImagePath)) {
+  imageSource = `attachment://${card._id}.png`;
+  files = [{ attachment: card.localImagePath, name: `${card._id}.png` }];
+}
 
 
       const embed = new EmbedBuilder()
