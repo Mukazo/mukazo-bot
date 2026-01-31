@@ -33,9 +33,8 @@ module.exports = {
     const groupFilter = groupInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
     const nameFilter = nameInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
     const eraFilter = eraInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-    let versionFilter = options.getString('versions');
-versionFilter = versionFilter
-  ? versionFilter.split(',').map(v => Number(v.trim()))
+    const versionFilter = versionInput
+  ? versionInput.split(',').map(v => Number(v.trim())).filter(n => Number.isFinite(n))
   : [1, 2, 3, 4, 5];
 
     const [allCards, ownedCards] = await Promise.all([
