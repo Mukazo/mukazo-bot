@@ -6,9 +6,9 @@ const CardInventory = require('../../models/CardInventory');
 // Use Discord Role IDs for accurate tier detection
 const ROLE_TIERS = {
   '1465789192326873231': { name: 'Pixie', limit: 15, chance: 0.75 },
-  '1447006809419415622': { name: 'Stardust', limit: 10, chance: 0.7 },
-  '1447006766733725747': { name: 'Ethereal', limit: 5, chance: 0.65 },
-  '1447006737042378772': { name: 'Daydream', limit: 3, chance: 0.6 }
+  '1447006809419415622': { name: 'Stardust', limit: 10, chance: 0.65 },
+  '1447006766733725747': { name: 'Ethereal', limit: 5, chance: 0.6 },
+  '1447006737042378772': { name: 'Daydream', limit: 3, chance: 0.55 }
 };
 
 module.exports = {
@@ -46,7 +46,7 @@ module.exports = {
     }
 
     if (user.castData.used >= limit) {
-      return interaction.editReply({ content: `You've reached your monthly limit for Patreon ${tierName} Tier.`, ephemeral: true });
+      return interaction.followUp({ content: `You've reached your monthly limit for Patreon **${tierName}** Tier.`, ephemeral: true });
     }
 
     if (user.wirlies < 2500) {
@@ -107,6 +107,7 @@ module.exports = {
       name: `Version — ${card.emoji || generateVersion(card)}`,
       value: [
         `**Group:** ${card.group}`,
+        `**Name:** ${card.name}`,
         card.era ? `**Era:** ${card.era}` : null,
         `> **Code:** \`${card.cardCode}\``,
       ].filter(Boolean).join('\n'),
@@ -119,7 +120,7 @@ module.exports = {
         ].filter(Boolean).join('\n'))
       .addFields(fields)
       .setImage(image)
-      .setFooter({ text: `Used ${user.castData.used}/${limit} casts for Patreon ${tierName} Tier this month.` });
+      .setFooter({ text: `Used ${user.castData.used}/${limit} for Patreon ${tierName} Tier this month.` });
 
     const files = pulledCard.localImagePath
       ? [{ attachment: pulledCard.localImagePath, name: `${pulledCard._id}.png` }]
