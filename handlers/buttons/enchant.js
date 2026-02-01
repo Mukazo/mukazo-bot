@@ -87,7 +87,7 @@ module.exports = async function handleEnchantButton(interaction) {
     { upsert: true }
   );
 
-  const inventory = await CardInventory.findOne({ userId: interaction.user.id, cardCode: card.cardCode });
+  const inventory = await CardInventory.findOne({ userId: interaction.user.id, cardCode: cardCode });
   const quantity = inventory?.quantity || 1;
 
   await emitQuestEvent(session.ownerId, {
