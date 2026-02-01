@@ -87,6 +87,9 @@ module.exports = async function handleEnchantButton(interaction) {
     { upsert: true }
   );
 
+  const inventory = await CardInventory.findOne({ userId: interaction.user.id, cardCode: card.cardCode });
+  const quantity = inventory?.quantity || 1;
+
   await emitQuestEvent(session.ownerId, {
   type: 'enchant',
   card: {
@@ -98,7 +101,7 @@ module.exports = async function handleEnchantButton(interaction) {
 });
 
   await interaction.followUp({
-    content: `You claimed **${cardCode}**`,
+    content: `You claimed **${cardCode}**. You now have **${quantity}** copies.`,
     ephemeral: true,
   });
 
