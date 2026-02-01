@@ -107,41 +107,37 @@ if (!user) {
     /* ===========================
        CARD POOLS
     =========================== */
-    // Prepare filters
-const baseFilter = {
+    const enabled = user.enabledCategories;
+
+const v5Pool = await Card.find({
   active: true,
-  batch: null
-};
-
-const categories = user.enabledCategories ?? [];
-const includeAliases = categories.includes('other music') ? ['other music'] : [];
-
-const categoryConditions = [
-  { category: { $in: categories } }
-];
-
-if (includeAliases.length) {
-  categoryConditions.push({ categoryalias: { $in: includeAliases } });
-} else {
-  categoryConditions.push({
-    $or: [
-      { categoryalias: { $exists: false } },
-      { categoryalias: { $ne: 'other music' } }
-    ]
-  });
-}
-
-    const v5Pool = await Card.find({
-  ...baseFilter,
   version: 5,
-  $or: categoryConditions
+  batch: null,
+  $and: [
+    {
+      $or: [
+        { category: { $in: enabled } },
+        { categoryalias: { $in: enabled } }
+      ]
+    },
+    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }])
+  ]
 }).lean();
 
-const v1to4Pool = await Card.find({
-  ...baseFilter,
-  version: { $gte: 1, $lte: 4 },
-  $or: categoryConditions
-}).lean();
+    const v1to4Pool = await Card.find({
+      active: true,
+      version: { $gte: 1, $lte: 4 },
+      batch: null,
+      $and: [
+    {
+      $or: [
+        { category: { $in: enabled } },
+        { categoryalias: { $in: enabled } }
+      ]
+    },
+    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }])
+  ]
+    }).lean();
 
     if (v5Pool.length < 1 || v1to4Pool.length < 2) {
       return interaction.editReply({
