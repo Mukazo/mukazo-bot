@@ -57,7 +57,7 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
         let pool = [];
 
         if (pack === 'selective' && (groups.length || names.length)) {
-          const isInputPick = Math.random() < 0.60;
+          const isInputPick = Math.random() < 0.70;
 
           if (isInputPick) {
             if (groups.length && names.length && groups.length === names.length) {
