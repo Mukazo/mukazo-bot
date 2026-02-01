@@ -107,19 +107,41 @@ if (!user) {
     /* ===========================
        CARD POOLS
     =========================== */
-    const v5Pool = await Card.find({
-      active: true,
-      version: 5,
-      category: { $in: user.enabledCategories },
-      batch: null,
-    }).lean();
+    // Prepare filters
+const baseFilter = {
+  active: true,
+  batch: null
+};
 
-    const v1to4Pool = await Card.find({
-      active: true,
-      version: { $gte: 1, $lte: 4 },
-      category: { $in: user.enabledCategories },
-      batch: null,
-    }).lean();
+const categories = user.enabledCategories ?? [];
+const includeAliases = categories.includes('other music') ? ['other music'] : [];
+
+const categoryConditions = [
+  { category: { $in: categories } }
+];
+
+if (includeAliases.length) {
+  categoryConditions.push({ categoryalias: { $in: includeAliases } });
+} else {
+  categoryConditions.push({
+    $or: [
+      { categoryalias: { $exists: false } },
+      { categoryalias: { $ne: 'other music' } }
+    ]
+  });
+}
+
+    const v5Pool = await Card.find({
+  ...baseFilter,
+  version: 5,
+  $or: categoryConditions
+}).lean();
+
+const v1to4Pool = await Card.find({
+  ...baseFilter,
+  version: { $gte: 1, $lte: 4 },
+  $or: categoryConditions
+}).lean();
 
     if (v5Pool.length < 1 || v1to4Pool.length < 2) {
       return interaction.editReply({
@@ -215,7 +237,7 @@ if (!user) {
           ...lines.map(l => `• ${l}`),
           '',
           `> **Weekly Streak:** ${streak}`,
-          `> **Balance:** <:Wirlies:1455924065972785375> ${updatedUser.wirlies.toLocaleString()}  |  <:Key:1456059698582392852> ${updatedUser.keys}`,
+          `> __**Balance:**__ <:Wirlies:1455924065972785375> ${updatedUser.wirlies.toLocaleString()}  &  <:Key:1456059698582392852> ${updatedUser.keys}`,
         ].join('\n')
       );
 

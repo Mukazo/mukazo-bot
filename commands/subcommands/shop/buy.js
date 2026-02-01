@@ -102,12 +102,33 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
 
         // If pool is empty and it's selective, try user's categories
 if (!pool.length && pack === 'selective' && user.enabledCategories?.length) {
+  const categories = user.enabledCategories ?? [];
+  const includeAliases = [];
+
+  if (categories.includes('other music')) {
+    includeAliases.push('other music');
+  }
+
+  const categoryFilter = [
+    { category: { $in: categories } }
+  ];
+
+  if (includeAliases.length) {
+    categoryFilter.push({ categoryalias: { $in: includeAliases } });
+  } else {
+    categoryFilter.push({
+      $or: [
+        { categoryalias: { $exists: false } },
+        { categoryalias: { $ne: 'other music' } }
+      ]
+    });
+  }
+
   pool = await Card.find({
     active: true,
     version: { $in: [1, 2, 3, 4] },
-    $or: [
-      { category: { $in: user.enabledCategories } },
-      { categoryalias: { $in: user.enabledCategories } }
+    $and: [
+      { $or: categoryFilter }
     ]
   }).lean();
 }
