@@ -10,7 +10,7 @@ const CardInventory = require('../../../models/CardInventory');
 const generateVersion = require('../../../utils/generateVersion');
 
 const PACK_CONFIG = {
-  selective: { cost: 700, keys: 0, cards: 5 },
+  selective: { cost: 750, keys: 0, cards: 5 },
   events: { cost: 500, keys: 4, cards: 4 },
   monthlies: { cost: 500, keys: 4, cards: 4 }
 };
