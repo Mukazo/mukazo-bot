@@ -61,11 +61,11 @@ module.exports = {
         .setDescription('View another user’s inventory')
     )
     .addStringOption(o => o.setName('group').setDescription('Filter by group'))
+    .addStringOption(o => o.setName('name').setDescription('Filter by name'))
     .addStringOption(o => o.setName('era').setDescription('Filter by era'))
     .addStringOption(o => o.setName('category').setDescription('Filter by category'))
     // ✅ clarify numeric usage
-    .addStringOption(o => o.setName('version').setDescription('Filter by version numbers (e.g. 1,2,3 or 2,4,5)'))
-    .addStringOption(o => o.setName('name').setDescription('Filter by name')),
+    .addStringOption(o => o.setName('version').setDescription('Filter by version numbers (e.g. 1,2,3 or 2,4,5)')),
 
   async execute(interaction) {
     // No deferReply here because your index.js already handles it

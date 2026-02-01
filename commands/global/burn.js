@@ -9,10 +9,12 @@ module.exports = {
       o.setName('exclude_v5')
         .setDescription('Exclude all Version 5 cards')
     )
+    .setRequired(true)
     .addBooleanOption(o =>
       o.setName('duplicates_only')
         .setDescription('Only include cards with 2 or more copies')
     )
+    .setRequired(true)
     .addStringOption(o => o.setName('group').setDescription('Filter by groups'))
     .addStringOption(o => o.setName('name').setDescription('Filter by names'))
     .addStringOption(o => o.setName('era').setDescription('Filter by eras'))
