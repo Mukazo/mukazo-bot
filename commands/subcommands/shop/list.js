@@ -11,7 +11,7 @@ module.exports = {
   return {
     codes: data.codes || [],
     count: data.count || 0,
-    until: Math.max(0, 5 - (data.count || 0)),
+    until: Math.max(0, 4 - (data.count || 0)),
     lastUsed: data.lastUsed || null
   };
 }
