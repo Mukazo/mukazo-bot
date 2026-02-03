@@ -127,7 +127,7 @@ module.exports = {
 
     function buildFrontPage() {
       return new EmbedBuilder()
-        .setTitle('Bot Acknowledgement & Setup')
+        .setTitle('Bot Acknowledgement & Category Preferences')
         .setColor('#a4ef8e')
         .setDescription(
           [
@@ -143,7 +143,7 @@ module.exports = {
             '## Useful Links',
             '[Main & Support Server](https://discord.gg/UQ7PbRDztK)',
             '',
-            '_Click **Continue** to begin setup._',
+            '_Click **Continue** to begin selecting categories._',
           ].join('\n')
         );
     }
@@ -212,14 +212,14 @@ if (category === 'music') {
       const user = await User.findOne({ userId: interaction.user.id }).lean();
 
       return new EmbedBuilder()
-        .setTitle('Setup Complete')
+        .setTitle('Your Mukazo Experience')
         .setColor('#a4ef8e')
         .setDescription(
           [
             '**Enabled Categories:**',
             ...user.enabledCategories.map(c => `• ${CATEGORY_LABELS[c] ?? c}`),
             '',
-            '_You can run `/setup` again at any time to change this._',
+            '_You can run `/start` again at any time to change this._',
           ].join('\n')
         );
     }
@@ -254,7 +254,7 @@ if (category === 'music') {
 
         new ButtonBuilder()
           .setCustomId('finish')
-          .setLabel('Finish Setup')
+          .setLabel('Finish')
           .setStyle(ButtonStyle.Success)
       );
     }
@@ -280,7 +280,7 @@ if (category === 'music') {
 
     collector.on('collect', async btn => {
       if (btn.user.id !== interaction.user.id) {
-        return btn.reply({ content: 'This setup is not for you.', ephemeral: true });
+        return btn.reply({ content: 'This command is not for you.', ephemeral: true });
       }
 
       await btn.deferUpdate();
@@ -338,7 +338,7 @@ if (category === 'music') {
   if (!hasRequiredCategory) {
     return btn.followUp({
       content:
-        'You must enable at least **one** of the following categories before finishing setup:\n' +
+        'You must enable at least **one** of the following categories before finishing:\n' +
         '> Entertainment\n' +
         '> Video Games\n' +
         '> Animanga\n' +
@@ -377,7 +377,7 @@ if (category === 'music') {
     collector.on('end', async () => {
       if (!finished) {
         return interaction.editReply({
-          content: 'Setup timed out. You can run `/setup` again.',
+          content: 'Start has timed out. You can run `/start` again.',
           embeds: [],
           components: [],
           files: [],
