@@ -77,7 +77,7 @@ if (maintenance?.active && !hasBypassRole) {
 if (interaction.commandName !== 'setup') {
       const userExists = await User.exists({ userId: interaction.user.id });
       if (!userExists) {
-        return interaction.reply({ content: 'Welcome to Mukazo! Make sure you do \`/setup\` before using any other commands.' });
+        return interaction.reply({ content: 'Welcome to Mukazo! Make sure you do \`/start\` before using any other commands.' });
       }
     }
 
@@ -183,7 +183,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
 // MongoDB (main bot)
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Main bot MongoDB connected'))
+  .then(() => console.log('Main bot MongoDB connected'))
   .catch(console.error);
 
 client.login(process.env.TOKEN);

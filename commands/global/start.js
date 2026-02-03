@@ -102,8 +102,8 @@ function pickRandom(array, count) {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('setup')
-    .setDescription('Set up your category preferences'),
+    .setName('start')
+    .setDescription('Start your Mukazo Bot experience!'),
 
   async execute(interaction) {
 
