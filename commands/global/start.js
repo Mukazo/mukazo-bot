@@ -190,7 +190,7 @@ let musicSelectRow = null;
 if (category === 'music') {
   musicSelectRow = new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
-      .setCustomId('setup:musicfilter')
+      .setCustomId('start:musicfilter')
       .setPlaceholder('Disable Other Regions Music?')
       .addOptions([
         { label: 'Yes', value: 'disable' },
@@ -302,7 +302,7 @@ if (category === 'music') {
             : { $addToSet: { enabledCategories: category } }
         );
 
-      } else if (btn.isStringSelectMenu() && btn.customId === 'setup:musicfilter') {
+      } else if (btn.isStringSelectMenu() && btn.customId === 'start:musicfilter') {
       const selected = btn.values?.[0];
       const user = await User.findOne({ userId: interaction.user.id }) || new User({ userId });
 

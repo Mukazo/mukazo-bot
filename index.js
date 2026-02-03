@@ -74,10 +74,10 @@ if (maintenance?.active && !hasBypassRole) {
   });
 }
 
-if (interaction.commandName !== 'setup') {
+if (interaction.commandName !== 'start') {
       const userExists = await User.exists({ userId: interaction.user.id });
       if (!userExists) {
-        return interaction.reply({ content: 'Welcome to Mukazo! Make sure you do \`/start\` before using any other commands.' });
+        return interaction.reply({ content: 'Welcome to Mukazo! Make sure you finish \`/start\` completely before using any other commands.' });
       }
     }
 
