@@ -27,7 +27,7 @@ module.exports = {
         `## <:spack:1461915131767427338> Selective Pack`,
         `↪︎ Pack Price: <:Wirlies:1455924065972785375> 750`,
         `↪︎ Each pack contains 5 cards.`,
-        `↪︎ 70% chance ‹ of getting groups or names.`,
+        `↪︎ 70% chance ‹ of filtered groups/names.`,
         `## <:epack:1461915053883129971> Events Pack`,
         `↪︎ Pack Price: <:Wirlies:1455924065972785375> 500 & <:Key:1456059698582392852> 4`,
         `↪︎ Each pack contains 4 cards.`,
