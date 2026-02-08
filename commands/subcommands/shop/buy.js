@@ -16,7 +16,7 @@ const PACK_CONFIG = {
 };
 
 const eraByPack = {
-  events: ['Fairytale Grove 2026'],
+  events: [''],
   monthlies: ['January 2026', 'February 2026']
 };
 
