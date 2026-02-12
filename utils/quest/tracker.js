@@ -36,6 +36,12 @@ else {
       if (c.era && payload.card.era !== c.era) continue;
     }
 
+    if (payload.type === 'shopbuy' && payload.card) {
+      if (typeof c.version === 'number' && payload.card.version !== c.version) continue;
+      if (c.group && payload.card.group !== c.group) continue;
+      if (c.era && payload.card.era !== c.era) continue;
+    }
+
     // route reward gating
     if (payload.type === 'route') {
       const wirliesEarned = Number(payload.rewards?.wirlies || 0);

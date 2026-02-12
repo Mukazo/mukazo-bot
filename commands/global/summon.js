@@ -181,6 +181,15 @@ module.exports = {
        SAVE SESSION
     =========================== */
 
+    await emitQuestEvent(
+          interaction.user.id,
+          {
+            type: 'command',
+            commandName: 'summon',
+          },
+          interaction
+        );
+
     await SummonSession.create({
       messageId: reply.id,
       channelId: reply.channel.id,
