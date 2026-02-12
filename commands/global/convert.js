@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const User = require('../../models/User');
 
-const WEEKLY_LIMIT = 40;
+const WEEKLY_LIMIT = 50;
 const COST = 2000;
 
 module.exports = {
@@ -9,9 +9,10 @@ module.exports = {
     .setName('convert')
     .setDescription('Convert Wirlies into Keys')
     .addIntegerOption(opt =>
-      opt.setName('amount')
+      opt.setName('keys')
         .setDescription('amount of keys - 2000 wirlies per key')
         .setMinValue(1)
+        .setMaxValue(50)
         .setRequired(true)
     ),
 
@@ -20,7 +21,7 @@ module.exports = {
     let user = await User.findOne({ userId });
     if (!user) return interaction.editReply({ content: 'User not found.', ephemeral: true });
 
-    const requested = interaction.options.getInteger('amount');
+    const requested = interaction.options.getInteger('keys');
 
     // Initialize or reset convert log
     if (!user.convertLog || !user.convertLog.resetAt || new Date() > user.convertLog.resetAt) {
@@ -54,6 +55,16 @@ module.exports = {
     user.keys += convertible;
     user.convertLog.count += convertible;
     await user.save();
+
+    await emitQuestEvent(
+          interaction.user.id,
+          {
+            type: 'command',
+            commandName: 'convert',
+          },
+          interaction
+        );
+    
 
     return interaction.editReply({
       embeds: [

@@ -137,6 +137,14 @@ if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
 
       allPulled.push(packCards);
       if (pack === 'events' || pack === 'monthlies') pity.count++;
+
+      // ❗ Cancel purchase if no cards pulled for event/monthlies
+if ((pack === 'events' || pack === 'monthlies') && allPulled.every(pack => pack.length === 0)) {
+  return interaction.editReply({
+    content: `Currently no available cards for the **${pack}** pack.`,
+    ephemeral: true
+  });
+}
     }
 
     user.wirlies -= totalCost;
