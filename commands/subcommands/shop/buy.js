@@ -6,6 +6,7 @@ const {
 } = require('discord.js');
 const Card = require('../../../models/Card');
 const User = require('../../../models/User');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 const CardInventory = require('../../../models/CardInventory');
 const generateVersion = require('../../../utils/generateVersion');
 

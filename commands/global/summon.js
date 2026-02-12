@@ -12,6 +12,7 @@ const Canvas = require('canvas');
 
 const randomCardFromVersion = require('../../utils/randomCardFromVersion');
 const pickVersion = require('../../utils/versionPicker');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 const cooldowns = require('../../utils/cooldownManager');
 const generateVersion = require('../../utils/generateVersion');
 

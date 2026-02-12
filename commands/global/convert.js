@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const User = require('../../models/User');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 const WEEKLY_LIMIT = 50;
 const COST = 2000;

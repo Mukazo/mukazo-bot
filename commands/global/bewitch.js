@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const User = require('../../models/User');
 const cooldowns = require('../../utils/cooldownManager');
+const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 module.exports = {
   data: new SlashCommandBuilder()
