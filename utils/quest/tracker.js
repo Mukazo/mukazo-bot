@@ -45,6 +45,14 @@ else {
       if (c.minKeys != null && keysEarned < c.minKeys) continue;
     }
 
+    if (payload.type === 'bewitch') {
+      const wirliesEarned = Number(payload.rewards?.wirlies || 0);
+      const keysEarned = Number(payload.rewards?.keys || 0);
+
+      if (c.minWirlies != null && wirliesEarned < c.minWirlies) continue;
+      if (c.minKeys != null && keysEarned < c.minKeys) continue;
+    }
+
     // count required for progress quests
     if (typeof c.count !== 'number' || c.count <= 0) continue;
 

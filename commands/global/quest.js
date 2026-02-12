@@ -81,6 +81,7 @@ module.exports = {
               { name: 'any', value: 'any' },
               { name: 'summon', value: 'summon' },
               { name: 'route', value: 'route' },
+              { name: 'bewitch', value: 'bewitch' },
               { name: 'enchant', value: 'enchant' },
               { name: 'command', value: 'command' }
             )

@@ -40,17 +40,17 @@ const SELECTABLE_CATEGORIES = [
 const CATEGORY_LABELS = {
   music: 'Music',
   animanga: 'Animanga',
-  'video games': 'Video games',
+  'video games': 'Video Game',
   entertainment: 'Entertainment',
   specials: 'specials',
 };
 
 // Category descriptions
 const CATEGORY_DESCRIPTIONS = {
-  music: 'Music Groups, Soloists, etc\n\n> Asia Region Artists are automatically included\n> Other Regions Artists are disabled by default',
-  animanga: 'Animes, Mangas, Donghuas, Manhwas, etc',
-  'video games': 'Shooter, Story, Gacha, etc',
-  entertainment: 'Series, Movies, Dramas, etc',
+  music: '◞⸝⸝◟Asia Region Groups, Soloists, etc\n> Include Western & Other Region Artists in the select menu below!',
+  animanga: '◞⸝⸝◟Animes, Mangas, Donghuas, Manhwas, etc',
+  'video games': '◞⸝⸝◟Shooter, Story, Gacha, etc',
+  entertainment: '◞⸝⸝◟Series, Movies, Dramas, etc',
 };
 
 // How many random series to show
@@ -127,21 +127,19 @@ module.exports = {
 
     function buildFrontPage() {
       return new EmbedBuilder()
-        .setTitle('Bot Acknowledgement & Category Preferences')
         .setColor('#a4ef8e')
         .setDescription(
           [
             '# **Please read before continuing:**',
-            '## Bot Rules',
-            '• No command abuse, exploits, or automation',
-            '• No alting, massgifting, scamming or cross-trading',
-            '## Beginner Guide',
-            '• Start your journey by checking out \`/cooldowns\`',
-            '• Afterwards, find & run the commands that show up',
-            '• You can use \`/search\` to look for available cards',
-            '• View \`/inventory\` & gift items with \`gift\`',
+            '## Bot Acknowledgements',
+            '• Do not abuse commands, exploit, or use automations',
+            '• No alternate accounts or free massgifting',
+            '• Do not commit scams or cross-trading of any sorts',
             '## Useful Links',
-            '[Main & Support Server](https://discord.gg/UQ7PbRDztK)',
+            '[Support Server](https://discord.gg/UQ7PbRDztK)',
+            '[Card Catalog](https://docs.google.com/spreadsheets/d/12sdnMvviiaZFcos5QwiFnal__nwzay4aWTl-MllQw_M/edit?usp=sharing)',
+            '[Privacy Policy](https://docs.google.com/document/d/1Wp6Zpae51Z2rICsrOTtSuD6RxH4khl1gGWOFHiOMGKc/edit?tab=t.nybjory8xzk5#heading=h.br5ja3z8dgld)',
+            '[Terms of Service](https://docs.google.com/document/d/1Wp6Zpae51Z2rICsrOTtSuD6RxH4khl1gGWOFHiOMGKc/edit?tab=t.0#heading=h.f3vuxo7qtgk3)',
             '',
             '_Click **Continue** to begin selecting categories._',
           ].join('\n')
@@ -156,18 +154,17 @@ module.exports = {
       const examples = pickRandom(allSeries, SERIES_SAMPLE_SIZE);
 
       const embed = new EmbedBuilder()
-        .setTitle(`Category Preference Selection`)
         .setColor(enabled ? 0x57f287 : 0xed4245)
         .setDescription(
           [
-            `# ${CATEGORY_LABELS[category]} Cards`,
+            `## ${CATEGORY_LABELS[category]} Cards — ${enabled ? 'Enabled' : 'Disabled'}`,
             CATEGORY_DESCRIPTIONS[category] ?? '',
             '',
-            `> To enable a category click the "Toggle" button`,
-            `> **Status:** ${enabled ? 'Enabled' : 'Disabled'}`,
+            `> Click the **Toggle** button to enable category`,
+            `> After selecting categories, click the **__Finish__** button!`,
             '',
             examples.length
-              ? 'Below are examples in this category.'
+              ? ''
               : '_No series available yet for this category._',
           ].join('\n')
         );
@@ -191,10 +188,10 @@ if (category === 'music') {
   musicSelectRow = new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId('start:musicfilter')
-      .setPlaceholder('Disable Other Regions Music?')
+      .setPlaceholder('Include Western & Other Regions?')
       .addOptions([
-        { label: 'Yes', value: 'disable' },
-        { label: 'No', value: 'enable' }
+        { label: 'Yes — Include Other Music', value: 'enable' },
+        { label: 'No — Exclude Other Music', value: 'disable' }
       ])
   );
 }
@@ -212,11 +209,11 @@ if (category === 'music') {
       const user = await User.findOne({ userId: interaction.user.id }).lean();
 
       return new EmbedBuilder()
-        .setTitle('Your Mukazo Experience')
         .setColor('#a4ef8e')
         .setDescription(
           [
-            '**Enabled Categories:**',
+            '## Enjoy the Mukazo Experience!',
+            '### ╰┈Enabled Categories:',
             ...user.enabledCategories.map(c => `• ${CATEGORY_LABELS[c] ?? c}`),
             '',
             '_You can run `/start` again at any time to change this._',
@@ -377,7 +374,7 @@ if (category === 'music') {
     collector.on('end', async () => {
       if (!finished) {
         return interaction.editReply({
-          content: 'Start has timed out. You can run `/start` again.',
+          content: 'You did not click the Finish button. Rerun `/start` again.',
           embeds: [],
           components: [],
           files: [],

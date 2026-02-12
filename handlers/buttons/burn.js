@@ -38,8 +38,8 @@ module.exports = async function handleBurnButton(interaction) {
       if ([1, 2, 3, 4].includes(card.version)) {
         totalWirlies += (V_WIRLIES[versionKey] || 0) * qty;
       } else if (card.version === 5) {
-        totalKeys += Math.floor(qty / 2);
-        totalWirlies += (qty % 2) * 1000;
+        totalKeys += Math.floor(qty / 3);
+        totalWirlies += (qty % 3) * 1125;
       }
 
       await CardInventory.updateOne({ userId, cardCode: card.cardCode }, { $inc: { quantity: -qty } });
@@ -78,8 +78,8 @@ module.exports = async function handleBurnButton(interaction) {
     if ([1, 2, 3, 4].includes(card.version)) {
       totalWirlies += (V_WIRLIES[versionKey] || 0) * qty;
     } else if (card.version === 5) {
-      totalKeys += Math.floor(qty / 2);
-      totalWirlies += (qty % 2) * 1000;
+      totalKeys += Math.floor(qty / 3);
+      totalWirlies += (qty % 3) * 1125;
     }
   }
 

@@ -104,24 +104,34 @@ if (!target || target.bot || target.id === senderId) {
     const cardMap = new Map(cards.map(c => [c.cardCode, c]));
 
     const parsed = cardcodeRaw ? parseCardCodes(cardcodeRaw) : [];
-    const results = [];
+const aggregated = new Map();
 
-    for (const { cardCode, qty } of parsed) {
-      const owned = invMap.get(cardCode) ?? 0;
-      const card = cardMap.get(cardCode);
+for (const { cardCode, qty } of parsed) {
+  if (!aggregated.has(cardCode)) {
+    aggregated.set(cardCode, qty);
+  } else {
+    aggregated.set(cardCode, aggregated.get(cardCode) + qty);
+  }
+}
 
-      if (!card) {
-        return interaction.editReply({ content: `Card not found: ${cardCode}` });
-      }
+const results = [];
 
-      if (owned < qty) {
-        return interaction.editReply({
-          content: `Not enough copies of ${cardCode}.`,
-        });
-      }
+for (const [cardCode, totalQty] of aggregated.entries()) {
+  const owned = invMap.get(cardCode) ?? 0;
+  const card = cardMap.get(cardCode);
 
-      results.push({ card, qty });
-    }
+  if (!card) {
+    return interaction.editReply({ content: `Card not found: ${cardCode}` });
+  }
+
+  if (owned < totalQty) {
+    return interaction.editReply({
+      content: `Not enough copies of ${cardCode}.`,
+    });
+  }
+
+  results.push({ card, qty: totalQty });
+}
 
     if (wirlies > 0 && sender.wirlies < wirlies) {
       return interaction.editReply({

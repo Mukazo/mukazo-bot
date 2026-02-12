@@ -115,8 +115,8 @@ module.exports = {
 
       return new EmbedBuilder()
         .setDescription([
-         `## ۰ ${interaction.user}'s Collection`,
-         ` **Ი︵𐑼** __Owned:__ ${owned} / __Total:__ ${total}`,
+         `### ۰ ${interaction.user}'s Collection`,
+         ` **Ი︵𐑼** __Owned:__ ${owned} / __Available:__ ${total}`,
           '',
           groupInput && `**Groups:** ${groupInput}`,
           nameInput && `**Names:** ${nameInput}`,

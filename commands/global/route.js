@@ -80,6 +80,48 @@ const ROUTES = [
       color: 0xafec95,
     },
   },
+  {
+    id: 'the grove',
+    label: 'The Grove',
+    description: 'Where the fairies lay sleeping',
+    emoji: '🧚',
+    min: 225,
+    max: 305,
+    keyChance: 0.6,
+    embed: {
+      title: 'The Grove',
+      description: 'Hidden behind the sleeping fairies you find something. .',
+      color: 0xafec95,
+    },
+  },
+  {
+    id: 'the grove',
+    label: 'The Grove',
+    description: 'Where the fairies lay sleeping',
+    emoji: '🧚',
+    min: 225,
+    max: 305,
+    keyChance: 0.6,
+    embed: {
+      title: 'The Grove',
+      description: 'Hidden behind the sleeping fairies you find something. .',
+      color: 0xafec95,
+    },
+  },
+  {
+    id: 'the grove',
+    label: 'The Grove',
+    description: 'Where the fairies lay sleeping',
+    emoji: '🧚',
+    min: 225,
+    max: 305,
+    keyChance: 0.6,
+    embed: {
+      title: 'The Grove',
+      description: 'Hidden behind the sleeping fairies you find something. .',
+      color: 0xafec95,
+    },
+  },
 ];
 
 function pickRandomRoutes(count = 3) {

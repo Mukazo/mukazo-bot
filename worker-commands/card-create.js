@@ -28,6 +28,7 @@ module.exports = {
         name: data.name,
         namealias: data.namealias,
         category: data.category,
+        categoryalias: data.categoryalias,
         version: data.version,
         emoji: data.emoji,
         group: data.group,
