@@ -47,7 +47,7 @@ const CATEGORY_LABELS = {
 
 // Category descriptions
 const CATEGORY_DESCRIPTIONS = {
-  music: '◞⸝⸝◟Asia Region Groups, Soloists, etc\n> Include Western & Other Region Artists in the select menu below!',
+  music: '◞⸝⸝◟Asia Region Groups, Soloists, etc\n> Want to include Other Regions Music? Select **Yes** in the select menu below!',
   animanga: '◞⸝⸝◟Animes, Mangas, Donghuas, Manhwas, etc',
   'video games': '◞⸝⸝◟Shooter, Story, Gacha, etc',
   entertainment: '◞⸝⸝◟Series, Movies, Dramas, etc',
