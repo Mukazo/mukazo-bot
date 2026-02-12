@@ -236,5 +236,13 @@ user.pityData.set(pack, pity);
         await msg.edit({ components: [] });
       }
     });
+    await emitQuestEvent(
+          interaction.user.id,
+          {
+            type: 'command',
+            commandName: 'shopbuy',
+          },
+          interaction
+        );
   }
 };
