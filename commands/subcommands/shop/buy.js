@@ -162,6 +162,19 @@ user.pityData.set(pack, pity);
           { upsert: true }
         );
       }
+await emitQuestEvent(
+            interaction.user.id,
+            {
+              type: 'shopbuy',
+              card: {
+                cardCode: allPulled.cardCode,
+                version: allPulled.version,
+                group: allPulled.group,
+                era: allPulled.era,
+              },
+            },
+            interaction
+          );
     }
 
     // Paginate display
@@ -224,19 +237,6 @@ user.pityData.set(pack, pity);
         await msg.edit({ components: [] });
       }
     });
-    await emitQuestEvent(
-            interaction.user.id,
-            {
-              type: 'shopbuy',
-              card: {
-                cardCode: pack.cardCode,
-                version: pack.version,
-                group: pack.group,
-                era: pack.era,
-              },
-            },
-            interaction
-          );
 
     await emitQuestEvent(
           interaction.user.id,
