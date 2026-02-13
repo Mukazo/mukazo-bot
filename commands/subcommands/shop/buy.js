@@ -229,10 +229,10 @@ user.pityData.set(pack, pity);
             {
               type: 'shopbuy',
               card: {
-                cardCode: allPulled.cardCode,
-                version: allPulled.version,
-                group: allPulled.group,
-                era: allPulled.era,
+                cardCode: pack.cardCode,
+                version: pack.version,
+                group: pack.group,
+                era: pack.era,
               },
             },
             interaction
