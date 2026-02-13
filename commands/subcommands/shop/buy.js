@@ -161,20 +161,20 @@ user.pityData.set(pack, pity);
           { $inc: { quantity: 1 } },
           { upsert: true }
         );
-      }
-await emitQuestEvent(
+        await emitQuestEvent(
             interaction.user.id,
             {
               type: 'shopbuy',
               card: {
-                cardCode: allPulled.cardCode,
-                version: allPulled.version,
-                group: allPulled.group,
-                era: allPulled.era,
+                cardCode: card.cardCode,
+                version: card.version,
+                group: card.group,
+                era: card.era,
               },
             },
             interaction
           );
+      }
     }
 
     // Paginate display
