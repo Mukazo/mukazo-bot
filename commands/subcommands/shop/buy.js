@@ -86,19 +86,6 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
               }).lean();
             }
           }
-          await emitQuestEvent(
-            interaction.user.id,
-            {
-              type: 'shopbuy',
-              card: {
-                cardCode: allPulled.cardCode,
-                version: allPulled.version,
-                group: allPulled.group,
-                era: allPulled.era,
-              },
-            },
-            interaction
-          );
         }
 
         if ((pack === 'events' || pack === 'monthlies') && pity.count >= 4 && Math.random() < 0.75 && pity.codes?.length) {
@@ -237,6 +224,20 @@ user.pityData.set(pack, pity);
         await msg.edit({ components: [] });
       }
     });
+    await emitQuestEvent(
+            interaction.user.id,
+            {
+              type: 'shopbuy',
+              card: {
+                cardCode: allPulled.cardCode,
+                version: allPulled.version,
+                group: allPulled.group,
+                era: allPulled.era,
+              },
+            },
+            interaction
+          );
+
     await emitQuestEvent(
           interaction.user.id,
           {
