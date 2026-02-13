@@ -374,7 +374,7 @@ if (category === 'music') {
     collector.on('end', async () => {
       if (!finished) {
         return interaction.editReply({
-          content: 'You did not click the Finish button. Rerun `/start` again.',
+          content: 'You did not click the **finish** button. Rerun `/start` again.',
           embeds: [],
           components: [],
           files: [],
