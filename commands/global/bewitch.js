@@ -50,30 +50,28 @@ module.exports = {
 
     const rewardMessages = [];
 
-    if (rewards.includes('wirlies')) {
-      const amount = Math.floor(Math.random() * 100) + 225;
-      user.wirlies += amount;
-      rewardMessages.push(`<:Wirlies:1455924065972785375> **${amount}**`);
-      await emitQuestEvent(interaction.user.id, {
+let amount = 0;
+let keyAmount = 0;
+
+if (rewards.includes('wirlies')) {
+  amount = Math.floor(Math.random() * 100) + 225;
+  user.wirlies += amount;
+  rewardMessages.push(`<:Wirlies:1455924065972785375> **${amount}**`);
+}
+
+if (rewards.includes('keys')) {
+  keyAmount = Math.random() < 0.35 ? 2 : 1;
+  user.keys += keyAmount;
+  rewardMessages.push(`<:Key:1456059698582392852> **${keyAmount}**`);
+}
+
+await emitQuestEvent(interaction.user.id, {
   type: 'bewitch',
   rewards: {
     wirlies: amount,
+    keys: keyAmount,
   },
 });
-    }
-
-    if (rewards.includes('keys')) {
-  const keyAmount = Math.random() < 0.35 ? 2 : 1; // 35% chance for 2 keys
-  user.keys += keyAmount;
-  rewardMessages.push(`<:Key:1456059698582392852> **${keyAmount}**`);
-
-  await emitQuestEvent(interaction.user.id, {
-    type: 'bewitch',
-    rewards: {
-      keys: keyAmount,
-    },
-  });
-}
 
     await user.save();
 
