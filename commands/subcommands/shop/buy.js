@@ -18,7 +18,7 @@ const PACK_CONFIG = {
 
 const eraByPack = {
   events: ['Pola Pairs', 'Mukazo Style'],
-  monthlies: ['March 2026', 'April 2026', 'May 2026']
+  monthlies: ['February 2026', 'March 2026', 'April 2026', 'May 2026']
 };
 
 module.exports = {
