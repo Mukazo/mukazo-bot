@@ -17,8 +17,8 @@ const PACK_CONFIG = {
 };
 
 const eraByPack = {
-  events: ['Fairytale Grove 2026'],
-  monthlies: ['January 2026', 'February 2026']
+  events: ['Pola Pairs', 'Mukazo Style'],
+  monthlies: ['March 2026', 'April 2026', 'May 2026']
 };
 
 module.exports = {
