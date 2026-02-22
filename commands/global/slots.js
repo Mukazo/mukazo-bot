@@ -5,6 +5,7 @@ const randomCardFromVersion = require('../../utils/randomCardFromVersion');
 const pickVersion = require('../../utils/versionPicker');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
+const generateVersion = require('../../utils/generateVersion');
 
 const COST = 50;
 const COMMAND_NAME = 'Slots';
