@@ -105,28 +105,32 @@ module.exports = {
 
     if (allMatch) {
       if (final1 === '🍀') {
-        rewardW = 3000;
+        rewardW = 3150;
         rewardK = 7;
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.75) {
           rewardCard = await randomCardFromVersion(5, userId);
         }
       } else if (final1 === '🪷') {
-        rewardW = 1750;
+        rewardW = 1875;
         rewardK = 3;
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.6) {
           const version = Math.random() < 0.4 ? 5 : pickVersion();
           rewardCard = await randomCardFromVersion(version, userId);
         }
       } else if (final1 === '🌿') {
-        rewardW = 1000;
-        if (Math.random() < 0.15) {
-          rewardCard = await randomCardFromVersion(pickVersion(), userId);
+        rewardW = 1250;
+        if (Math.random() < 0.4) {
+            const version = Math.random() < 0.2 ? 5 : pickVersion();
+          rewardCard = await randomCardFromVersion(version, userId);
         }
       } else {
         rewardW = 500;
       }
     } else if (twoMatch) {
-      rewardW = 300;
+      rewardW = 400;
+      if (Math.random() < 0.2) {
+              rewardCard = await randomCardFromVersion(pickVersion(), userId);
+        }
     }
 
     if (!rewardW && !rewardK && !rewardCard) {
