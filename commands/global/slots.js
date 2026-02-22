@@ -107,19 +107,19 @@ module.exports = {
       if (final1 === '🍀') {
         rewardW = 2250;
         rewardK = 5;
-        if (Math.random() < 0.75) {
+        if (Math.random() < 0.9) {
           rewardCard = await randomCardFromVersion(5, userId);
         }
       } else if (final1 === '🪷') {
         rewardW = 1500;
         rewardK = 3;
-        if (Math.random() < 0.6) {
+        if (Math.random() < 0.8) {
           const version = Math.random() < 0.4 ? 5 : pickVersion();
           rewardCard = await randomCardFromVersion(version, userId);
         }
       } else if (final1 === '🌿') {
         rewardW = 1000;
-        if (Math.random() < 0.45) {
+        if (Math.random() < 0.7) {
             const version = Math.random() < 0.25 ? 5 : pickVersion();
           rewardCard = await randomCardFromVersion(version, userId);
         }
@@ -127,8 +127,8 @@ module.exports = {
         rewardW = 500;
       }
     } else if (twoMatch) {
-      rewardW = 400;
-      if (Math.random() < 0.3) {
+      rewardW = 325;
+      if (Math.random() < 0.6) {
             rewardCard = await randomCardFromVersion(pickVersion(), userId);
         }
     }
