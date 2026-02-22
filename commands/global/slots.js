@@ -67,25 +67,25 @@ module.exports = {
     const spinEmbed = new EmbedBuilder().setColor('#2f3136');
 
     await interaction.editReply({
-      embeds: [spinEmbed.setDescription('## ₍ ᐢ.ˬ.ᐢ₎ Slots Incoming\n🎰 Spinning...')]
+      embeds: [spinEmbed.setDescription('## ₍ ᐢ.ˬ.ᐢ₎ Slot Incoming\n> 🎰 Spinning...')]
     });
 
     await new Promise(r => setTimeout(r, 700));
 
     await interaction.editReply({
-      embeds: [spinEmbed.setDescription(`> ${final1} │ 🎰 │ 🎰`)]
+      embeds: [spinEmbed.setDescription(`## ₍ ᐢ.ˬ.ᐢ₎ Slot Incoming\n> ${final1} │ 🎰 │ 🎰`)]
     });
 
     await new Promise(r => setTimeout(r, 800));
 
     await interaction.editReply({
-      embeds: [spinEmbed.setDescription(`> ${final1} │ ${final2} │ 🎰`)]
+      embeds: [spinEmbed.setDescription(`## ₍ ᐢ.ˬ.ᐢ₎ Slot Incoming\n> ${final1} │ ${final2} │ 🎰`)]
     });
 
     await new Promise(r => setTimeout(r, 1000));
 
     await interaction.editReply({
-      embeds: [spinEmbed.setDescription(`> ${final1} │ ${final2} │ ${final3}`)]
+      embeds: [spinEmbed.setDescription(`## ₍ ᐢ.ˬ.ᐢ₎ Slot Incoming\n> ${final1} │ ${final2} │ ${final3}`)]
     });
 
     await new Promise(r => setTimeout(r, 1200));
