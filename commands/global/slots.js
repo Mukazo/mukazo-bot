@@ -154,10 +154,11 @@ module.exports = {
     await handleReminders(interaction, COMMAND_NAME, cooldownMs);
 
     const rewardLines = [];
+    const emoji = rewardCard.emoji || generateVersion(rewardCard);
 
     if (rewardW) rewardLines.push(`• <:Wirlies:1455924065972785375> **${rewardW}**`);
     if (rewardK) rewardLines.push(`• <:Key:1456059698582392852> **${rewardK}**`);
-    if (rewardCard) rewardLines.push(`• **${rewardCard.group} - ${rewardCard.name}** \`${rewardCard.cardCode}\``);
+    if (rewardCard) rewardLines.push(`• **${emoji} ${rewardCard.name}** \`${rewardCard.cardCode}\``);
 
     const finalEmbed = new EmbedBuilder()
       .setColor('#2f3136')
