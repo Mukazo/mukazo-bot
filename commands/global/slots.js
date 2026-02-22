@@ -172,7 +172,7 @@ if (rewardCard) {
       : generateVersion(rewardCard);
 
   rewardLines.push(
-    `• **${emoji} ${rewardCard.group} — ${rewardCard.name}** \`${rewardCard.cardCode}\``
+    `• **${emoji} — ${rewardCard.name}** \`${rewardCard.cardCode}\``
   );
 }
 
