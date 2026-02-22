@@ -39,6 +39,9 @@ reminderPreferences: {
   of: String, // 'off' | 'dm' | 'channel'
   default: {}
 },
+slotData: {
+  lossStreak: { type: Number, default: 0 }
+},
   questRerollTokens: { type: Number, default: 0 }
 
 }, { timestamps: true });

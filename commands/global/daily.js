@@ -49,8 +49,8 @@ module.exports = {
     // Calculate scaling reward
     // Calculate tiered reward scaling
     function calculateDailyReward(streak) {
-  const wirlies = 1000 + Math.min(7500, Math.floor(streak / 10) * 250);  // +200 per 15 days, max +7500
-  const keys = 2 + Math.min(4, Math.floor(streak / 30));       // +1 per 30 days, max +5
+  const wirlies = 2000 + Math.min(5000, Math.floor(streak / 10) * 250);  // +200 per 15 days, max +7500
+  const keys = 3 + Math.min(5, Math.floor(streak / 30));       // +1 per 30 days, max +5
   return { wirlies, keys };
   }
 
