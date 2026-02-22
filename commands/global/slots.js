@@ -155,11 +155,26 @@ module.exports = {
     await handleReminders(interaction, COMMAND_NAME, cooldownMs);
 
     const rewardLines = [];
-    const emoji = rewardCard.emoji || generateVersion(rewardCard.version);
 
-    if (rewardW) rewardLines.push(`• <:Wirlies:1455924065972785375> **${rewardW}**`);
-    if (rewardK) rewardLines.push(`• <:Key:1456059698582392852> **${rewardK}**`);
-    if (rewardCard) rewardLines.push(`• **${emoji} ${rewardCard.name}** \`${rewardCard.cardCode}\``);
+if (rewardW) {
+  rewardLines.push(`• <:Wirlies:1455924065972785375> **${rewardW}**`);
+}
+
+if (rewardK) {
+  rewardLines.push(`• <:Key:1456059698582392852> **${rewardK}**`);
+}
+
+if (rewardCard) {
+  // Use full card object like inventory does
+  const emoji =
+    rewardCard.emoji && rewardCard.emoji.trim().length > 0
+      ? rewardCard.emoji
+      : generateVersion(rewardCard);
+
+  rewardLines.push(
+    `• **${emoji} ${rewardCard.group} — ${rewardCard.name}** \`${rewardCard.cardCode}\``
+  );
+}
 
     const finalEmbed = new EmbedBuilder()
       .setColor('#2f3136')
