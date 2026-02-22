@@ -8,8 +8,6 @@ const {
   AttachmentBuilder,
 } = require('discord.js');
 
-const { createCanvas, loadImage } = require('canvas');
-
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
@@ -142,70 +140,52 @@ module.exports = {
     let page = 0;
 
     const renderPage = async () => {
-      const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  const card = results[page]; // PAGE_SIZE = 1
 
-      const canvas = createCanvas(slice.length * CARD_WIDTH, CARD_HEIGHT);
-      const ctx = canvas.getContext('2d');
+  const copies = ownedMap.get(card.cardCode) || 0;
 
-      
-      for (let i = 0; i < slice.length; i++) {
-  const card = slice[i];
+  const fileName = `${card._id}.png`;
+  const imageSource = card.localImagePath
+    ? `attachment://${fileName}`
+    : (card.discordPermalinkImage || card.imgurImageLink);
 
-  try {
-    // ✅ summon-style: load the local file path
-    const img = await loadImage(card.localImagePath);
-    ctx.drawImage(img, i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
-  } catch (err) {
-    console.error(`[SEARCH] Failed to load image for ${card.cardCode}:`, err?.message || err);
+  const files = card.localImagePath
+    ? [{ attachment: card.localImagePath, name: fileName }]
+    : [];
 
-    // placeholder instead of hanging/crashing
-    ctx.fillStyle = '#1e1e1e';
-    ctx.fillRect(i * CARD_WIDTH, 0, CARD_WIDTH, CARD_HEIGHT);
-  }
-}
+  const embed = new EmbedBuilder()
+    .setDescription('## Searching for . . .\n> Here you can view & find all Mukazo\'s cards information!')
+    .setImage(imageSource)
+    .setFooter({
+      text: `Page ${page + 1} / ${results.length}`,
+    })
+    .addFields({
+      name: `${card.emoji || generateVersion(card)} ${card.name}`,
+      value: [
+        `**Group:** ${card.group}`,
+        card.era ? `**Era:** ${card.era}` : null,
+        card.designerIds?.length
+          ? `> **Designers:** ${card.designerIds.map(id => `<@${id}>`).join(', ')}`
+          : null,
+        `> **Code:** \`${card.cardCode}\``,
+        `> **Copies:** ${copies}`,
+      ].filter(Boolean).join('\n'),
+      inline: false,
+    });
 
-      const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'cards.png' });
-
-      const embed = new EmbedBuilder()
-        .setDescription('## Searching for . . .\n> Here you can view & find all \nMukazo\'s cards information!')
-        .setImage('attachment://cards.png')
-        .setFooter({
-          text: `Page ${page + 1} / ${Math.ceil(results.length / PAGE_SIZE)}`,
-        });
-
-      slice.forEach(card => {
-        const copies = ownedMap.get(card.cardCode) || 0;
-
-embed.addFields({
-  name: `${card.emoji || generateVersion(card)} ${card.name}`,
-  value: [
-  `**Group:** ${card.group}`,
-  card.era ? `**Era:** ${card.era}` : null,
-
-  card.designerIds?.length
-    ? `> **Designers:** ${card.designerIds.map(id => `<@${id}>`).join(', ')}`
-    : null,
-
-  `> **Code:** \`${card.cardCode}\``,
-  `> **Copies:** ${ownedMap.get(card.cardCode) ?? 0}`,
-].filter(Boolean).join('\n'),
-  inline: true,
-});
-      });
-
-      return { embed, attachment };
-    };
+  return { embed, files };
+};
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('prev').setLabel(' • Previous').setStyle(ButtonStyle.Secondary),
       new ButtonBuilder().setCustomId('next').setLabel('Next • ').setStyle(ButtonStyle.Secondary),
     );
 
-    const { embed, attachment } = await renderPage();
+    const { embed, files } = await renderPage();
 
     const message = await interaction.editReply({
       embeds: [embed],
-      files: [attachment],
+      files,
       components: [row],
     });
 
@@ -220,8 +200,8 @@ embed.addFields({
       if (btn.customId === 'prev') page = Math.max(0, page - 1);
       if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
 
-      const { embed, attachment } = await renderPage();
-      await message.edit({ embeds: [embed], files: [attachment] });
+      const { embed, files } = await renderPage();
+await message.edit({ embeds: [embed], files });
     });
 
     collector.on('end', async () => {
