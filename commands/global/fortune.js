@@ -77,12 +77,10 @@ module.exports = {
         outcomeText,
         '',
         rewardLines.length
-          ? `Your Fortune Says :: \n${rewardLines.join('\n')}`
+          ? `Fortune Reading Earnings > ${rewardLines.join('\n')}`
           : 'You received nothing this time...',
         '',
-        `__**Balance:**__`,
-        `<:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
-        `<:Key:1456059698582392852> ${user.keys.toLocaleString()}`,
+        `__**Balance:**__ <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()} & <:Key:1456059698582392852> ${user.keys.toLocaleString()}`,
       ].join('\n'));
 
       await handleReminders(interaction, 'fortune', cooldownMs);
