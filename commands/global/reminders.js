@@ -12,7 +12,7 @@ const VALID_COMMANDS = [
 
 // ✨ Pretty display names (SAFE to decorate)
 const COMMAND_DISPLAY = {
-  pull: '─ Pull',
+  summon: '─ Summon',
   bewitch: '─ Bewitch',
   fortune: '─ Fortune',
   route: '─ Route',
