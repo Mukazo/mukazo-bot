@@ -6,7 +6,7 @@ const pickVersion = require('../../utils/versionPicker');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
 
-const COST = 625;
+const COST = 250;
 const COMMAND_NAME = 'slots';
 
 const SYMBOLS = [
@@ -67,7 +67,7 @@ module.exports = {
     const spinEmbed = new EmbedBuilder().setColor('#2f3136');
 
     await interaction.editReply({
-      embeds: [spinEmbed.setDescription('🎰 Spinning...')]
+      embeds: [spinEmbed.setDescription('## ₍ ᐢ.ˬ.ᐢ₎ Slots Incoming\n🎰 Spinning...')]
     });
 
     await new Promise(r => setTimeout(r, 700));
@@ -126,7 +126,7 @@ module.exports = {
         rewardW = 1000;
       }
     } else if (twoMatch) {
-      rewardW = 600;
+      rewardW = 500;
     }
 
     if (!rewardW && !rewardK && !rewardCard) {
@@ -158,12 +158,12 @@ module.exports = {
     const finalEmbed = new EmbedBuilder()
       .setColor('#2f3136')
       .setDescription([
-        '## ₍ ᐢ.ˬ.ᐢ₎ Jackpot Results',
+        '## ₍ ᐢ.ˬ.ᐢ₎ Slot Results',
         '',
         `> ${final1} │ ${final2} │ ${final3}`,
         '',
         rewardLines.length
-          ? `You won:\n${rewardLines.join('\n')}`
+          ? `### You won:\n${rewardLines.join('\n')}`
           : `Nothing this time…`
       ].join('\n'));
 
