@@ -6,6 +6,7 @@ const VALID_COMMANDS = [
   'bewitch',
   'fortune',
   'route',
+  'slots',
   'daily',
   'weekly',
 ];
@@ -16,6 +17,7 @@ const COMMAND_DISPLAY = {
   bewitch: '─ Bewitch',
   fortune: '─ Fortune',
   route: '─ Route',
+  slots: '─ Slots',
   daily: '─ Daily',
   weekly: '─ Weekly',
 };

@@ -6,14 +6,14 @@ const pickVersion = require('../../utils/versionPicker');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
 
-const COST = 0;
+const COST = 50;
 const COMMAND_NAME = 'Slots';
 
 const SYMBOLS = [
   { icon: '🪹', weight: 40 },
   { icon: '🍂', weight: 30 },
-  { icon: '🌿', weight: 17 },
-  { icon: '🪷', weight: 10 },
+  { icon: '🌿', weight: 18 },
+  { icon: '🪷', weight: 9 },
   { icon: '🍀', weight: 3 }
 ];
 
@@ -39,7 +39,7 @@ module.exports = {
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, COMMAND_NAME);
     if (await cooldowns.isOnCooldown(userId, COMMAND_NAME)) {
       const nextTime = await cooldowns.getCooldownTimestamp(userId, COMMAND_NAME);
-      return interaction.editReply({ content: `Try again ${nextTime}.` });
+      return interaction.editReply({ content: `Command on cooldown! Try again in ${nextTime}.` });
     }
 
     await cooldowns.setCooldown(userId, COMMAND_NAME, cooldownMs);
@@ -57,8 +57,8 @@ module.exports = {
 
     // 🎯 Luck Boost
     let luckMultiplier = 1;
-    if (user.slotData.lossStreak >= 5) luckMultiplier = 1.1;
-    if (user.slotData.lossStreak >= 10) luckMultiplier = 1.2;
+    if (user.slotData.lossStreak >= 5) luckMultiplier = 1.15;
+    if (user.slotData.lossStreak >= 10) luckMultiplier = 1.25;
     const final1 = weightedRoll(luckMultiplier);
     const final2 = weightedRoll(luckMultiplier);
     const final3 = weightedRoll(luckMultiplier);
