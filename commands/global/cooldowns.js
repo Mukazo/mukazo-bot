@@ -14,7 +14,7 @@ const emojiMap = {
 
 const categories = {
   Cards: ['Summon', 'Claim', 'Enchant'],
-  Money: ['Route', 'Bewitch', 'Fortune', 'Daily', 'Weekly'],
+  Money: ['Route', 'Fortune', 'Bewitch', 'Daily', 'Weekly'],
 };
 
 module.exports = {

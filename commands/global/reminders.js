@@ -22,12 +22,13 @@ const COMMAND_DISPLAY = {
 
 // 💖 Cute mode formatter
 function formatMode(mode) {
-  if (mode === 'dm') return '( <:dms:1475094115124379699> ) DM';
-  if (mode === 'channel') return '( <:channel:1475094185592754397> ) Channel';
-  return '( <:off:1475094059390603326> ) Off';
+  if (mode === 'dm') return '<:dms:1475094115124379699>';
+  if (mode === 'channel') return '<:channel:1475094185592754397>';
+  return '<:off:1475094059390603326>';
 }
 
 module.exports = {
+  ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('reminders')
     .setDescription('View or update your cooldown reminder settings')
@@ -77,8 +78,8 @@ module.exports = {
     // 🌸 Build display
     const settingsDisplay = VALID_COMMANDS.map(cmd => {
       const current = user.reminderPreferences.get(cmd) || 'off';
-      return `**${COMMAND_DISPLAY[cmd]}** ➜ ${formatMode(current)}`;
-    }).join('\n\n');
+      return `⸝　${formatMode(current)}　、**${COMMAND_DISPLAY[cmd]}**`;
+    }).join('\n');
 
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
