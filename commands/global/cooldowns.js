@@ -9,7 +9,8 @@ const emojiMap = {
   Enchant: '',
   Weekly: '',
   Bewitch: '',
-  Fortunte: '',
+  Fortune: '',
+
 };
 
 const categories = {

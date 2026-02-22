@@ -4,7 +4,8 @@ const reminderSchema = new mongoose.Schema({
   userId: String,
   command: String,
   channelId: String,
-  triggerAt: Date,
+  expiresAt: Date,
+  claimedAt: Date,
   sent: { type: Boolean, default: false },
   sendAttempts: { type: Number, default: 0 },
 }, { timestamps: true });

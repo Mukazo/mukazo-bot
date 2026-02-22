@@ -85,11 +85,11 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
         '## ₍ ᐢ.ˬ.ᐢ₎ Reminder Settings',
-        'Choose where you would like your cooldown reminders to appear!',
+        'Choose where you would like your \ncooldown reminders to appear!',
         '',
         settingsDisplay,
         '',
-        '-# ୨ৎ You can update a setting anytime using this command!'
+        '-# ୨ৎ You can update a setting \nanytime using this command!'
       ].join('\n'));
 
     return interaction.editReply({
