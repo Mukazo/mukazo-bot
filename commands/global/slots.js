@@ -6,7 +6,7 @@ const pickVersion = require('../../utils/versionPicker');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
 
-const COST = 750;
+const COST = 625;
 const COMMAND_NAME = 'slots';
 
 const SYMBOLS = [
