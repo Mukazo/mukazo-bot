@@ -187,8 +187,6 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Main bot MongoDB connected'))
   .catch(console.error);
 
-client.login(process.env.TOKEN);
-
 client.once(Events.ClientReady, () => {
   console.log(`Logged in as ${client.user.tag}`);
 
@@ -198,3 +196,5 @@ client.once(Events.ClientReady, () => {
   // Start reminder poller
   startReminderPoller();
 });
+
+client.login(process.env.TOKEN);
