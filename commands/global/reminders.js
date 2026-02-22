@@ -22,9 +22,9 @@ const COMMAND_DISPLAY = {
 
 // 💖 Cute mode formatter
 function formatMode(mode) {
-  if (mode === 'dm') return 'ᵈᵐ';
-  if (mode === 'channel') return 'ᶜʰᵃⁿⁿᵉˡ';
-  return 'ᵒᶠᶠ';
+  if (mode === 'dm') return '( <:dms:1475094115124379699> ) DM';
+  if (mode === 'channel') return '( <:channel:1475094185592754397> ) Channel';
+  return '( <:off:1475094059390603326> ) Off';
 }
 
 module.exports = {
@@ -77,7 +77,7 @@ module.exports = {
     // 🌸 Build display
     const settingsDisplay = VALID_COMMANDS.map(cmd => {
       const current = user.reminderPreferences.get(cmd) || 'off';
-      return `**${COMMAND_DISPLAY[cmd]}**\n> ${formatMode(current)}`;
+      return `**${COMMAND_DISPLAY[cmd]}** ➜ ${formatMode(current)}`;
     }).join('\n\n');
 
     const embed = new EmbedBuilder()
