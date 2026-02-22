@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const User = require('../../models/User');
 const cooldowns = require('../../utils/cooldownManager');
 const { emitQuestEvent } = require('../../utils/quest/tracker');
+const handleReminders = require('../../utils/reminderHandler');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -83,6 +84,8 @@ await emitQuestEvent(interaction.user.id, {
         rewardMessages.length
         ? `You received:\n${rewardMessages.map(r => `• ${r}`).join('\n')}`
         : 'You received nothing this time...'].filter(Boolean).join('\n'));
+
+        await handleReminders(interaction, 'bewitch', cooldownMs);
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });
   }

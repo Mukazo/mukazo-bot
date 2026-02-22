@@ -9,11 +9,12 @@ const emojiMap = {
   Enchant: '',
   Weekly: '',
   Bewitch: '',
+  Fortunte: '',
 };
 
 const categories = {
   Cards: ['Summon', 'Claim', 'Enchant'],
-  Money: ['Route', 'Bewitch', 'Daily', 'Weekly'],
+  Money: ['Route', 'Bewitch', 'Fortune', 'Daily', 'Weekly'],
 };
 
 module.exports = {

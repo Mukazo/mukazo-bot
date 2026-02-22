@@ -15,6 +15,7 @@ const pickVersion = require('../../utils/versionPicker');
 const { emitQuestEvent } = require('../../utils/quest/tracker');
 const cooldowns = require('../../utils/cooldownManager');
 const generateVersion = require('../../utils/generateVersion');
+const handleReminders = require('../../utils/reminderHandler');
 
 const CardInventory = require('../../models/CardInventory');
 const SummonSession = require('../../models/SummonSession');
@@ -190,6 +191,8 @@ module.exports = {
           },
           interaction
         );
+
+    await handleReminders(interaction, 'summon', cooldownMs);
 
     await SummonSession.create({
       messageId: reply.id,

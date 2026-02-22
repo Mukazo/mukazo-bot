@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const cooldowns = require('../../utils/cooldownManager');
 const User = require('../../models/User');
+const handleReminders = require('../../utils/reminderHandler');
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -70,6 +71,7 @@ module.exports = {
     if (keys) rewardLines.push(`• <:Key:1456059698582392852> **${keys}**`);
 
     const embed = new EmbedBuilder()
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
         '## The Spirits Reveal . .',
         outcomeText,
@@ -82,6 +84,8 @@ module.exports = {
         `<:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
         `<:Key:1456059698582392852> ${user.keys.toLocaleString()}`,
       ].join('\n'));
+
+      await handleReminders(interaction, 'fortune', cooldownMs);
 
     return interaction.editReply({ embeds: [embed] });
   }

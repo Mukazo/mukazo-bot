@@ -9,6 +9,7 @@ const Canvas = require('canvas');
 const cooldowns = require('../../utils/cooldownManager');
 const cooldownConfig = require('../../utils/cooldownConfig');
 const { giveCurrency } = require('../../utils/giveCurrency');
+const handleReminders = require('../../utils/reminderHandler');
 
 const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
@@ -245,6 +246,8 @@ const v5Pool = await Card.find({
             },
             interaction
           );
+
+      await handleReminders(interaction, 'weekly', cooldownDuration);
 
     return interaction.editReply({
       embeds: [embed],

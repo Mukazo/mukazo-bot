@@ -3,6 +3,7 @@ const cooldowns = require('../../utils/cooldownManager');
 const cooldownConfig = require('../../utils/cooldownConfig');
 const { emitQuestEvent } = require('../../utils/quest/tracker');
 const { giveCurrency } = require('../../utils/giveCurrency');
+const handleReminders = require('../../utils/reminderHandler');
 const User = require('../../models/User'); // Adjust path if needed
 
 module.exports = {
@@ -91,6 +92,8 @@ module.exports = {
       },
       interaction
     );
+
+    await handleReminders(interaction, 'daily', cooldownDuration);
 
     return interaction.editReply({ embeds: [embed] });
   }

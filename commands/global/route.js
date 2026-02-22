@@ -8,6 +8,7 @@ const {
 const cooldowns = require('../../utils/cooldownManager');
 const { giveCurrency } = require('../../utils/giveCurrency');
 const { emitQuestEvent } = require('../../utils/quest/tracker');
+const handleReminders = require('../../utils/reminderHandler');
 
 const ROUTES = [
   {
@@ -220,6 +221,8 @@ await emitQuestEvent(
       },
       interaction
     );
+
+    await handleReminders(interaction, 'route', cooldownMs);
 
 
       const resultEmbed = new EmbedBuilder()
