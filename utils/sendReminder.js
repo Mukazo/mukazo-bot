@@ -10,7 +10,7 @@ module.exports = async function sendReminder(reminderDoc) {
 
   const { userId, channelId, command, _id } = reminderDoc;
 
-  const user = await User.findOne({ userId }).lean();
+  const user = await User.findOne({ userId });
   const mode = user?.reminderPreferences?.get?.(String(command).toLowerCase()) || 'off';
 
   // If user turned it off after reminder was queued, just delete it
