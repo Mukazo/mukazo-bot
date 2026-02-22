@@ -6,7 +6,7 @@ const pickVersion = require('../../utils/versionPicker');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
 
-const COST = 250;
+const COST = 0;
 const COMMAND_NAME = 'slots';
 
 const SYMBOLS = [
@@ -105,28 +105,28 @@ module.exports = {
 
     if (allMatch) {
       if (final1 === '🍀') {
-        rewardW = 8000;
-        rewardK = 10;
+        rewardW = 3000;
+        rewardK = 7;
         if (Math.random() < 0.5) {
           rewardCard = await randomCardFromVersion(5, userId);
         }
       } else if (final1 === '🪷') {
-        rewardW = 4000;
-        rewardK = 5;
+        rewardW = 1750;
+        rewardK = 3;
         if (Math.random() < 0.25) {
           const version = Math.random() < 0.4 ? 5 : pickVersion();
           rewardCard = await randomCardFromVersion(version, userId);
         }
       } else if (final1 === '🌿') {
-        rewardW = 2000;
+        rewardW = 1000;
         if (Math.random() < 0.15) {
           rewardCard = await randomCardFromVersion(pickVersion(), userId);
         }
       } else {
-        rewardW = 1000;
+        rewardW = 500;
       }
     } else if (twoMatch) {
-      rewardW = 500;
+      rewardW = 300;
     }
 
     if (!rewardW && !rewardK && !rewardCard) {

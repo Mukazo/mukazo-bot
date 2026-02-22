@@ -10,12 +10,13 @@ const emojiMap = {
   Weekly: '',
   Bewitch: '',
   Fortune: '',
-
+  Slots: '',
 };
 
 const categories = {
   Cards: ['Summon', 'Claim', 'Enchant'],
-  Money: ['Route', 'Fortune', 'Bewitch', 'Daily', 'Weekly'],
+  Money: ['Route', 'Fortune', 'Bewitch'],
+  Both: ['Slots', 'Daily', 'Weekly'],
 };
 
 module.exports = {

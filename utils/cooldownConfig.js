@@ -50,6 +50,7 @@ module.exports = {
   { id: '1459260084034076823', percent: 5 },  // /mukazobot
     ]
   },
+  Slots: 20 * 60 * 1000,
   Daily: 24 * 60 * 60 * 1000,
   Enchant: 30 * 1000,
   Weekly: 7 * 24 * 60 * 60 * 1000,
