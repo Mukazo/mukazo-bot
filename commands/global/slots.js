@@ -7,7 +7,7 @@ const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
 
 const COST = 0;
-const COMMAND_NAME = 'slots';
+const COMMAND_NAME = 'Slots';
 
 const SYMBOLS = [
   { icon: '🪹', weight: 40 },
