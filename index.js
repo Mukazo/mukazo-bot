@@ -6,6 +6,7 @@ const path = require('path');
 const handleButton = require('./handlers/buttons');
 const { EmbedBuilder } = require('discord.js');
 const Maintenance = require('./models/Maintenance');
+const { startReminderPoller } = require('./utils/reminderPoller');
 const User = require('./models/User');
 const MAINTENANCE_BYPASS_ROLE_ID = '1455908485425397842';
 
@@ -187,3 +188,13 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(console.error);
 
 client.login(process.env.TOKEN);
+
+client.once(Events.ClientReady, () => {
+  console.log(`Logged in as ${client.user.tag}`);
+
+  // Make client globally available for sendReminder
+  global.client = client;
+
+  // Start reminder poller
+  startReminderPoller();
+});
