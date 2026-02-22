@@ -155,7 +155,7 @@ module.exports = {
     await handleReminders(interaction, COMMAND_NAME, cooldownMs);
 
     const rewardLines = [];
-    const emoji = rewardCard.emoji || generateVersion(rewardCard);
+    const emoji = rewardCard.emoji || generateVersion(rewardCard.version);
 
     if (rewardW) rewardLines.push(`• <:Wirlies:1455924065972785375> **${rewardW}**`);
     if (rewardK) rewardLines.push(`• <:Key:1456059698582392852> **${rewardK}**`);
