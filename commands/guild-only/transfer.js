@@ -34,7 +34,6 @@ module.exports = {
 
   async execute(interaction) {
 
-
     const fromUser = interaction.options.getUser('from');
     const toUser = interaction.options.getUser('to');
     const note = interaction.options.getString('note') || '';
@@ -193,16 +192,16 @@ module.exports = {
 
         const confirmEmbed = new EmbedBuilder()
           .setColor(0x3BA55D)
-          .setTitle('Transfer Complete')
           .setDescription(
             [
-              `**From:** <@${fromUser.id}>`,
-              `**To:** <@${toUser.id}>`,
-              '',
-              `Moved ${totalCodesMoved} Cards`,
-              `Moved ${totalQtyMoved} Copies`,
-              `Moved <:Wirlies:1455924065972785375> ${moveWirlies}`,
-              `Moved <:Key:1456059698582392852> ${moveKeys}`
+              '# Transfer Completed',  
+              `### From: <@${fromUser.id}>`,
+              `### To: <@${toUser.id}>`,
+              'Transferred the following:',
+              `**${totalCodesMoved}** Cards`,
+              `**${totalQtyMoved}** Copies`,
+              `<:Wirlies:1455924065972785375> **${moveWirlies.toLocaleString()}**`,
+              `<:Key:1456059698582392852> **${moveKeys.toLocaleString()}**`
             ].join('\n')
           )
           .setTimestamp();
