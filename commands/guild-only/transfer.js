@@ -2,7 +2,11 @@ require('dotenv').config();
 const {
   SlashCommandBuilder,
   EmbedBuilder,
-  PermissionFlagsBits
+  PermissionFlagsBits,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType
 } = require('discord.js');
 
 const CardInventory = require('../../models/CardInventory');
@@ -30,6 +34,7 @@ module.exports = {
 
   async execute(interaction) {
 
+
     const fromUser = interaction.options.getUser('from');
     const toUser = interaction.options.getUser('to');
     const note = interaction.options.getString('note') || '';
@@ -38,106 +43,185 @@ module.exports = {
       return interaction.editReply({ content: '`from` and `to` must be different users.' });
     }
 
-    // ===========================
-    // LOAD USERS
-    // ===========================
-
     const [sourceUser, targetUser] = await Promise.all([
       User.findOne({ userId: fromUser.id }),
       User.findOne({ userId: toUser.id })
     ]);
 
-    if (!sourceUser) return interaction.editReply({ content: 'Source user not found in database.' });
-    if (!targetUser) return interaction.editReply({ content: 'Target user not found in database.' });
+    if (!sourceUser) return interaction.editReply({ content: 'Source user not found.' });
+    if (!targetUser) return interaction.editReply({ content: 'Target user not found.' });
 
     const moveWirlies = sourceUser.wirlies || 0;
     const moveKeys = sourceUser.keys || 0;
 
-    // ===========================
-    // MOVE ALL CARDS (BULK)
-    // ===========================
+    const fromItems = await CardInventory.find({ userId: fromUser.id });
 
     let totalCodesMoved = 0;
     let totalQtyMoved = 0;
 
-    const fromItems = await CardInventory.find({ userId: fromUser.id });
-
-    if (fromItems.length > 0) {
-      const bulkOps = [];
-
-      for (const item of fromItems) {
-        if (!item.quantity || item.quantity <= 0) continue;
-
-        totalCodesMoved++;
-        totalQtyMoved += item.quantity;
-
-        // Add to target
-        bulkOps.push({
-          updateOne: {
-            filter: { userId: toUser.id, cardCode: item.cardCode },
-            update: { $inc: { quantity: item.quantity } },
-            upsert: true
-          }
-        });
-
-        // Zero out source
-        bulkOps.push({
-          updateOne: {
-            filter: { userId: fromUser.id, cardCode: item.cardCode },
-            update: { $set: { quantity: 0 } }
-          }
-        });
-      }
-      if (bulkOps.length > 0) {
-        await CardInventory.bulkWrite(bulkOps);
-      }
+    for (const item of fromItems) {
+      if (!item.quantity || item.quantity <= 0) continue;
+      totalCodesMoved++;
+      totalQtyMoved += item.quantity;
     }
 
     // ===========================
-    // TRANSFER CURRENCY
+    // PREVIEW EMBED
     // ===========================
-
-    if (moveWirlies > 0 || moveKeys > 0) {
-      targetUser.wirlies += moveWirlies;
-      targetUser.keys += moveKeys;
-
-      sourceUser.wirlies = 0;
-      sourceUser.keys = 0;
-
-      await targetUser.save();
-      await sourceUser.save();
-    }
-
-    // ===========================
-    // CONFIRM EMBED
-    // ===========================
-
-    const currencySummary = [
-      moveWirlies > 0
-        ? `• <:Wirlies:1455924065972785375> **${moveWirlies.toLocaleString()}**`
-        : null,
-      moveKeys > 0
-        ? `• <:Key:1456059698582392852> **${moveKeys.toLocaleString()}**`
-        : null
-    ].filter(Boolean);
-
-    const embed = new EmbedBuilder()
-      .setColor(0x3BA55D)
-      .setTitle('Transfer Complete')
+    const previewEmbed = new EmbedBuilder()
+      .setColor(0xED4245)
+      .setTitle('Confirm Transfer?')
       .setDescription(
         [
           `**From:** <@${fromUser.id}>`,
           `**To:** <@${toUser.id}>`,
-          note ? `**Note:** ${note}` : null
+          note ? `**Note:** ${note}` : null,
+          '',
+          `**Cards:** ${totalCodesMoved}`,
+          `**Copies:** ${totalQtyMoved}`
+          `**Wirlies:** <:Wirlies:1455924065972785375> ${moveWirlies}`,
+          `**Keys:** <:Key:1456059698582392852> ${moveKeys}`
         ].filter(Boolean).join('\n')
-      )
-      .addFields(
-        { name: 'Card Codes Moved', value: `${totalCodesMoved}`, inline: true },
-        { name: 'Total Quantity Moved', value: `${totalQtyMoved}`, inline: true },
-        { name: 'Currency Moved', value: currencySummary.join('\n') || 'None' }
-      )
-      .setTimestamp();
+      );
 
-    return interaction.editReply({ embeds: [embed] });
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('transfer_confirm')
+        .setLabel('Confirm')
+        .setStyle(ButtonStyle.Danger),
+
+      new ButtonBuilder()
+        .setCustomId('transfer_cancel')
+        .setLabel('Cancel')
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    const msg = await interaction.editReply({
+      embeds: [previewEmbed],
+      components: [row]
+    });
+
+    const collector = msg.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 30000
+    });
+
+    collector.on('collect', async i => {
+
+      if (i.user.id !== interaction.user.id) {
+        return i.reply({ content: 'This is not your confirmation.', ephemeral: true });
+      }
+
+      if (i.customId === 'transfer_cancel') {
+        collector.stop('cancelled');
+        return i.update({
+          content: 'Transfer cancelled.',
+          embeds: [],
+          components: []
+        });
+      }
+
+      if (i.customId === 'transfer_confirm') {
+        collector.stop('confirmed');
+
+        // ===========================
+        // EXECUTE TRANSFER
+        // ===========================
+
+        const bulkOps = [];
+
+        for (const item of fromItems) {
+          if (!item.quantity || item.quantity <= 0) continue;
+
+          bulkOps.push({
+            updateOne: {
+              filter: { userId: toUser.id, cardCode: item.cardCode },
+              update: { $inc: { quantity: item.quantity } },
+              upsert: true
+            }
+          });
+          bulkOps.push({
+            updateOne: {
+              filter: { userId: fromUser.id, cardCode: item.cardCode },
+              update: { $set: { quantity: 0 } }
+            }
+          });
+        }
+
+        if (bulkOps.length > 0) {
+          await CardInventory.bulkWrite(bulkOps);
+        }
+
+        targetUser.wirlies += moveWirlies;
+        targetUser.keys += moveKeys;
+
+        sourceUser.wirlies = 0;
+        sourceUser.keys = 0;
+
+        await targetUser.save();
+        await sourceUser.save();
+
+        // ===========================
+        // MOD LOG
+        // ===========================
+
+        const logChannelId = process.env.TRANSFER_LOG_CHANNEL_ID;
+        const logChannel = interaction.client.channels.cache.get(logChannelId);
+
+        if (logChannel) {
+          const logEmbed = new EmbedBuilder()
+            .setColor(0x5865F2)
+            .setTitle('Account Transfer Completed')
+            .addFields(
+              { name: 'Executor', value: `<@${interaction.user.id}>` },
+              { name: 'From', value: `<@${fromUser.id}>`, inline: true },
+              { name: 'To', value: `<@${toUser.id}>`, inline: true },
+              { name: 'Cards', value: `${totalCodesMoved}`, inline: true },
+              { name: 'Copies', value: `${totalQtyMoved}`, inline: true },
+              { name: 'Wirlies', value: `${moveWirlies}`, inline: true },
+              { name: 'Keys', value: `${moveKeys}`, inline: true },
+              { name: 'Note', value: note || 'None' }
+            )
+            .setTimestamp();
+
+          logChannel.send({ embeds: [logEmbed] }).catch(() => {});
+        }
+
+        // ===========================
+        // CONFIRM RESPONSE
+        // ===========================
+
+        const confirmEmbed = new EmbedBuilder()
+          .setColor(0x3BA55D)
+          .setTitle('Transfer Complete')
+          .setDescription(
+            [
+              `**From:** <@${fromUser.id}>`,
+              `**To:** <@${toUser.id}>`,
+              '',
+              `Moved ${totalCodesMoved} Cards`,
+              `Moved ${totalQtyMoved} Copies`,
+              `Moved <:Wirlies:1455924065972785375> ${moveWirlies}`,
+              `Moved <:Key:1456059698582392852> ${moveKeys}`
+            ].join('\n')
+          )
+          .setTimestamp();
+
+        return i.update({
+          embeds: [confirmEmbed],
+          components: []
+        });
+      }
+    });
+
+    collector.on('end', async (_, reason) => {
+      if (reason === 'time') {
+        await interaction.editReply({
+          content: 'Transfer expired.',
+          embeds: [],
+          components: []
+        });
+      }
+    });
   }
 };
