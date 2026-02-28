@@ -125,8 +125,16 @@ module.exports = {
           rewardCard = await randomCardFromVersion(version, userId);
         }
       } else {
-        rewardW = 500;
-        rewardCard = await randomCardFromVersion(version, userId);
+  rewardW = 500;
+
+  if (Math.random() < 0.55) {
+    const version = pickVersion();
+    const card = await randomCardFromVersion(version, userId);
+
+    if (card) {
+      rewardCard = card;
+    }
+  }
       }
     } else if (twoMatch) {
       rewardW = 325;
