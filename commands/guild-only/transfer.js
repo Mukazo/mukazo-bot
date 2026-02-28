@@ -78,7 +78,7 @@ module.exports = {
           note ? `**Note:** ${note}` : null,
           '',
           `**Cards:** ${totalCodesMoved}`,
-          `**Copies:** ${totalQtyMoved}`
+          `**Copies:** ${totalQtyMoved}`,
           `**Wirlies:** <:Wirlies:1455924065972785375> ${moveWirlies}`,
           `**Keys:** <:Key:1456059698582392852> ${moveKeys}`
         ].filter(Boolean).join('\n')
