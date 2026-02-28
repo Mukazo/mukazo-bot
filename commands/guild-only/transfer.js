@@ -198,6 +198,7 @@ module.exports = {
               `### From: <@${fromUser.id}>`,
               `### To: <@${toUser.id}>`,
               'Transferred the following:',
+              '',
               `**${totalCodesMoved}** Cards`,
               `**${totalQtyMoved}** Copies`,
               `<:Wirlies:1455924065972785375> **${moveWirlies.toLocaleString()}**`,

@@ -126,6 +126,9 @@ module.exports = {
         }
       } else {
         rewardW = 500;
+        if (Math.random() < 0.4) {
+            rewardCard = await randomCardFromVersion(pickVersion(), userId);
+        }
       }
     } else if (twoMatch) {
       rewardW = 325;
