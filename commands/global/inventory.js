@@ -217,7 +217,7 @@ const targetKeys =
 
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 240_000,
+      time: 300_000,
     });
 
     collector.on('collect', async btn => {

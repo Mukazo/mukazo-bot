@@ -191,7 +191,7 @@ module.exports = {
 
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 240_000,
+      time: 300_000,
     });
 
     collector.on('collect', async btn => {
@@ -201,12 +201,12 @@ module.exports = {
       if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
 
       const { embed, files } = await renderPage();
-await message.edit({ embeds: [embed], files });
+await message.edit({ embeds: [embed], files }).catch(() => {});
     });
 
     collector.on('end', async () => {
       row.components.forEach(b => b.setDisabled(true));
-      await message.edit({ components: [row] });
+      await message.edit({ embeds: [embed], files }).catch(() => {});
     });
   },
 };

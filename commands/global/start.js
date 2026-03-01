@@ -280,7 +280,10 @@ if (category === 'music') {
         return btn.reply({ content: 'This command is not for you.', ephemeral: true });
       }
 
-      await btn.deferUpdate();
+      // Only defer for buttons, not select menu
+if (!btn.isStringSelectMenu()) {
+  await btn.deferUpdate();
+}
 
       if (btn.customId === 'continue') page = 0;
       if (btn.customId === 'prev') page--;
@@ -301,7 +304,8 @@ if (category === 'music') {
 
       } else if (btn.isStringSelectMenu() && btn.customId === 'start:musicfilter') {
       const selected = btn.values?.[0];
-      const user = await User.findOne({ userId: interaction.user.id }) || new User({ userId });
+      const user = await User.findOne({ userId: interaction.user.id }) 
+  || new User({ userId: interaction.user.id });
 
       if (selected === 'disable') {
         user.enabledCategories = user.enabledCategories?.filter(c => c !== 'other music') || [];
@@ -328,21 +332,29 @@ if (category === 'music') {
       if (btn.customId === 'finish') {
   const user = await User.findOne({ userId: interaction.user.id }).lean();
 
-  const hasRequiredCategory = user.enabledCategories.some(cat =>
-    REQUIRED_CATEGORIES.includes(cat)
-  );
+  const enabled = user.enabledCategories || [];
 
-  if (!hasRequiredCategory) {
-    return btn.followUp({
-      content:
-        'You must enable at least **one** of the following categories before finishing:\n' +
-        '> Entertainment\n' +
-        '> Video Games\n' +
-        '> Animanga\n' +
-        '> Music',
-      ephemeral: true,
-    });
-  }
+const hasBaseCategory = enabled.some(cat =>
+  REQUIRED_CATEGORIES.includes(cat)
+);
+
+// Prevent "other music" being the only category
+const onlyOtherMusic =
+  enabled.includes('other music') &&
+  enabled.filter(c => c !== 'specials').length === 1;
+
+if (!hasBaseCategory || onlyOtherMusic) {
+  return btn.followUp({
+    content:
+      'You must enable at least **one main category** before finishing:\n' +
+      '> Entertainment\n' +
+      '> Video Games\n' +
+      '> Animanga\n' +
+      '> Music\n\n' +
+      '`Other Music` cannot be selected alone.',
+    ephemeral: true,
+  });
+}
 
   finished = true;
   collector.stop();

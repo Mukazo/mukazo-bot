@@ -79,7 +79,7 @@ module.exports = async function handleBurnButton(interaction) {
       totalWirlies += (V_WIRLIES[versionKey] || 0) * qty;
     } else if (card.version === 5) {
       totalKeys += Math.floor(qty / 3);
-      totalWirlies += (qty % 3) * 1125;
+      totalWirlies += (qty % 3) * 1250;
     }
   }
 
