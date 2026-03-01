@@ -5,16 +5,16 @@ const CardInventory = require('../../models/CardInventory');
 
 // Use Discord Role IDs for accurate tier detection
 const ROLE_TIERS = {
-  '1465789192326873231': { name: 'Pixie', limit: 18, chance: 0.8 },
-  '1447006809419415622': { name: 'Stardust', limit: 13, chance: 0.7 },
-  '1447006766733725747': { name: 'Ethereal', limit: 8, chance: 0.6 },
-  '1447006737042378772': { name: 'Daydream', limit: 5, chance: 0.55 }
+  '1465789192326873231': { name: 'Pixie', limit: 7, chance: 0.65 },
+  '1447006809419415622': { name: 'Stardust', limit: 5, chance: 0.55 },
+  '1447006766733725747': { name: 'Ethereal', limit: 3, chance: 0.5 },
+  '1447006737042378772': { name: 'Daydream', limit: 2, chance: 0.45 }
 };
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('cast')
-    .setDescription('Cast a spell for an active V5 card.')
+    .setName('brew')
+    .setDescription('Brew a potion for an inactive V5 card.')
     .addStringOption(option =>
       option.setName('cardcode')
         .setDescription('Version 5 card code')
@@ -41,23 +41,23 @@ module.exports = {
     // Initialize monthly tracking
     const now = new Date();
     const currentMonth = now.getMonth();
-    if (!user.castData || user.castData.month !== currentMonth) {
-      user.castData = { used: 0, month: currentMonth };
+    if (!user.brewData || user.brewData.month !== currentMonth) {
+      user.brewData = { used: 0, month: currentMonth };
     }
 
-    if (user.castData.used >= limit) {
+    if (user.brewData.used >= limit) {
       return interaction.followUp({ content: `You've reached your monthly limit for Patreon **${tierName}** Tier.`, ephemeral: true });
     }
 
-    if (user.wirlies < 2500) {
-      return interaction.editReply({ content: 'You need <:Wirlies:1455924065972785375> **2,500** to cast.', ephemeral: true });
+    if (user.wirlies < 5000) {
+      return interaction.editReply({ content: 'You need <:Wirlies:1455924065972785375> **5,000** to cast.', ephemeral: true });
     }
 
     let pulledCard = null;
 
     // Try to get the requested card
     if (codeInput) {
-      const targetCard = await Card.findOne({ cardCode: codeInput, version: 5, active: true });
+      const targetCard = await Card.findOne({ cardCode: codeInput, version: 5, active: false });
       if (targetCard && Math.random() < chance) {
         pulledCard = targetCard;
       }
@@ -67,7 +67,7 @@ module.exports = {
     if (!pulledCard) {
       const filter = {
         version: 5,
-        active: true,
+        active: false,
         $or: []
       };
 
@@ -93,8 +93,8 @@ module.exports = {
       { upsert: true }
     );
 
-    user.castData.used++;
-    user.wirlies -= 2500;
+    user.brewData.used++;
+    user.wirlies -= 5000;
     await user.save();
 
     const image = pulledCard.localImagePath
@@ -120,7 +120,7 @@ module.exports = {
         ].filter(Boolean).join('\n'))
       .addFields(fields)
       .setImage(image)
-      .setFooter({ text: `Used ${user.castData.used}/${limit} for Patreon ${tierName} Tier this month.` });
+      .setFooter({ text: `Used ${user.brewData.used}/${limit} for Patreon ${tierName} Tier this month.` });
 
     const files = pulledCard.localImagePath
       ? [{ attachment: pulledCard.localImagePath, name: `${pulledCard._id}.png` }]

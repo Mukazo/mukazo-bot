@@ -34,6 +34,10 @@ castData: {
   used: { type: Number, default: 0 },
   month: { type: Number, default: new Date().getMonth() }
 },
+brewData: {
+  used: { type: Number, default: 0 },
+  month: { type: Number, default: new Date().getMonth() }
+},
 reminderPreferences: {
   type: Map,
   of: String, // 'off' | 'dm' | 'channel'
