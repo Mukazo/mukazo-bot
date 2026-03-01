@@ -199,7 +199,7 @@ const pulls = shuffled.slice(0, 3);
     =========================== */
     await SummonSession.create({
       messageId: reply.id,
-      channelId: reply.channel.id,
+      channelId: interaction.channel.id,
       guildId: interaction.guildId,
       ownerId,
       cards: pulls.map(c => ({

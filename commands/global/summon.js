@@ -196,7 +196,7 @@ module.exports = {
 
     await SummonSession.create({
       messageId: reply.id,
-      channelId: reply.channel.id,
+      channelId: interaction.channel.id,
       guildId: interaction.guildId,
       ownerId,
       cards: pulls.map(c => ({

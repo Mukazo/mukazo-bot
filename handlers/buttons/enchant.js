@@ -16,7 +16,19 @@ module.exports = async function handleEnchantButton(interaction) {
   =========================== */
   if (!session || session.expiresAt < new Date()) {
     const disabledRow = disableAllButtons(interaction.message);
-    await interaction.message.edit({ components: [disabledRow] });
+    const channel = await interaction.client.channels
+  .fetch(interaction.channelId)
+  .catch(() => null);
+
+if (!channel) return;
+
+const message = await channel.messages
+  .fetch(interaction.message.id)
+  .catch(() => null);
+
+if (!message) return;
+
+await message.edit({ components: [disabledRow] });
 
     return interaction.followUp({
       content: 'This enchant has expired.',
@@ -42,7 +54,19 @@ module.exports = async function handleEnchantButton(interaction) {
   // Owner can claim only one total
   if (session.cards.some(c => c.claimedBy === session.ownerId)) {
     const disabledRow = disableAllButtons(interaction.message);
-    await interaction.message.edit({ components: [disabledRow] });
+    const channel = await interaction.client.channels
+  .fetch(interaction.channelId)
+  .catch(() => null);
+
+if (!channel) return;
+
+const message = await channel.messages
+  .fetch(interaction.message.id)
+  .catch(() => null);
+
+if (!message) return;
+
+await message.edit({ components: [disabledRow] });
 
     return interaction.followUp({
       content: 'You already claimed a card from this enchant.',
