@@ -116,7 +116,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setDescription([
-        '## A Whimsical Casting . .'
+        '## A Menacing Brew . .'
         ].filter(Boolean).join('\n'))
       .addFields(fields)
       .setImage(image)
