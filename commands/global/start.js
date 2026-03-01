@@ -320,7 +320,7 @@ if (!btn.isStringSelectMenu()) {
       // ✅ Edit the CURRENT embed to include a status line
       const currentEmbed = btn.message.embeds[0];
       const updatedEmbed = EmbedBuilder.from(currentEmbed).setDescription(
-        currentEmbed.description + `\n\n**Other Regions Music have been ${selected === 'disable' ? 'disabled' : 'enabled'}**.`
+        currentEmbed.description + `\n-# **Other Regions Music have been ${selected === 'disable' ? 'disabled' : 'enabled'}**.`
       );
 
       return btn.update({
