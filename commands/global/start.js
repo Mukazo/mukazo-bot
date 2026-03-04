@@ -318,15 +318,15 @@ if (!btn.isStringSelectMenu()) {
       await user.save();
 
       // ✅ Edit the CURRENT embed to include a status line
-      const currentEmbed = btn.message.embeds[0];
-      const updatedEmbed = EmbedBuilder.from(currentEmbed).setDescription(
-        currentEmbed.description + `\n-# **Other Regions Music have been ${selected === 'disable' ? 'disabled' : 'enabled'}**.`
-      );
+      // Rebuild the category page so description doesn't stack
+const category = SELECTABLE_CATEGORIES[page];
+const data = await buildCategoryPage(category);
 
-      return btn.update({
-        embeds: [updatedEmbed],
-        components: btn.message.components,
-      });
+return btn.update({
+  embeds: data.embeds,
+  components: data.components,
+  files: data.files
+});
     }
 
       if (btn.customId === 'finish') {
