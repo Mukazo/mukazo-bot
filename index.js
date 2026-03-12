@@ -8,8 +8,8 @@ const { EmbedBuilder } = require('discord.js');
 const Maintenance = require('./models/Maintenance');
 const { startReminderPoller } = require('./utils/reminderPoller');
 const User = require('./models/User');
-const MAINTENANCE_BYPASS_ROLE_ID = '1455908485425397842';
 
+const MAINTENANCE_BYPASS_ROLE_ID = '1455908485425397842';
 
 function buildMaintenanceEmbed(maintenance) {
   return new EmbedBuilder()
@@ -31,10 +31,13 @@ function buildMaintenanceEmbed(maintenance) {
     );
 }
 
-
-
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions
+  ],
   partials: [Partials.Channel, Partials.Message, Partials.Reaction, Partials.User]
 });
 
@@ -57,81 +60,89 @@ for (const folder of commandFolders) {
   }
 }
 
-
 /* ===========================
-   SLASH COMMAND HANDLER
+   MAIN INTERACTION HANDLER
 =========================== */
 client.on(Events.InteractionCreate, async interaction => {
+  try {
+    /*===========================
+       AUTOCOMPLETE FIRST
+    =========================== */
+    if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+      const command = client.commands.get(interaction.commandName);
+      if (!command || !command.autocomplete) return;
 
-  const maintenance = await Maintenance.findOne();
-
-const hasBypassRole =
-  interaction.inGuild() &&
-  interaction.member?.roles?.cache?.has(MAINTENANCE_BYPASS_ROLE_ID);
-
-if (maintenance?.active && !hasBypassRole) {
-  return interaction.reply({
-    embeds: [buildMaintenanceEmbed(maintenance)],
-  });
-}
-
-if (interaction.commandName !== 'start') {
-      const userExists = await User.exists({ userId: interaction.user.id });
-      if (!userExists) {
-        return interaction.reply({ content: 'Welcome to Mukazo! Make sure you finish \`/start\` completely before using any other commands.' });
+      try {
+        await command.autocomplete(interaction);
+      } catch (err) {
+        console.error('Autocomplete error:', err);
       }
+      return;
     }
 
-
-  /* ===========================
-     AUTOCOMPLETE HANDLER
-  =========================== */
-  if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
-    const command = client.commands.get(interaction.commandName);
-    if (!command || !command.autocomplete) return;
-
-    try {
-      await command.autocomplete(interaction);
-    } catch (err) {
-      console.error('Autocomplete error:', err);
+    /* ===========================
+       BUTTONS FIRST
+    =========================== */
+    if (interaction.isButton()) {
+      const handled = await handleButton(interaction);
+      if (handled) return;
     }
-    return;
-  }
 
-  /* ===========================
-     SLASH COMMANDS
-  =========================== */
-  if (interaction.isChatInputCommand()) {
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
+    /* ===========================
+       SLASH COMMANDS ONLY
+    =========================== */
+    if (interaction.isChatInputCommand()) {
+      const command = client.commands.get(interaction.commandName);
+      if (!command) return;
 
-    const ephemeral = command.ephemeral === true;
+      // Maintenance check only for actual slash commands
+      const maintenance = await Maintenance.findOne().lean();
 
-    try {
-      await interaction.deferReply({ephemeral});
-      await command.execute(interaction);
-    } catch (err) {
-      console.error(err);
+      const hasBypassRole =
+        interaction.inGuild() &&
+        interaction.member?.roles?.cache?.has(MAINTENANCE_BYPASS_ROLE_ID);
 
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({ content: 'Something went wrong.', ephemeral: true });
-      } else {
-        await interaction.editReply('Something went wrong.');
+      if (maintenance?.active && !hasBypassRole) {
+        return interaction.reply({
+          embeds: [buildMaintenanceEmbed(maintenance)],
+        });
       }
+
+      // Start gate only for slash commands
+      if (interaction.commandName !== 'start') {
+        const userExists = await User.exists({ userId: interaction.user.id });
+        if (!userExists) {
+          return interaction.reply({
+            content: 'Welcome to Mukazo! Make sure you finish `/start` completely before using any other commands.'
+          });
+        }
+      }
+
+      const ephemeral = command.ephemeral === true;
+
+      try {
+        await interaction.deferReply({ ephemeral });
+        await command.execute(interaction);
+      } catch (err) {
+        console.error(err);
+
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({
+            content: 'Something went wrong.',
+            ephemeral: true
+          }).catch(() => {});
+        } else {
+          await interaction.editReply('Something went wrong.').catch(() => {});
+        }
+      }
+
+      return;
     }
 
-    return;
+    // other interaction types can go here later
+  } catch (err) {
+    console.error('[INTERACTION ERROR]', err);
   }
-
-  /* ===========================
-     BUTTONS (GLOBAL, RESTART-SAFE)
-  =========================== */
-  if (interaction.isButton()) {
-    const handled = await handleButton(interaction);
-    if (handled) return;
-  }
-
-  // other interaction types can go here later
 });
 
 /* ===========================
@@ -141,13 +152,13 @@ client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isStringSelectMenu()) return;
   if (!interaction.customId.startsWith('batch:')) return;
 
-   const parts = interaction.customId.split(':');
+  const parts = interaction.customId.split(':');
 
-  const cardCode = parts.pop();              // ✅ ALWAYS correct
-  const jobId = parts.slice(1).join(':');    // kept if you want it later
-  const selected = interaction.values[0]; // 'null' or batch code
+  const cardCode = parts.pop();
+  const jobId = parts.slice(1).join(':');
+  const selected = interaction.values[0];
 
-  await interaction.deferUpdate(); // ✅ correct for components
+  await interaction.deferUpdate();
 
   try {
     const Card = require('./models/Card');
@@ -178,11 +189,11 @@ client.on(Events.InteractionCreate, async interaction => {
     await interaction.editReply({
       content: `Failed to assign batch: ${err.message}`,
       components: [],
-    });
+    }).catch(() => {});
   }
 });
 
-// MongoDB (main bot)
+// MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Main bot MongoDB connected'))
   .catch(console.error);
@@ -190,10 +201,8 @@ mongoose.connect(process.env.MONGO_URI)
 client.once(Events.ClientReady, () => {
   console.log(`Logged in as ${client.user.tag}`);
 
-  // Make client globally available for sendReminder
   global.client = client;
 
-  // Start reminder poller
   startReminderPoller();
 });
 
