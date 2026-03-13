@@ -12,10 +12,10 @@ const COMMAND_NAME = 'Slots';
 
 const SYMBOLS = [
   { icon: '🪹', weight: 40 },
-  { icon: '🍂', weight: 30 },
+  { icon: '🍂', weight: 29 },
   { icon: '🌿', weight: 18 },
   { icon: '🪷', weight: 9 },
-  { icon: '🍀', weight: 3 }
+  { icon: '🍀', weight: 4 }
 ];
 
 function weightedRoll(multiplier = 1) {
