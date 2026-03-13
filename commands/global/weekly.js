@@ -121,7 +121,8 @@ const v5Pool = await Card.find({
         { categoryalias: { $in: enabled } }
       ]
     },
-    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }])
+    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
+    ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
   ]
 }).lean();
 
@@ -136,7 +137,8 @@ const v5Pool = await Card.find({
         { categoryalias: { $in: enabled } }
       ]
     },
-    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }])
+    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
+    ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
   ]
     }).lean();
 

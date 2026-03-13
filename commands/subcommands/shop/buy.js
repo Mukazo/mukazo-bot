@@ -61,31 +61,39 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
           const isInputPick = Math.random() < 0.70;
 
           if (isInputPick) {
-            if (groups.length && names.length && groups.length === names.length) {
-              const pairs = groups.map((g, idx) => ({
-                group: new RegExp(`^${g}$`, 'i'),
-                name: new RegExp(`^${names[idx]}$`, 'i')
-              }));
+  if (groups.length && names.length && groups.length === names.length) {
+    const pairs = groups.map((g, idx) => ({
+      group: new RegExp(`^${g}$`, 'i'),
+      $or: [
+        { name: new RegExp(`^${names[idx]}$`, 'i') },
+        { namealias: new RegExp(`^${names[idx]}$`, 'i') }
+      ]
+    }));
 
-              pool = await Card.find({
-                $or: pairs,
-                version: { $in: [1, 2, 3, 4] },
-                active: true
-              }).lean();
-            } else if (groups.length) {
-              pool = await Card.find({
-                group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
-                version: { $in: [1, 2, 3, 4] },
-                active: true
-              }).lean();
-            } else if (names.length) {
-              pool = await Card.find({
-                name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) },
-                version: { $in: [1, 2, 3, 4] },
-                active: true
-              }).lean();
-            }
-          }
+    pool = await Card.find({
+      $or: pairs,
+      version: { $in: [1, 2, 3, 4] },
+      active: true
+    }).lean();
+
+  } else if (groups.length) {
+    pool = await Card.find({
+      group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
+      version: { $in: [1, 2, 3, 4] },
+      active: true
+    }).lean();
+
+  } else if (names.length) {
+    pool = await Card.find({
+      $or: [
+        { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+        { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
+      ],
+      version: { $in: [1, 2, 3, 4] },
+      active: true
+    }).lean();
+  }
+}
         }
 
         if ((pack === 'events' || pack === 'monthlies') && pity.count >= 4 && Math.random() < 0.75 && pity.codes?.length) {
@@ -116,7 +124,8 @@ if (!pool.length && pack === 'selective' && user.enabledCategories?.length) {
         ]
       },
       // Exclude cards with alias 'other music' if not allowed
-      ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }])
+      ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
+      ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
     ]
   }).lean();
 }

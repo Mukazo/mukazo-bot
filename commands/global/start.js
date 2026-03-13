@@ -183,12 +183,13 @@ module.exports = {
 
       // ✅ Add select menu only for Music category
 let musicSelectRow = null;
+let entertainmentSelectRow = null;
 
 if (category === 'music') {
   musicSelectRow = new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId('start:musicfilter')
-      .setPlaceholder('Include Western & Other Regions?')
+      .setPlaceholder('Enable Western & Other Regions?')
       .addOptions([
         { label: 'Yes — Include Other Music', value: 'enable' },
         { label: 'No — Exclude Other Music', value: 'disable' }
@@ -196,12 +197,26 @@ if (category === 'music') {
   );
 }
 
-      return {
+if (category === 'entertainment') {
+  entertainmentSelectRow = new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId('start:entertainmentfilter')
+      .setPlaceholder('Enable Asia Media?')
+      .addOptions([
+        { label: 'Yes — Include Asia Media', value: 'enable' },
+        { label: 'No — Exclude Asia Media', value: 'disable' }
+      ])
+  );
+}
+
+const components = [categoryControls(category)];
+if (musicSelectRow) components.push(musicSelectRow);
+if (entertainmentSelectRow) components.push(entertainmentSelectRow);
+
+return {
   embeds: [embed],
   files,
-  components: musicSelectRow
-    ? [categoryControls(category), musicSelectRow]
-    : [categoryControls(category)]
+  components
 };
     }
 
@@ -314,8 +329,23 @@ if (!btn.isStringSelectMenu()) {
           user.enabledCategories.push('other music');
         }
       }
+      else if (btn.isStringSelectMenu() && btn.customId === 'start:entertainmentfilter') {
+  const selected = btn.values?.[0];
+  const user = await User.findOne({ userId: interaction.user.id })
+    || new User({ userId: interaction.user.id });
+
+  if (selected === 'disable') {
+    user.enabledCategories = user.enabledCategories?.filter(c => c !== 'asia media') || [];
+  } else if (selected === 'enable') {
+    if (!user.enabledCategories.includes('asia media')) {
+      user.enabledCategories.push('asia media');
+    }
+  }
+
+      }
 
       await user.save();
+    
 
       // ✅ Edit the CURRENT embed to include a status line
       // Rebuild the category page so description doesn't stack
@@ -339,11 +369,17 @@ const hasBaseCategory = enabled.some(cat =>
 );
 
 // Prevent "other music" being the only category
+const nonSpecial = enabled.filter(c => c !== 'specials');
+
 const onlyOtherMusic =
   enabled.includes('other music') &&
-  enabled.filter(c => c !== 'specials').length === 1;
+  nonSpecial.length === 1;
 
-if (!hasBaseCategory || onlyOtherMusic) {
+const onlyAsiaMedia =
+  enabled.includes('asia media') &&
+  nonSpecial.length === 1;
+
+if (!hasBaseCategory || onlyOtherMusic || onlyAsiaMedia) {
   return btn.followUp({
     content:
       'You must enable at least **one main category** before finishing:\n' +
@@ -351,7 +387,8 @@ if (!hasBaseCategory || onlyOtherMusic) {
       '> Video Games\n' +
       '> Animanga\n' +
       '> Music\n\n' +
-      '`Other Music` cannot be selected alone.',
+      '`Other Music` cannot be selected alone.\n' +
+      '`Asia Media` cannot be selected alone.',
     ephemeral: true,
   });
 }

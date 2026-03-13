@@ -63,6 +63,7 @@ module.exports = {
           { name: 'Monthlies', value: 'monthlies' },
           { name: 'Events', value: 'events' },
           { name: 'Other Music', value: 'other music' },
+          { name: 'Asia Media', value: 'asia media' },
         ))
 
     )
