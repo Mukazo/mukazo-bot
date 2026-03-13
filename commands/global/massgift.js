@@ -58,7 +58,7 @@ module.exports = {
         .setRequired(true)
     )
     .addStringOption(o =>
-      o.setName('mode')
+      o.setName('type')
         .setDescription('Gift all copies or only duplicates')
         .setRequired(true)
         .addChoices(
@@ -97,7 +97,7 @@ module.exports = {
     async execute(interaction) {
     const giver = interaction.user;
     const target = interaction.options.getUser('user');
-    const mode = interaction.options.getString('mode');
+    const mode = interaction.options.getString('type');
 
     if (!target || target.bot || target.id === giver.id) {
       return interaction.editReply({
@@ -252,7 +252,7 @@ function buildPreviewEmbed(pageIndex) {
     .setDescription([
       `**From:** <@${giver.id}>`,
       `**To:** <@${target.id}>`,
-      `**Mode:** ${mode === 'duplicates' ? 'Duplicates' : 'All'}`,
+      `**Type:** ${mode === 'duplicates' ? 'Duplicates' : 'All'}`,
       '',
       `**Unique:** ${totalCodesMoved}`,
       `**Copies:** ${totalCopies}`,
@@ -425,7 +425,7 @@ const previewMsg = await interaction.editReply({
     });
 
     return new EmbedBuilder()
-      .setThumbnail(target.id.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setTitle(`┈  Mass Gift to ${target.username}  ┈`)
       .setDescription(lines.join('\n') || 'Nothing to show.')
       .addFields(
