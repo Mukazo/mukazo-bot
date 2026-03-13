@@ -300,63 +300,70 @@ if (!btn.isStringSelectMenu()) {
   await btn.deferUpdate();
 }
 
-      if (btn.customId === 'continue') page = 0;
-      if (btn.customId === 'prev') page--;
-      if (btn.customId === 'next') page++;
+        if (btn.customId === 'continue') page = 0;
+  if (btn.customId === 'prev') page--;
+  if (btn.customId === 'next') page++;
 
-      if (btn.customId.startsWith('toggle:')) {
-        const category = btn.customId.split(':')[1];
-        const user = await User.findOne({ userId: interaction.user.id }).lean();
+  if (btn.customId.startsWith('toggle:')) {
+    const category = btn.customId.split(':')[1];
+    const user = await User.findOne({ userId: interaction.user.id }).lean();
 
-        const enabled = user.enabledCategories.includes(category);
+    const enabled = user.enabledCategories.includes(category);
 
-        await User.updateOne(
-          { userId: interaction.user.id },
-          enabled
-            ? { $pull: { enabledCategories: category } }
-            : { $addToSet: { enabledCategories: category } }
-        );
+    await User.updateOne(
+      { userId: interaction.user.id },
+      enabled
+        ? { $pull: { enabledCategories: category } }
+        : { $addToSet: { enabledCategories: category } }
+    );
 
-      } if (btn.isStringSelectMenu() && btn.customId === 'start:musicfilter') {
-      const selected = btn.values?.[0];
-      const user = await User.findOne({ userId: interaction.user.id }) 
-  || new User({ userId: interaction.user.id });
+  } else if (btn.isStringSelectMenu() && btn.customId === 'start:musicfilter') {
+    const selected = btn.values?.[0];
+    const user = await User.findOne({ userId: interaction.user.id })
+      || new User({ userId: interaction.user.id });
 
-      if (selected === 'disable') {
-        user.enabledCategories = user.enabledCategories?.filter(c => c !== 'other music') || [];
-      } else if (selected === 'enable') {
-        if (!user.enabledCategories.includes('other music')) {
-          user.enabledCategories.push('other music');
-        }
+    if (selected === 'disable') {
+      user.enabledCategories = user.enabledCategories?.filter(c => c !== 'other music') || [];
+    } else if (selected === 'enable') {
+      if (!user.enabledCategories.includes('other music')) {
+        user.enabledCategories.push('other music');
       }
-      else if (btn.isStringSelectMenu() && btn.customId === 'start:entertainmentfilter') {
-  const selected = btn.values?.[0];
-  const user = await User.findOne({ userId: interaction.user.id })
-    || new User({ userId: interaction.user.id });
-
-  if (selected === 'disable') {
-    user.enabledCategories = user.enabledCategories?.filter(c => c !== 'asia media') || [];
-  } else if (selected === 'enable') {
-    if (!user.enabledCategories.includes('asia media')) {
-      user.enabledCategories.push('asia media');
     }
-  }
 
+    await user.save();
+
+    const category = SELECTABLE_CATEGORIES[page];
+    const data = await buildCategoryPage(category);
+
+    return btn.update({
+      embeds: data.embeds,
+      components: data.components,
+      files: data.files
+    });
+
+  } else if (btn.isStringSelectMenu() && btn.customId === 'start:entertainmentfilter') {
+    const selected = btn.values?.[0];
+    const user = await User.findOne({ userId: interaction.user.id })
+      || new User({ userId: interaction.user.id });
+
+    if (selected === 'disable') {
+      user.enabledCategories = user.enabledCategories?.filter(c => c !== 'asia media') || [];
+    } else if (selected === 'enable') {
+      if (!user.enabledCategories.includes('asia media')) {
+        user.enabledCategories.push('asia media');
       }
+    }
 
-      await user.save();
-    
+    await user.save();
 
-      // ✅ Edit the CURRENT embed to include a status line
-      // Rebuild the category page so description doesn't stack
-const category = SELECTABLE_CATEGORIES[page];
-const data = await buildCategoryPage(category);
+    const category = SELECTABLE_CATEGORIES[page];
+    const data = await buildCategoryPage(category);
 
-return btn.update({
-  embeds: data.embeds,
-  components: data.components,
-  files: data.files
-});
+    return btn.update({
+      embeds: data.embeds,
+      components: data.components,
+      files: data.files
+    });
     }
 
       if (btn.customId === 'finish') {

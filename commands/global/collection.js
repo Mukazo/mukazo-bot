@@ -33,9 +33,16 @@ module.exports = {
     const groupFilter = groupInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
     const nameFilter = nameInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
     const eraFilter = eraInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+    if (!groupFilter.length && !nameFilter.length && !eraFilter.length) {
+  return interaction.editReply({
+    content: 'You must provide at least one filter: **group**, **name**, or **era**.',
+    ephemeral: true
+  });
+}
     const versionFilter = versionInput
   ? versionInput.split(',').map(v => Number(v.trim())).filter(n => Number.isFinite(n))
   : [1, 2, 3, 4, 5];
+  
 
     const [allCards, ownedCards] = await Promise.all([
       Card.find({}).lean(),
@@ -110,22 +117,24 @@ module.exports = {
     };
 
     const getEmbed = () => {
-      const total = filtered.length;
-      const owned = filtered.filter(c => ownedMap.has(c.cardCode)).length;
+  const total = filtered.length;
+  const owned = filtered.filter(c => ownedMap.has(c.cardCode)).length;
+  const totalCopies = filtered.reduce((sum, c) => sum + (ownedMap.get(c.cardCode) || 0), 0);
 
-      return new EmbedBuilder()
-        .setDescription([
-         `### ۰ ${interaction.user}'s Collection`,
-         ` **Ი︵𐑼** __Owned:__ ${owned} / __Available:__ ${total}`,
-          '',
-          groupInput && `**Groups:** ${groupInput}`,
-          nameInput && `**Names:** ${nameInput}`,
-          eraInput && `**Eras:** ${eraInput}`,
-          versionInput && `**Versions:** ${versionInput}`,
-        ].filter(Boolean).join('\n'))
-        .setImage('attachment://collection.png')
-        .setFooter({ text: `Page ${page + 1} / ${Math.ceil(filtered.length / PAGE_SIZE)}` });
-    };
+  return new EmbedBuilder()
+    .setDescription([
+      `### ۰ ${interaction.user}'s Collection`,
+      ` **Ი︵𐑼** __Owned:__ ${owned} / __Available:__ ${total}`,
+      `<:space:1455504212069842956><:space:1455504212069842956>__Total Copies:__ ${totalCopies}`,
+      '',
+      groupInput && `**Groups:** ${groupInput}`,
+      nameInput && `**Names:** ${nameInput}`,
+      eraInput && `**Eras:** ${eraInput}`,
+      versionInput && `**Versions:** ${versionInput}`,
+    ].filter(Boolean).join('\n'))
+    .setImage('attachment://collection.png')
+    .setFooter({ text: `Page ${page + 1} / ${Math.ceil(filtered.length / PAGE_SIZE)}` });
+};
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('prev').setLabel(' • Previous').setStyle(ButtonStyle.Secondary),
