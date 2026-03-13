@@ -160,7 +160,7 @@ const pageResults = results.slice(0, PAGE_SIZE);
     const description = [
   ...pageResults.map(r => {
     const emoji = r.card.emoji || generateVersion(r.card);
-    return `${emoji} **${r.card.group}** ${r.card.name}\n\`${r.card.cardCode}\` × **${r.qty}**`;
+    return `• ${emoji} **${r.card.group}** ${r.card.name}\n> \`${r.card.cardCode}\` × **${r.qty}**`;
   }),
   wirlies > 0 ? `# + <:Wirlies:1455924065972785375> ${wirlies.toLocaleString()}` : null,
 ].filter(Boolean).join('\n');

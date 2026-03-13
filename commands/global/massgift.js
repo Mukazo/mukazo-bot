@@ -62,8 +62,8 @@ module.exports = {
         .setDescription('Gift all copies or only duplicates')
         .setRequired(true)
         .addChoices(
-          { name: 'All copies', value: 'all' },
-          { name: 'Duplicates only', value: 'duplicates' }
+          { name: 'All', value: 'all' },
+          { name: 'Duplicates', value: 'duplicates' }
         )
     )
     .addStringOption(o =>
@@ -252,11 +252,11 @@ function buildPreviewEmbed(pageIndex) {
     .setDescription([
       `**From:** <@${giver.id}>`,
       `**To:** <@${target.id}>`,
-      `**Mode:** ${mode === 'duplicates' ? 'Duplicates only' : 'All copies'}`,
+      `**Mode:** ${mode === 'duplicates' ? 'Duplicates' : 'All'}`,
       '',
-      `**Card Codes:** ${totalCodesMoved}`,
-      `**Total Copies:** ${totalCopies}`,
-      `**Version Total:** ${totalVersionValue} / ${MAX_VERSION_TOTAL}`,
+      `**Unique:** ${totalCodesMoved}`,
+      `**Copies:** ${totalCopies}`,
+      `**Total:** ${totalVersionValue} / ${MAX_VERSION_TOTAL}`,
       hitCap ? '**Note:** The automatic version-total cap was reached.' : null,
       '',
       '### Cards to Gift',
@@ -425,13 +425,13 @@ const previewMsg = await interaction.editReply({
     });
 
     return new EmbedBuilder()
-      .setColor('#2f3136')
-      .setTitle(`Mass Gift to ${target.username}`)
+      .setThumbnail(target.id.displayAvatarURL({ dynamic: true }))
+      .setTitle(`┈  Mass Gift to ${target.username}  ┈`)
       .setDescription(lines.join('\n') || 'Nothing to show.')
       .addFields(
-        { name: 'Card Codes', value: `${giftedDetailed.length}`, inline: true },
-        { name: 'Total Copies', value: `${totalCopies}`, inline: true },
-        { name: 'Version Total', value: `${totalVersionValue} / ${MAX_VERSION_TOTAL}`, inline: true }
+        { name: 'Unique', value: `${giftedDetailed.length}`, inline: true },
+        { name: 'Copies', value: `${totalCopies}`, inline: true },
+        { name: 'Total', value: `${totalVersionValue} / ${MAX_VERSION_TOTAL}`, inline: true }
       )
       .setFooter({
         text: `Page ${pageIndex + 1} / ${totalPages}${hitCap ? ' • Hit automatic cap' : ''}`,

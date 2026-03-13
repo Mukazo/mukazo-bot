@@ -11,7 +11,7 @@ const PAGE_SIZE = 8;
 
 function formatInventoryLine(card, qty) {
   const emoji = card.emoji || generateVersion(card);
-  return `${emoji} **${card.group}** __${card.name}__ ${card.era ? `${card.era}` : ''}\n ×**${qty}** ✮ \`${card.cardCode}\``;
+  return `• ${emoji} **${card.group}** __${card.name}__ ${card.era ? `${card.era}` : ''}\n> ×**${qty}** ✮ \`${card.cardCode}\``;
 }
 
 async function renderCardCanvas(cards) {
