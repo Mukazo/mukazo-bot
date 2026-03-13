@@ -218,37 +218,99 @@ module.exports = {
     }
 
     const totalCodesMoved = gifts.length;
-    const previewEmbed = new EmbedBuilder()
-      .setColor(0xED4245)
-      .setTitle('Confirm Mass Gift?')
-      .setDescription([
-        `**From:** <@${giver.id}>`,
-        `**To:** <@${target.id}>`,
-        `**Mode:** ${mode === 'duplicates' ? 'Duplicates only' : 'All copies'}`,
-        '',
-        `**Card Codes:** ${totalCodesMoved}`,
-        `**Total Copies:** ${totalCopies}`,
-        `**Version Total:** ${totalVersionValue} / ${MAX_VERSION_TOTAL}`,
-        hitCap ? '\n**Note:** The automatic version-total cap was reached.' : '',
-        '',
-        'This action cannot be undone.'
-      ].filter(Boolean).join('\n'));
 
-    const confirmRow = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId('massgift_confirm')
-        .setLabel('Confirm')
-        .setStyle(ButtonStyle.Danger),
-      new ButtonBuilder()
-        .setCustomId('massgift_cancel')
-        .setLabel('Cancel')
-        .setStyle(ButtonStyle.Secondary)
-    );
+const previewDetailed = gifts
+  .map(g => {
+    const card = cardMap.get(g.cardCode);
+    if (!card) return null;
 
-    const previewMsg = await interaction.editReply({
-      embeds: [previewEmbed],
-      components: [confirmRow],
+    return {
+      card,
+      qty: g.qty,
+    };
+  })
+  .filter(Boolean);
+
+let previewPage = 0;
+const previewTotalPages = Math.max(1, Math.ceil(previewDetailed.length / PAGE_SIZE));
+
+function buildPreviewEmbed(pageIndex) {
+  const slice = previewDetailed.slice(
+    pageIndex * PAGE_SIZE,
+    pageIndex * PAGE_SIZE + PAGE_SIZE
+  );
+
+  const lines = slice.map(g => {
+    const emoji = g.card.emoji || generateVersion(g.card);
+    const eraText = g.card.era ? ` ( ${g.card.era} )` : '';
+    return `• ${emoji} **${g.card.group}** __${g.card.name}__${eraText}\n> \`${g.card.cardCode}\` × **${g.qty}**`;
+  });
+
+  return new EmbedBuilder()
+    .setColor(0xED4245)
+    .setTitle('Confirm Mass Gift?')
+    .setDescription([
+      `**From:** <@${giver.id}>`,
+      `**To:** <@${target.id}>`,
+      `**Mode:** ${mode === 'duplicates' ? 'Duplicates only' : 'All copies'}`,
+      '',
+      `**Card Codes:** ${totalCodesMoved}`,
+      `**Total Copies:** ${totalCopies}`,
+      `**Version Total:** ${totalVersionValue} / ${MAX_VERSION_TOTAL}`,
+      hitCap ? '**Note:** The automatic version-total cap was reached.' : null,
+      '',
+      '### Cards to Gift',
+      lines.join('\n') || 'Nothing to show.',
+      '',
+      'This action cannot be undone.'
+    ].filter(Boolean).join('\n'))
+    .setFooter({
+      text: `Preview Page ${pageIndex + 1} / ${previewTotalPages}`,
     });
+}
+
+function buildPreviewRows() {
+  const navRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('massgift_preview_first')
+      .setLabel('First')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(previewPage === 0),
+    new ButtonBuilder()
+      .setCustomId('massgift_preview_prev')
+      .setLabel('Previous')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(previewPage === 0),
+    new ButtonBuilder()
+      .setCustomId('massgift_preview_next')
+      .setLabel('Next')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(previewPage >= previewTotalPages - 1),
+    new ButtonBuilder()
+      .setCustomId('massgift_preview_last')
+      .setLabel('Last')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(previewPage >= previewTotalPages - 1)
+  );
+
+  const confirmRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('massgift_confirm')
+      .setLabel('Confirm')
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId('massgift_cancel')
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Secondary)
+  );
+
+  return previewTotalPages > 1 ? [navRow, confirmRow] : [confirmRow];
+}
+
+const previewMsg = await interaction.editReply({
+  embeds: [buildPreviewEmbed(previewPage)],
+  components: buildPreviewRows(),
+});
 
     const confirmCollector = previewMsg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -258,167 +320,193 @@ module.exports = {
     let confirmed = false;
 
     confirmCollector.on('collect', async btn => {
-      if (btn.user.id !== interaction.user.id) {
-        return btn.reply({
-          content: 'These buttons are not for you.',
-          ephemeral: true,
-        });
-      }
+  if (btn.user.id !== interaction.user.id) {
+    return btn.reply({
+      content: 'These buttons are not for you.',
+      ephemeral: true,
+    });
+  }
 
-      if (btn.customId === 'massgift_cancel') {
-        confirmCollector.stop('cancelled');
-        return btn.update({
-          content: 'Mass gift cancelled.',
-          embeds: [],
-          components: [],
-        });
-      }
+  if (btn.customId === 'massgift_cancel') {
+    confirmCollector.stop('cancelled');
+    return btn.update({
+      content: 'Mass gift cancelled.',
+      embeds: [],
+      components: [],
+    });
+  }
 
-      if (btn.customId !== 'massgift_confirm') return;
+  if (btn.customId === 'massgift_preview_first') {
+    previewPage = 0;
+    return btn.update({
+      embeds: [buildPreviewEmbed(previewPage)],
+      components: buildPreviewRows(),
+    });
+  }
 
-      confirmed = true;
-      confirmCollector.stop('confirmed');
+  if (btn.customId === 'massgift_preview_prev') {
+    previewPage = Math.max(0, previewPage - 1);
+    return btn.update({
+      embeds: [buildPreviewEmbed(previewPage)],
+      components: buildPreviewRows(),
+    });
+  }
 
-      await btn.deferUpdate();
+  if (btn.customId === 'massgift_preview_next') {
+    previewPage = Math.min(previewTotalPages - 1, previewPage + 1);
+    return btn.update({
+      embeds: [buildPreviewEmbed(previewPage)],
+      components: buildPreviewRows(),
+    });
+  }
 
-      const result = await enqueueInteraction('gift', {
-        from: giver.id,
-        to: target.id,
-        cards: gifts,
-        wirlies: 0,
-        keys: 0,
-        auth: false,
-      });
+  if (btn.customId === 'massgift_preview_last') {
+    previewPage = previewTotalPages - 1;
+    return btn.update({
+      embeds: [buildPreviewEmbed(previewPage)],
+      components: buildPreviewRows(),
+    });
+  }
 
-      if (!result?.cards?.length) {
-        return interaction.editReply({
-          content: 'No cards were successfully gifted.',
-          embeds: [],
-          components: [],
-        });
-      }
-      const resultMap = new Map(result.cards.map(r => [r.cardCode, r]));
-      const giftedDetailed = gifts
-        .map(g => {
-          const card = cardMap.get(g.cardCode);
-          const workerResult = resultMap.get(g.cardCode);
-          if (!card || !workerResult) return null;
+  if (btn.customId !== 'massgift_confirm') return;
 
-          return {
-            card,
-            qty: workerResult.qty,
-            total: workerResult.total,
-          };
-        })
-        .filter(Boolean);
+  confirmed = true;
+  confirmCollector.stop('confirmed');
 
-      let page = 0;
-      const totalPages = Math.max(1, Math.ceil(giftedDetailed.length / PAGE_SIZE));
+  await btn.deferUpdate();
 
-      function buildEmbed(pageIndex) {
-        const slice = giftedDetailed.slice(
-          pageIndex * PAGE_SIZE,
-          pageIndex * PAGE_SIZE + PAGE_SIZE
-        );
+  const result = await enqueueInteraction('gift', {
+    from: giver.id,
+    to: target.id,
+    cards: gifts,
+    wirlies: 0,
+    keys: 0,
+    auth: false,
+  });
 
-        const lines = slice.map(g => {
-          const emoji = g.card.emoji || generateVersion(g.card);
-          const eraText = g.card.era ? ` ( ${g.card.era} )` : '';
-          return `• ${emoji} **${g.card.group}** __${g.card.name}__${eraText}\n> \`${g.card.cardCode}\` × **${g.qty}** [Copies: ${g.total}]`;
-        });
+  const workerCards = Array.isArray(result?.cards) ? result.cards : [];
+  const resultMap = new Map(workerCards.map(r => [r.cardCode, r]));
 
-        return new EmbedBuilder()
-          .setColor('#2f3136')
-          .setTitle(`Mass Gift to ${target.username}`)
-          .setDescription(lines.join('\n') || 'Nothing to show.')
-          .addFields(
-            { name: 'Card Codes', value: `${giftedDetailed.length}`, inline: true },
-            { name: 'Total Copies', value: `${totalCopies}`, inline: true },
-            { name: 'Version Total', value: `${totalVersionValue} / ${MAX_VERSION_TOTAL}`, inline: true }
-          )
-          .setFooter({
-            text: `Page ${pageIndex + 1} / ${totalPages}${hitCap ? ' • Hit automatic cap' : ''}`,
-          });
-      }
+  const giftedDetailed = gifts
+    .map(g => {
+      const card = cardMap.get(g.cardCode);
+      if (!card) return null;
 
-      function buildRow() {
-        return new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId('massgift:first')
-            .setLabel('First')
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(page === 0),
-          new ButtonBuilder()
-            .setCustomId('massgift:prev')
-            .setLabel('Previous')
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(page === 0),
-          new ButtonBuilder()
-            .setCustomId('massgift:next')
-            .setLabel('Next')
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(page >= totalPages - 1),
-          new ButtonBuilder()
-            .setCustomId('massgift:last')
-            .setLabel('Last')
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(page >= totalPages - 1)
-        );
-      }
-      const resultMsg = await interaction.editReply({
-        content: null,
-        embeds: [buildEmbed(page)],
-        components: totalPages > 1 ? [buildRow()] : [],
-      });
+      const workerResult = resultMap.get(g.cardCode);
 
-      await interaction.followUp({
-        content: `Mass gift sent to <@${target.id}>!`,
-        allowedMentions: { users: [target.id] },
-      });
+      return {
+        card,
+        qty: workerResult?.qty ?? g.qty,
+        total: workerResult?.total ?? null,
+      };
+    })
+    .filter(Boolean);
 
-      if (totalPages <= 1) return;
+  if (!giftedDetailed.length) {
+    return interaction.editReply({
+      content: 'Mass gift completed, but no gift summary could be built.',
+      embeds: [],
+      components: [],
+    });
+  }
+  let page = 0;
+  const totalPages = Math.max(1, Math.ceil(giftedDetailed.length / PAGE_SIZE));
 
-      const pageCollector = resultMsg.createMessageComponentCollector({
-        componentType: ComponentType.Button,
-        time: 120000,
-      });
+  function buildEmbed(pageIndex) {
+    const slice = giftedDetailed.slice(
+      pageIndex * PAGE_SIZE,
+      pageIndex * PAGE_SIZE + PAGE_SIZE
+    );
 
-      pageCollector.on('collect', async pageBtn => {
-        if (pageBtn.user.id !== interaction.user.id) {
-          return pageBtn.reply({
-            content: 'These buttons are not for you.',
-            ephemeral: true,
-          });
-        }
-
-        await pageBtn.deferUpdate();
-
-        if (pageBtn.customId === 'massgift:first') page = 0;
-        if (pageBtn.customId === 'massgift:prev') page = Math.max(0, page - 1);
-        if (pageBtn.customId === 'massgift:next') page = Math.min(totalPages - 1, page + 1);
-        if (pageBtn.customId === 'massgift:last') page = totalPages - 1;
-
-        await interaction.editReply({
-          embeds: [buildEmbed(page)],
-          components: [buildRow()],
-        }).catch(() => {});
-      });
-
-      pageCollector.on('end', async () => {
-        await interaction.editReply({
-          components: [],
-        }).catch(() => {});
-      });
+    const lines = slice.map(g => {
+      const emoji = g.card.emoji || generateVersion(g.card);
+      const eraText = g.card.era ? ` ( ${g.card.era} )` : '';
+      return `• ${emoji} **${g.card.group}** __${g.card.name}__${eraText}\n> \`${g.card.cardCode}\` × **${g.qty}**${g.total != null ? ` [Copies: ${g.total}]` : ''}`;
     });
 
-    confirmCollector.on('end', async (_, reason) => {
-      if (!confirmed && reason !== 'cancelled') {
-        await interaction.editReply({
-          content: 'Mass gift expired.',
-          embeds: [],
-          components: [],
-        }).catch(() => {});
-      }
-    });
+    return new EmbedBuilder()
+      .setColor('#2f3136')
+      .setTitle(`Mass Gift to ${target.username}`)
+      .setDescription(lines.join('\n') || 'Nothing to show.')
+      .addFields(
+        { name: 'Card Codes', value: `${giftedDetailed.length}`, inline: true },
+        { name: 'Total Copies', value: `${totalCopies}`, inline: true },
+        { name: 'Version Total', value: `${totalVersionValue} / ${MAX_VERSION_TOTAL}`, inline: true }
+      )
+      .setFooter({
+        text: `Page ${pageIndex + 1} / ${totalPages}${hitCap ? ' • Hit automatic cap' : ''}`,
+      });
+  }
+
+  function buildRow() {
+    return new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('massgift:first')
+        .setLabel('First')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page === 0),
+      new ButtonBuilder()
+        .setCustomId('massgift:prev')
+        .setLabel('Previous')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page === 0),
+      new ButtonBuilder()
+        .setCustomId('massgift:next')
+        .setLabel('Next')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page >= totalPages - 1),
+      new ButtonBuilder()
+        .setCustomId('massgift:last')
+        .setLabel('Last')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page >= totalPages - 1)
+    );
+  }
+
+  const resultMsg = await interaction.editReply({
+    content: null,
+    embeds: [buildEmbed(page)],
+    components: totalPages > 1 ? [buildRow()] : [],
+  });
+
+  await interaction.followUp({
+    content: `Mass gift sent to <@${target.id}>!`,
+    allowedMentions: { users: [target.id] },
+  });
+
+  if (totalPages <= 1) return;
+
+  const pageCollector = resultMsg.createMessageComponentCollector({
+    componentType: ComponentType.Button,
+    time: 120000,
+  });
+
+  pageCollector.on('collect', async pageBtn => {
+    if (pageBtn.user.id !== interaction.user.id) {
+      return pageBtn.reply({
+        content: 'These buttons are not for you.',
+        ephemeral: true,
+      });
+    }
+
+    await pageBtn.deferUpdate();
+
+    if (pageBtn.customId === 'massgift:first') page = 0;
+    if (pageBtn.customId === 'massgift:prev') page = Math.max(0, page - 1);
+    if (pageBtn.customId === 'massgift:next') page = Math.min(totalPages - 1, page + 1);
+    if (pageBtn.customId === 'massgift:last') page = totalPages - 1;
+
+    await interaction.editReply({
+      embeds: [buildEmbed(page)],
+      components: [buildRow()],
+    }).catch(() => {});
+  });
+
+  pageCollector.on('end', async () => {
+    await interaction.editReply({
+      components: [],
+    }).catch(() => {});
+  });
+});
   },
 };
