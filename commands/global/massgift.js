@@ -426,7 +426,7 @@ const previewMsg = await interaction.editReply({
 
     return new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-      .setTitle(`┈  Mass Gift to ${target.username}  ┈`)
+      .setTitle(`<:space:1455504212069842956><:space:1455504212069842956>Mass Gift to ${target.username}`)
       .setDescription(lines.join('\n') || 'Nothing to show.')
       .addFields(
         { name: 'Unique', value: `${giftedDetailed.length}`, inline: true },
@@ -470,7 +470,7 @@ const previewMsg = await interaction.editReply({
   });
 
   await interaction.followUp({
-    content: `Mass gift sent to <@${target.id}>!`,
+    content: `-# Massgift sent to <@${target.id}>!`,
     allowedMentions: { users: [target.id] },
   });
 
