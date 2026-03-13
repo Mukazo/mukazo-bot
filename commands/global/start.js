@@ -50,7 +50,7 @@ const CATEGORY_DESCRIPTIONS = {
   music: '◞⸝⸝◟Asia Region Groups, Soloists, etc\n> Want to include Other Regions Music? Select **Yes** in the select menu below!',
   animanga: '◞⸝⸝◟Animes, Mangas, Donghuas, Manhwas, etc',
   'video games': '◞⸝⸝◟Shooter, Story, Gacha, etc',
-  entertainment: '◞⸝⸝◟Series, Movies, Dramas, etc',
+  entertainment: '◞⸝⸝◟Series, Movies, Dramas, etc\n> Want to include Asia Media? Select **Yes** in the select menu below!',
 };
 
 // How many random series to show
@@ -317,7 +317,7 @@ if (!btn.isStringSelectMenu()) {
             : { $addToSet: { enabledCategories: category } }
         );
 
-      } else if (btn.isStringSelectMenu() && btn.customId === 'start:musicfilter') {
+      } if (btn.isStringSelectMenu() && btn.customId === 'start:musicfilter') {
       const selected = btn.values?.[0];
       const user = await User.findOne({ userId: interaction.user.id }) 
   || new User({ userId: interaction.user.id });
