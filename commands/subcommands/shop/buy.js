@@ -34,6 +34,8 @@ if (pack === 'selective') {
 
     const user = await User.findOne({ userId });
     if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
+    const blockedGroups = (user.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
+const blockedNames = (user.blockedPulls?.names || []).map(v => String(v).toLowerCase());
 
     const { cost, keys, cards: cardsPerPack } = PACK_CONFIG[pack];
     const totalCost = cost * quantity;
@@ -123,9 +125,19 @@ if (!pool.length && pack === 'selective' && user.enabledCategories?.length) {
           { categoryalias: { $in: enabled } }
         ]
       },
-      // Exclude cards with alias 'other music' if not allowed
       ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
-      ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
+      ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
+      ...(blockedGroups.length
+        ? [{
+            group: { $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i')) }
+          }]
+        : []),
+      ...(blockedNames.length
+        ? [{
+            name: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) },
+            namealias: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) }
+          }]
+        : [])
     ]
   }).lean();
 }

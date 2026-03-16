@@ -109,6 +109,8 @@ if (!user) {
        CARD POOLS
     =========================== */
     const enabled = user.enabledCategories;
+    const blockedGroups = (user.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
+const blockedNames = (user.blockedPulls?.names || []).map(v => String(v).toLowerCase());
 
 const v5Pool = await Card.find({
   active: true,
@@ -127,10 +129,10 @@ const v5Pool = await Card.find({
 }).lean();
 
     const v1to4Pool = await Card.find({
-      active: true,
-      version: { $gte: 1, $lte: 4 },
-      batch: null,
-      $and: [
+  active: true,
+  version: { $gte: 1, $lte: 4 },
+  batch: null,
+  $and: [
     {
       $or: [
         { category: { $in: enabled } },
@@ -138,9 +140,20 @@ const v5Pool = await Card.find({
       ]
     },
     ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
-    ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
+    ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
+    ...(blockedGroups.length
+      ? [{
+          group: { $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i')) }
+        }]
+      : []),
+    ...(blockedNames.length
+      ? [{
+          name: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) },
+          namealias: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) }
+        }]
+      : [])
   ]
-    }).lean();
+}).lean();
 
     if (v5Pool.length < 1 || v1to4Pool.length < 2) {
       return interaction.editReply({

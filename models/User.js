@@ -38,6 +38,16 @@ brewData: {
   used: { type: Number, default: 0 },
   month: { type: Number, default: new Date().getMonth() }
 },
+blockedPulls: {
+  groups: {
+    type: [String],
+    default: []
+  },
+  names: {
+    type: [String],
+    default: []
+  }
+},
 reminderPreferences: {
   type: Map,
   of: String, // 'off' | 'dm' | 'channel'
