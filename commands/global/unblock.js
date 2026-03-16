@@ -9,17 +9,18 @@ function parseCsv(input) {
 }
 
 module.exports = {
+  ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('unblock')
-    .setDescription('Remove blocked groups, names, or exact group+name pairs from V1–V4 generation.')
+    .setDescription('Remove blocked groups, names, or exact group+name pairs.')
     .addStringOption(option =>
       option.setName('groups')
-        .setDescription('Comma-separated blocked groups to remove')
+        .setDescription('Comma-separated blocked groups')
         .setRequired(false)
     )
     .addStringOption(option =>
       option.setName('names')
-        .setDescription('Comma-separated blocked names to remove')
+        .setDescription('Comma-separated blocked names')
         .setRequired(false)
     ),
 
@@ -47,15 +48,14 @@ module.exports = {
       await user.save();
 
       const embed = new EmbedBuilder()
-        .setColor('#2f3136')
         .setDescription([
-          '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings Cleared',
+          '## Blocked Pull Settings Cleared',
           '',
           '> **Groups:** None',
           '> **Names:** None',
           '> **Pairs:** None',
           '',
-          '_All V1–V4 block settings have been removed._'
+          '_Blocked Values only apply to V1-V4 cards._'
         ].join('\n'));
 
       return interaction.editReply({ embeds: [embed], ephemeral: true });
@@ -87,9 +87,8 @@ module.exports = {
     await user.save();
 
     const embed = new EmbedBuilder()
-      .setColor('#2f3136')
       .setDescription([
-        '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings Updated',
+        '## Blocked Pull Settings Updated',
         '',
         `> **Groups:** ${user.blockedPulls.groups.length ? user.blockedPulls.groups.join(', ') : 'None'}`,
         `> **Names:** ${user.blockedPulls.names.length ? user.blockedPulls.names.join(', ') : 'None'}`,
@@ -99,7 +98,7 @@ module.exports = {
         `> **Names Removed:** ${removedNames.length ? removedNames.join(', ') : 'None'}`,
         `> **Pairs Removed:** ${removedPairs.length ? removedPairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
         '',
-        '_These blocks only affect Version 1–4 generation._'
+        '_Blocked Values only apply to V1-V4 cards._'
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });

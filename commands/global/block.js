@@ -10,17 +10,18 @@ function parseCsv(input, limit = 5) {
 }
 
 module.exports = {
+  ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('block')
-    .setDescription('Block up to 5 groups, names, or exact group+name pairs from V1–V4 generation.')
+    .setDescription('Block up to 5 groups, names, or group+name pairs.')
     .addStringOption(option =>
       option.setName('groups')
-        .setDescription('Comma-separated groups to block (max 5 total)')
+        .setDescription('Comma-separated groups to block')
         .setRequired(false)
     )
     .addStringOption(option =>
       option.setName('names')
-        .setDescription('Comma-separated names to block (max 5 total)')
+        .setDescription('Comma-separated names to block')
         .setRequired(false)
     ),
 
@@ -42,15 +43,14 @@ module.exports = {
 
     if (!newGroups.length && !newNames.length) {
       const embed = new EmbedBuilder()
-        .setColor('#2f3136')
         .setDescription([
-          '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings',
+          '## Blocked Settings',
           '',
           `> **Groups:** ${currentGroups.length ? currentGroups.join(', ') : 'None'}`,
           `> **Names:** ${currentNames.length ? currentNames.join(', ') : 'None'}`,
           `> **Pairs:** ${currentPairs.length ? currentPairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
           '',
-          '_These blocks only affect Version 1–4 generation._'
+          '_Blocked Values only apply to V1-V4 cards._'
         ].join('\n'));
 
       return interaction.editReply({ embeds: [embed], ephemeral: true });
@@ -110,9 +110,8 @@ module.exports = {
     await user.save();
 
     const embed = new EmbedBuilder()
-      .setColor('#2f3136')
       .setDescription([
-        '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings Updated',
+        '## Blocked Settings Updated',
         '',
         `> **Groups:** ${user.blockedPulls.groups.length ? user.blockedPulls.groups.join(', ') : 'None'}`,
         `> **Names:** ${user.blockedPulls.names.length ? user.blockedPulls.names.join(', ') : 'None'}`,
@@ -122,7 +121,7 @@ module.exports = {
         `> **Names Added:** ${addedNames.length ? addedNames.join(', ') : 'None'}`,
         `> **Pairs Added:** ${addedPairs.length ? addedPairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
         '',
-        '_These blocks only affect Version 1–4 generation._'
+        '_Blocked Values only apply to V1-V4 cards._'
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });
