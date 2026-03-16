@@ -49,7 +49,7 @@ module.exports = {
 
       const embed = new EmbedBuilder()
         .setDescription([
-          '## Blocked Pull Settings Cleared',
+          '## Blocked Settings Cleared',
           '',
           '> **Groups:** None',
           '> **Names:** None',
@@ -88,7 +88,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setDescription([
-        '## Blocked Pull Settings Updated',
+        '## Blocked Settings Updated',
         '',
         `> **Groups:** ${user.blockedPulls.groups.length ? user.blockedPulls.groups.join(', ') : 'None'}`,
         `> **Names:** ${user.blockedPulls.names.length ? user.blockedPulls.names.join(', ') : 'None'}`,
