@@ -9,18 +9,17 @@ function parseCsv(input) {
 }
 
 module.exports = {
-  ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('unblock')
-    .setDescription('Remove blocked groups or names')
+    .setDescription('Remove blocked groups, names, or exact group+name pairs from V1–V4 generation.')
     .addStringOption(option =>
       option.setName('groups')
-        .setDescription('Comma-separated groups to be removed')
+        .setDescription('Comma-separated blocked groups to remove')
         .setRequired(false)
     )
     .addStringOption(option =>
       option.setName('names')
-        .setDescription('Comma-separated names to be removed')
+        .setDescription('Comma-separated blocked names to remove')
         .setRequired(false)
     ),
 
@@ -29,30 +28,32 @@ module.exports = {
     const groups = parseCsv(interaction.options.getString('groups'));
     const names = parseCsv(interaction.options.getString('names'));
 
-    let user = await User.findOne({ userId });
-    if (!user) {
+    const user = await User.findOne({ userId });
+    if (!user || !user.blockedPulls) {
       return interaction.editReply({ content: 'You do not have any blocked values set.' });
     }
 
-    if (!user.blockedPulls) {
-      user.blockedPulls = { groups: [], names: [] };
-    }
+    user.blockedPulls.groups ||= [];
+    user.blockedPulls.names ||= [];
+    user.blockedPulls.pairs ||= [];
 
-    // If no input, clear everything
     if (!groups.length && !names.length) {
       user.blockedPulls = {
         groups: [],
         names: [],
+        pairs: [],
       };
 
       await user.save();
 
       const embed = new EmbedBuilder()
+        .setColor('#2f3136')
         .setDescription([
-          '## ꔫ Blocked Settings Cleared',
+          '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings Cleared',
           '',
-          '> ╰┈ **Groups:** None',
-          '> ╰┈ **Names:** None',
+          '> **Groups:** None',
+          '> **Names:** None',
+          '> **Pairs:** None',
           '',
           '_All V1–V4 block settings have been removed._'
         ].join('\n'));
@@ -60,19 +61,45 @@ module.exports = {
       return interaction.editReply({ embeds: [embed], ephemeral: true });
     }
 
-    user.blockedPulls.groups = (user.blockedPulls.groups || []).filter(g => !groups.includes(g));
-    user.blockedPulls.names = (user.blockedPulls.names || []).filter(n => !names.includes(n));
+    let removedGroups = [];
+    let removedNames = [];
+    let removedPairs = [];
+
+    // If both provided and same length, remove exact pairs
+    if (groups.length && names.length && groups.length === names.length) {
+      const pairKeysToRemove = new Set(groups.map((g, i) => `${g}:::${names[i]}`));
+
+      removedPairs = user.blockedPulls.pairs.filter(p =>
+        pairKeysToRemove.has(`${p.group}:::${p.name}`)
+      );
+
+      user.blockedPulls.pairs = user.blockedPulls.pairs.filter(p =>
+        !pairKeysToRemove.has(`${p.group}:::${p.name}`)
+      );
+    } else {
+      removedGroups = user.blockedPulls.groups.filter(g => groups.includes(g));
+      removedNames = user.blockedPulls.names.filter(n => names.includes(n));
+
+      user.blockedPulls.groups = user.blockedPulls.groups.filter(g => !groups.includes(g));
+      user.blockedPulls.names = user.blockedPulls.names.filter(n => !names.includes(n));
+    }
 
     await user.save();
 
     const embed = new EmbedBuilder()
+      .setColor('#2f3136')
       .setDescription([
-        '## ꔫ Blocked Settings Updated',
+        '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings Updated',
         '',
-        `> ╰┈ **Groups:** ${user.blockedPulls.groups.length ? user.blockedPulls.groups.join(', ') : 'None'}`,
-        `> ╰┈ **Names:** ${user.blockedPulls.names.length ? user.blockedPulls.names.join(', ') : 'None'}`,
+        `> **Groups:** ${user.blockedPulls.groups.length ? user.blockedPulls.groups.join(', ') : 'None'}`,
+        `> **Names:** ${user.blockedPulls.names.length ? user.blockedPulls.names.join(', ') : 'None'}`,
+        `> **Pairs:** ${user.blockedPulls.pairs.length ? user.blockedPulls.pairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
         '',
-        '_Blocked Groups & Names only apply to V1-V4 cards._'
+        `> **Groups Removed:** ${removedGroups.length ? removedGroups.join(', ') : 'None'}`,
+        `> **Names Removed:** ${removedNames.length ? removedNames.join(', ') : 'None'}`,
+        `> **Pairs Removed:** ${removedPairs.length ? removedPairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
+        '',
+        '_These blocks only affect Version 1–4 generation._'
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });

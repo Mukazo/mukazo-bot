@@ -6,8 +6,9 @@ const Batch = require('../models/Batch');
 
 async function getRandomCardFromVersion(version, userId) {
   const user = await User.findOne({ userId });
-  const blockedGroups = (user?.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
+const blockedGroups = (user?.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
 const blockedNames = (user?.blockedPulls?.names || []).map(v => String(v).toLowerCase());
+const blockedPairs = user?.blockedPulls?.pairs || [];
 
   // ✅ Step 1: Unbatch cards from released batches
   const now = new Date();
@@ -79,22 +80,39 @@ const filter = {
           }
         ]),
     ...(version >= 1 && version <= 4 && blockedGroups.length
-      ? [{
-          group: {
-            $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i'))
-          }
-        }]
-      : []),
-    ...(version >= 1 && version <= 4 && blockedNames.length
-      ? [{
+  ? [{
+      group: {
+        $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i'))
+      }
+    }]
+  : []),
+...(version >= 1 && version <= 4 && blockedNames.length
+  ? [{
+      $and: [
+        {
           name: {
             $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i'))
-          },
+          }
+        },
+        {
           namealias: {
             $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i'))
           }
-        }]
-      : [])
+        }
+      ]
+    }]
+  : []),
+...(version >= 1 && version <= 4 && blockedPairs.length
+  ? [{
+      $nor: blockedPairs.map(p => ({
+        group: new RegExp(`^${p.group}$`, 'i'),
+        $or: [
+          { name: new RegExp(`^${p.name}$`, 'i') },
+          { namealias: new RegExp(`^${p.name}$`, 'i') }
+        ]
+      }))
+    }]
+  : [])
   ]
 };
 

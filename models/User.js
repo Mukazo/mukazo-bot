@@ -46,6 +46,15 @@ blockedPulls: {
   names: {
     type: [String],
     default: []
+  },
+  pairs: {
+    type: [
+      {
+        group: String,
+        name: String
+      }
+    ],
+    default: []
   }
 },
 reminderPreferences: {

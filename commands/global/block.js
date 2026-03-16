@@ -10,18 +10,17 @@ function parseCsv(input, limit = 5) {
 }
 
 module.exports = {
-  ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('block')
-    .setDescription('Block up to 5 groups and 5 names from summoning.')
+    .setDescription('Block up to 5 groups, names, or exact group+name pairs from V1–V4 generation.')
     .addStringOption(option =>
       option.setName('groups')
-        .setDescription('Comma-separated groups to block [max 5]')
+        .setDescription('Comma-separated groups to block (max 5 total)')
         .setRequired(false)
     )
     .addStringOption(option =>
       option.setName('names')
-        .setDescription('Comma-separated names to block [max 5]')
+        .setDescription('Comma-separated names to block (max 5 total)')
         .setRequired(false)
     ),
 
@@ -31,70 +30,99 @@ module.exports = {
     const newNames = parseCsv(interaction.options.getString('names'), 5);
 
     let user = await User.findOne({ userId });
-    if (!user) {
-      user = await User.create({ userId });
-    }
+    if (!user) user = await User.create({ userId });
 
     if (!user.blockedPulls) {
-      user.blockedPulls = { groups: [], names: [] };
+      user.blockedPulls = { groups: [], names: [], pairs: [] };
     }
 
     const currentGroups = user.blockedPulls.groups || [];
     const currentNames = user.blockedPulls.names || [];
+    const currentPairs = user.blockedPulls.pairs || [];
 
-    // If no input, just show current values
     if (!newGroups.length && !newNames.length) {
       const embed = new EmbedBuilder()
+        .setColor('#2f3136')
         .setDescription([
-          '## ꔫ Blocked Settings',
+          '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings',
           '',
-          `> ╰┈ **Groups:** ${currentGroups.length ? currentGroups.join(', ') : 'None'}`,
-          `> ╰┈ **Names:** ${currentNames.length ? currentNames.join(', ') : 'None'}`,
+          `> **Groups:** ${currentGroups.length ? currentGroups.join(', ') : 'None'}`,
+          `> **Names:** ${currentNames.length ? currentNames.join(', ') : 'None'}`,
+          `> **Pairs:** ${currentPairs.length ? currentPairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
           '',
-          '_Blocked Groups & Names only apply to V1-V4 cards_'
+          '_These blocks only affect Version 1–4 generation._'
         ].join('\n'));
 
       return interaction.editReply({ embeds: [embed], ephemeral: true });
     }
 
-    const addedGroups = newGroups.filter(g => !currentGroups.includes(g));
-    const addedNames = newNames.filter(n => !currentNames.includes(n));
+    let addedGroups = [];
+    let addedNames = [];
+    let addedPairs = [];
+    // If both are provided and lengths match, treat them as exact pairs
+    if (newGroups.length && newNames.length && newGroups.length === newNames.length) {
+      const pairKeys = new Set(currentPairs.map(p => `${p.group}:::${p.name}`));
 
-    const mergedGroups = [...new Set([...currentGroups, ...newGroups])];
-    const mergedNames = [...new Set([...currentNames, ...newNames])];
+      for (let i = 0; i < newGroups.length; i++) {
+        const pair = { group: newGroups[i], name: newNames[i] };
+        const key = `${pair.group}:::${pair.name}`;
 
-    if (mergedGroups.length > 5) {
-      return interaction.editReply({
-        content: `You can only block up to **5 groups** total. You currently have ${currentGroups.length} blocked and tried to add ${addedGroups.length}.`,
-        ephemeral: true
-      });
+        if (!pairKeys.has(key)) {
+          currentPairs.push(pair);
+          addedPairs.push(pair);
+          pairKeys.add(key);
+        }
+      }
+
+      if (currentPairs.length > 5) {
+        return interaction.editReply({
+          content: 'You can only block up to **5 exact group+name pairs** total.',
+          ephemeral: true
+        });
+      }
+
+      user.blockedPulls.pairs = currentPairs;
+    } else {
+      addedGroups = newGroups.filter(g => !currentGroups.includes(g));
+      addedNames = newNames.filter(n => !currentNames.includes(n));
+
+      const mergedGroups = [...new Set([...currentGroups, ...newGroups])];
+      const mergedNames = [...new Set([...currentNames, ...newNames])];
+
+      if (mergedGroups.length > 5) {
+        return interaction.editReply({
+          content: `You can only block up to **5 groups** total. You currently have ${currentGroups.length} blocked and tried to add ${addedGroups.length}.`,
+          ephemeral: true
+        });
+      }
+
+      if (mergedNames.length > 5) {
+        return interaction.editReply({
+          content: `You can only block up to **5 names** total. You currently have ${currentNames.length} blocked and tried to add ${addedNames.length}.`,
+          ephemeral: true
+        });
+      }
+
+      user.blockedPulls.groups = mergedGroups;
+      user.blockedPulls.names = mergedNames;
     }
-
-    if (mergedNames.length > 5) {
-      return interaction.editReply({
-        content: `You can only block up to **5 names** total. You currently have ${currentNames.length} blocked and tried to add ${addedNames.length}.`,
-        ephemeral: true
-      });
-    }
-
-    user.blockedPulls = {
-      groups: mergedGroups,
-      names: mergedNames,
-    };
 
     await user.save();
 
     const embed = new EmbedBuilder()
+      .setColor('#2f3136')
       .setDescription([
-        '## ꔫ Blocked Settings Updated',
+        '## ₍ ᐢ.ˬ.ᐢ₎ Blocked Pull Settings Updated',
         '',
-        `> ╰┈ **Groups:** ${mergedGroups.length ? mergedGroups.join(', ') : 'None'}`,
-        `> ╰┈ **Names:** ${mergedNames.length ? mergedNames.join(', ') : 'None'}`,
+        `> **Groups:** ${user.blockedPulls.groups.length ? user.blockedPulls.groups.join(', ') : 'None'}`,
+        `> **Names:** ${user.blockedPulls.names.length ? user.blockedPulls.names.join(', ') : 'None'}`,
+        `> **Pairs:** ${user.blockedPulls.pairs.length ? user.blockedPulls.pairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
         '',
         `> **Groups Added:** ${addedGroups.length ? addedGroups.join(', ') : 'None'}`,
         `> **Names Added:** ${addedNames.length ? addedNames.join(', ') : 'None'}`,
+        `> **Pairs Added:** ${addedPairs.length ? addedPairs.map(p => `${p.group} + ${p.name}`).join(', ') : 'None'}`,
         '',
-        '_Blocked Groups & Names only apply to V1-V4 cards._'
+        '_These blocks only affect Version 1–4 generation._'
       ].join('\n'));
 
     return interaction.editReply({ embeds: [embed], ephemeral: true });
