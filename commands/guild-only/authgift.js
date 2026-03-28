@@ -100,10 +100,10 @@ module.exports = {
     return `${emoji} **${r.card.group}** ${r.card.name}\n\`${r.card.cardCode}\` ${sign}${r.qty}`;
   }),
   wirlies !== 0
-    ? `# ${wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(wirlies).toLocaleString()}`
+    ? `# <:Wirlies:1455924065972785375> ${wirlies > 0 ? '+' : '-'}${Math.abs(wirlies).toLocaleString()}`
     : null,
   keys !== 0
-    ? `# ${keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(keys).toLocaleString()}`
+    ? `# <:Key:1456059698582392852> ${keys > 0 ? '+' : '-'}${Math.abs(keys).toLocaleString()}`
     : null,
 ].filter(Boolean).join('\n');
 
