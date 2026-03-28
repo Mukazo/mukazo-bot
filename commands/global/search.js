@@ -195,18 +195,31 @@ module.exports = {
     });
 
     collector.on('collect', async btn => {
-      await btn.deferUpdate();
+  await btn.deferUpdate();
 
-      if (btn.customId === 'prev') page = Math.max(0, page - 1);
-      if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
+  if (btn.customId === 'prev') page = Math.max(0, page - 1);
+  if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
 
-      const { embed, files } = await renderPage();
-await message.edit({ embeds: [embed], files }).catch(() => {});
-    });
+  row.components[0].setDisabled(page === 0);
+  row.components[1].setDisabled(page === results.length - 1);
 
-    collector.on('end', async () => {
-      row.components.forEach(b => b.setDisabled(true));
-      await message.edit({ embeds: [embed], files }).catch(() => {});
-    });
+  const { embed, files } = await renderPage();
+  await message.edit({
+    embeds: [embed],
+    files,
+    components: [row],
+  }).catch(() => {});
+});
+
+collector.on('end', async () => {
+  row.components.forEach(b => b.setDisabled(true));
+
+  const { embed, files } = await renderPage();
+  await message.edit({
+    embeds: [embed],
+    files,
+    components: [row],
+  }).catch(() => {});
+});
   },
 };

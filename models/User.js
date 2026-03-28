@@ -30,6 +30,16 @@ convertLog: {
   count: { type: Number, default: 0 },
   resetAt: { type: Date }
 },
+monthlyLimitBoosts: {
+  cast: {
+    extra: { type: Number, default: 0 },
+    month: { type: Number, default: null }
+  },
+  brew: {
+    extra: { type: Number, default: 0 },
+    month: { type: Number, default: null }
+  }
+},
 castData: {
   used: { type: Number, default: 0 },
   month: { type: Number, default: new Date().getMonth() }

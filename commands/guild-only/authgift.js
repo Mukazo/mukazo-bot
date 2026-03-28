@@ -19,11 +19,16 @@ function parseCardCodes(input) {
     .split(',')
     .map(p => p.trim())
     .map(part => {
-      const match = part.match(/^(.+?)(?:=\+(\d+))?$/);
+      const match = part.match(/^(.+?)(?:=([+-]?\d+))?$/);
       if (!match) return null;
+
+      const qty = match[2] ? Number(match[2]) : 1;
+
+      if (!Number.isInteger(qty) || qty === 0) return null;
+
       return {
         cardCode: match[1],
-        qty: match[2] ? Number(match[2]) : 1,
+        qty,
       };
     })
     .filter(Boolean);
@@ -54,9 +59,9 @@ module.exports = {
     const wirlies = interaction.options.getInteger('wirlies') ?? 0;
     const keys = interaction.options.getInteger('keys') ?? 0;
 
-    if (!cardcodeRaw && wirlies <= 0 && keys <= 0) {
-      return interaction.editReply({ content: 'Nothing to gift.' });
-    }
+    if (!cardcodeRaw && wirlies === 0 && keys === 0) {
+  return interaction.editReply({ content: 'Nothing to gift.' });
+}
 
     const parsed = cardcodeRaw ? parseCardCodes(cardcodeRaw) : [];
     const cards = parsed.length
@@ -91,10 +96,15 @@ module.exports = {
     const description = [
   ...pageResults.map(r => {
     const emoji = r.card.emoji || generateVersion(r.card);
-    return `${emoji} **${r.card.group}** ${r.card.name}\n\`${r.card.cardCode}\` × **${r.qty}**`;
+    const sign = r.qty > 0 ? '+' : '';
+    return `${emoji} **${r.card.group}** ${r.card.name}\n\`${r.card.cardCode}\` ${sign}${r.qty}`;
   }),
-  wirlies > 0 ? `# + <:Wirlies:1455924065972785375> ${wirlies.toLocaleString()}` : null,
-  keys > 0 ? `# + <:Key:1456059698582392852> ${keys.toLocaleString()}` : null,
+  wirlies !== 0
+    ? `# ${wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(wirlies).toLocaleString()}`
+    : null,
+  keys !== 0
+    ? `# ${keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(keys).toLocaleString()}`
+    : null,
 ].filter(Boolean).join('\n');
 
     const embed = new EmbedBuilder()

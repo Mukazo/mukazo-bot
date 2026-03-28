@@ -104,11 +104,12 @@ if (['daily', 'weekly'].includes(category) && !assignment) {
     const PAGE_SIZE = 3;
 
 let totalPages = 1;
+let pageIndex = 0;
 let pagedQuests = quests;
 
 if (['lifetime', 'event'].includes(category)) {
   totalPages = Math.max(1, Math.ceil(quests.length / PAGE_SIZE));
-  const pageIndex = Math.min(page, totalPages - 1);
+  pageIndex = Math.max(0, Math.min(page, totalPages - 1));
   pagedQuests = quests.slice(
     pageIndex * PAGE_SIZE,
     pageIndex * PAGE_SIZE + PAGE_SIZE
@@ -192,7 +193,7 @@ if (['daily', 'weekly'].includes(category) && assignment?.resetAt) {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setFooter({
   text: ['lifetime', 'event'].includes(category)
-    ? `Category: ${category.toUpperCase()} • Page ${page + 1}`
+    ? `Category: ${category.toUpperCase()} • Page ${pageIndex + 1} / ${totalPages}`
     : `Category: ${category.toUpperCase()}`,
 })
       .setDescription([
@@ -207,26 +208,48 @@ if (['daily', 'weekly'].includes(category) && assignment?.resetAt) {
     ========================= */
 
     const components = [
+  {
+    type: 1,
+    components: [
       {
-        type: 1,
-        components: [
-          {
-            type: 2,
-            style: 2,
-            label: '• Previous',
-            custom_id: `quest:list:${PAGE_ORDER.indexOf(category) - 1}`,
-            disabled: PAGE_ORDER.indexOf(category) <= 0,
-          },
-          {
-            type: 2,
-            style: 2,
-            label: 'Next •',
-            custom_id: `quest:list:${PAGE_ORDER.indexOf(category) + 1}`,
-            disabled: PAGE_ORDER.indexOf(category) >= PAGE_ORDER.length - 1,
-          },
-        ],
+        type: 2,
+        style: 2,
+        label: '• Previous',
+        custom_id: `quest:list:category:${PAGE_ORDER.indexOf(category) - 1}`,
+        disabled: PAGE_ORDER.indexOf(category) <= 0,
       },
-    ];
+      {
+        type: 2,
+        style: 2,
+        label: 'Next •',
+        custom_id: `quest:list:category:${PAGE_ORDER.indexOf(category) + 1}`,
+        disabled: PAGE_ORDER.indexOf(category) >= PAGE_ORDER.length - 1,
+      },
+    ],
+  },
+];
+
+if (['lifetime', 'event'].includes(category) && totalPages > 1) {
+  components.push({
+    type: 1,
+    components: [
+      {
+        type: 2,
+        style: 2,
+        label: '• Prev Page',
+        custom_id: `quest:list:page:${category}:${pageIndex - 1}`,
+        disabled: pageIndex <= 0,
+      },
+      {
+        type: 2,
+        style: 2,
+        label: 'Next Page •',
+        custom_id: `quest:list:page:${category}:${pageIndex + 1}`,
+        disabled: pageIndex >= totalPages - 1,
+      },
+    ],
+  });
+}
 
     await interaction.editReply({
       embeds: [embed],

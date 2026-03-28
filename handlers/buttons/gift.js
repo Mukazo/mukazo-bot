@@ -72,7 +72,7 @@ module.exports = async function giftButtonHandler(interaction) {
           interaction
         );
     const hasCards = session.cards && session.cards.length > 0;
-    const hasCurrency = session.wirlies > 0 || session.keys > 0;
+    const hasCurrency = session.wirlies !== 0 || session.keys !== 0;
 
     if (!hasCards && !hasCurrency) {
       return interaction.editReply({
@@ -115,13 +115,17 @@ module.exports = async function giftButtonHandler(interaction) {
       descriptionLines.push(`${formatInventoryLine(card, qty)}`);
     }
 
-    if (session.wirlies > 0) {
-      descriptionLines.push(`# + <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`);
-    }
+    if (session.wirlies !== 0) {
+  descriptionLines.push(
+    `# ${session.wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(session.wirlies).toLocaleString()}`
+  );
+}
 
-    if (session.keys > 0) {
-      descriptionLines.push(`# + <:Key:1456059698582392852> ${session.keys.toLocaleString()}`);
-    }
+if (session.keys !== 0) {
+  descriptionLines.push(
+    `# ${session.keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(session.keys).toLocaleString()}`
+  );
+}
 
     const embed = new EmbedBuilder()
       .setTitle('Confirm Gift')
@@ -158,21 +162,21 @@ async function renderSummary(interaction, session, page, pingRecipient) {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription('### Gift Summary');
 
-    if (session.wirlies > 0) {
-      embed.addFields({
-        name: 'Wirlies',
-        value: `+ <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`,
-        inline: true,
-      });
-    }
+    if (session.wirlies !== 0) {
+  embed.addFields({
+    name: 'Wirlies',
+    value: `${session.wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(session.wirlies).toLocaleString()}`,
+    inline: true,
+  });
+}
 
-    if (session.keys > 0) {
-      embed.addFields({
-        name: 'Keys',
-        value: `+ <:Key:1456059698582392852> ${session.keys.toLocaleString()}`,
-        inline: true,
-      });
-    }
+if (session.keys !== 0) {
+  embed.addFields({
+    name: 'Keys',
+    value: `${session.keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(session.keys).toLocaleString()}`,
+    inline: true,
+  });
+}
 
     await interaction.editReply({ embeds: [embed], components: [] });
 
@@ -199,21 +203,21 @@ async function renderSummary(interaction, session, page, pingRecipient) {
     .setDescription(description)
     .setFooter({ text: `Page ${page + 1} / ${Math.ceil(session.cards.length / PAGE_SIZE)}` });
 
-  if (session.wirlies > 0 && page === 0) {
-    embed.addFields({
-      name: 'Wirlies',
-      value: `+ <:Wirlies:1455924065972785375> ${session.wirlies.toLocaleString()}`,
-      inline: true,
-    });
-  }
+  if (session.wirlies !== 0 && page === 0) {
+  embed.addFields({
+    name: 'Wirlies',
+    value: `${session.wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(session.wirlies).toLocaleString()}`,
+    inline: true,
+  });
+}
 
-  if (session.keys > 0 && page === 0) {
-    embed.addFields({
-      name: 'Keys',
-      value: `+ <:Key:1456059698582392852> ${session.keys.toLocaleString()}`,
-      inline: true,
-    });
-  }
+if (session.keys !== 0 && page === 0) {
+  embed.addFields({
+    name: 'Keys',
+    value: `${session.keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(session.keys).toLocaleString()}`,
+    inline: true,
+  });
+}
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`gift:summary:${session.id}:${page - 1}`).setLabel(' • Previous').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),

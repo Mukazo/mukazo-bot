@@ -64,20 +64,35 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
           const isInputPick = Math.random() < 0.70;
 
           if (isInputPick) {
-  if (groups.length && names.length && groups.length === names.length) {
-    const pairs = groups.map((g, idx) => ({
-      group: new RegExp(`^${g}$`, 'i'),
-      $or: [
-        { name: new RegExp(`^${names[idx]}$`, 'i') },
-        { namealias: new RegExp(`^${names[idx]}$`, 'i') }
-      ]
-    }));
+  if (groups.length && names.length) {
+    // Exact pair mode: group[i] matches name[i]
+    if (groups.length === names.length) {
+      const pairs = groups.map((g, idx) => ({
+        group: new RegExp(`^${g}$`, 'i'),
+        $or: [
+          { name: new RegExp(`^${names[idx]}$`, 'i') },
+          { namealias: new RegExp(`^${names[idx]}$`, 'i') }
+        ]
+      }));
 
-    pool = await Card.find({
-      $or: pairs,
-      version: { $in: [1, 2, 3, 4] },
-      active: true
-    }).lean();
+      pool = await Card.find({
+        $or: pairs,
+        version: { $in: [1, 2, 3, 4] },
+        active: true
+      }).lean();
+
+    } else {
+      // Fallback: respect BOTH filters instead of ignoring names
+      pool = await Card.find({
+        group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
+        $or: [
+          { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+          { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
+        ],
+        version: { $in: [1, 2, 3, 4] },
+        active: true
+      }).lean();
+    }
 
   } else if (groups.length) {
     pool = await Card.find({

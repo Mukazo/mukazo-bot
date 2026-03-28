@@ -39,15 +39,40 @@ module.exports = {
     const [matchedRoleId, { name: tierName, limit, chance }] = matchedEntry;
 
     // Initialize monthly tracking
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    if (!user.castData || user.castData.month !== currentMonth) {
-      user.castData = { used: 0, month: currentMonth };
-    }
+    // Initialize monthly tracking
+const now = new Date();
+const currentMonth = now.getMonth();
 
-    if (user.castData.used >= limit) {
-      return interaction.followUp({ content: `You've reached your monthly limit for Patreon **${tierName}** Tier.`, ephemeral: true });
-    }
+if (!user.castData || user.castData.month !== currentMonth) {
+  user.castData = { used: 0, month: currentMonth };
+}
+
+if (!user.monthlyLimitBoosts) {
+  user.monthlyLimitBoosts = {
+    cast: { extra: 0, month: currentMonth },
+    brew: { extra: 0, month: currentMonth }
+  };
+}
+
+if (!user.monthlyLimitBoosts.cast) {
+  user.monthlyLimitBoosts.cast = { extra: 0, month: currentMonth };
+}
+
+// Reset boost if month changed
+if (user.monthlyLimitBoosts.cast.month !== currentMonth) {
+  user.monthlyLimitBoosts.cast.extra = 0;
+  user.monthlyLimitBoosts.cast.month = currentMonth;
+}
+
+const extraLimit = user.monthlyLimitBoosts.cast.extra || 0;
+const effectiveLimit = limit + extraLimit;
+
+if (user.castData.used >= effectiveLimit) {
+  return interaction.followUp({
+    content: `You've reached your monthly limit for Patreon **${tierName}** Tier.`,
+    ephemeral: true
+  });
+}
 
     if (user.wirlies < 2500) {
       return interaction.editReply({ content: 'You need <:Wirlies:1455924065972785375> **2,500** to cast.', ephemeral: true });
@@ -120,7 +145,9 @@ module.exports = {
         ].filter(Boolean).join('\n'))
       .addFields(fields)
       .setImage(image)
-      .setFooter({ text: `Used ${user.castData.used}/${limit} for Patreon ${tierName} Tier this month.` });
+      .setFooter({
+  text: `Used ${user.castData.used}/${effectiveLimit} for Patreon ${tierName} Tier this month.`
+});
 
     const files = pulledCard.localImagePath
       ? [{ attachment: pulledCard.localImagePath, name: `${pulledCard._id}.png` }]

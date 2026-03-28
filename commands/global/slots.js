@@ -11,22 +11,33 @@ const COST = 50;
 const COMMAND_NAME = 'Slots';
 
 const SYMBOLS = [
-  { icon: '🪹', weight: 40 },
+  { icon: '🪹', weight: 39 },
   { icon: '🍂', weight: 29 },
   { icon: '🌿', weight: 18 },
   { icon: '🪷', weight: 9 },
-  { icon: '🍀', weight: 4 }
+  { icon: '🍀', weight: 5 }
 ];
 
 function weightedRoll(multiplier = 1) {
-  const total = SYMBOLS.reduce((sum, s) => sum + s.weight, 0);
-  const rng = Math.random() * total * multiplier;
+  const adjusted = SYMBOLS.map((s, index) => {
+    // boost rarer symbols more when multiplier increases
+    const rarityBoost = 1 + ((multiplier - 1) * (index / (SYMBOLS.length - 1)));
+    return {
+      icon: s.icon,
+      weight: s.weight * rarityBoost,
+    };
+  });
+
+  const total = adjusted.reduce((sum, s) => sum + s.weight, 0);
+  const rng = Math.random() * total;
 
   let cumulative = 0;
-  for (const s of SYMBOLS) {
+  for (const s of adjusted) {
     cumulative += s.weight;
     if (rng <= cumulative) return s.icon;
   }
+
+  return adjusted[adjusted.length - 1].icon;
 }
 
 module.exports = {
@@ -46,20 +57,18 @@ module.exports = {
     await cooldowns.setCooldown(userId, COMMAND_NAME, cooldownMs);
 
     const user = await User.findOne({ userId });
-    if (!user) return interaction.editReply({ content: 'User not found.' });
+if (!user) return interaction.editReply({ content: 'User not found.' });
 
-    if (!user.slotData) user.slotData = { lossStreak: 0 };
+const currentLossStreak = user.slotData?.lossStreak || 0;
 
-    if (user.wirlies < COST) {
-      return interaction.editReply({ content: `You need ${COST} Wirlies.` });
-    }
-
-    user.wirlies -= COST;
+if ((user.wirlies || 0) < COST) {
+  return interaction.editReply({ content: `You need ${COST} Wirlies.` });
+}
 
     // 🎯 Luck Boost
     let luckMultiplier = 1;
-    if (user.slotData.lossStreak >= 5) luckMultiplier = 1.15;
-    if (user.slotData.lossStreak >= 10) luckMultiplier = 1.25;
+    if (currentLossStreak >= 5) luckMultiplier = 1.15;
+if (currentLossStreak >= 10) luckMultiplier = 1.25;
     const final1 = weightedRoll(luckMultiplier);
     const final2 = weightedRoll(luckMultiplier);
     const final3 = weightedRoll(luckMultiplier);
@@ -143,24 +152,43 @@ module.exports = {
         }
     }
 
-    if (!rewardW && !rewardK && !rewardCard) {
-      user.slotData.lossStreak++;
-    } else {
-      user.slotData.lossStreak = 0;
-    }
+    const nextLossStreak = (!rewardW && !rewardK && !rewardCard)
+  ? currentLossStreak + 1
+  : 0;
 
-    user.wirlies += rewardW;
-    user.keys += rewardK;
+const wirliesDelta = rewardW - COST;
+const keysDelta = rewardK;
 
-    if (rewardCard) {
-      await CardInventory.updateOne(
-        { userId, cardCode: rewardCard.cardCode },
-        { $inc: { quantity: 1 } },
-        { upsert: true }
-      );
-    }
+if (rewardCard) {
+  await CardInventory.updateOne(
+    { userId, cardCode: rewardCard.cardCode },
+    { $inc: { quantity: 1 } },
+    { upsert: true }
+  );
+}
 
-    await user.save();
+const updatedUser = await User.findOneAndUpdate(
+  {
+    userId,
+    wirlies: { $gte: COST }, // safety check
+  },
+  {
+    $inc: {
+      wirlies: wirliesDelta,
+      keys: keysDelta,
+    },
+    $set: {
+      'slotData.lossStreak': nextLossStreak,
+    },
+  },
+  { new: true }
+);
+
+if (!updatedUser) {
+  return interaction.editReply({
+    content: 'Your balance changed while spinning. Please try again.',
+  });
+}
     await handleReminders(interaction, COMMAND_NAME, cooldownMs);
 
     const rewardLines = [];
