@@ -117,13 +117,13 @@ module.exports = async function giftButtonHandler(interaction) {
 
     if (session.wirlies !== 0) {
   descriptionLines.push(
-    `# ${session.wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(session.wirlies).toLocaleString()}`
+    `# <:Wirlies:1455924065972785375> ${session.wirlies > 0 ? '+' : '-'}${Math.abs(session.wirlies).toLocaleString()}`
   );
 }
 
 if (session.keys !== 0) {
   descriptionLines.push(
-    `# ${session.keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(session.keys).toLocaleString()}`
+    `# <:Key:1456059698582392852> ${session.keys > 0 ? '+' : '-'}${Math.abs(session.keys).toLocaleString()}`
   );
 }
 
@@ -165,7 +165,7 @@ async function renderSummary(interaction, session, page, pingRecipient) {
     if (session.wirlies !== 0) {
   embed.addFields({
     name: 'Wirlies',
-    value: `${session.wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(session.wirlies).toLocaleString()}`,
+    value: `<:Wirlies:1455924065972785375> ${session.wirlies > 0 ? '+' : '-'}${Math.abs(session.wirlies).toLocaleString()}`,
     inline: true,
   });
 }
@@ -173,7 +173,7 @@ async function renderSummary(interaction, session, page, pingRecipient) {
 if (session.keys !== 0) {
   embed.addFields({
     name: 'Keys',
-    value: `${session.keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(session.keys).toLocaleString()}`,
+    value: `<:Key:1456059698582392852> ${session.keys > 0 ? '+' : '-'}${Math.abs(session.keys).toLocaleString()}`,
     inline: true,
   });
 }
@@ -206,7 +206,7 @@ if (session.keys !== 0) {
   if (session.wirlies !== 0 && page === 0) {
   embed.addFields({
     name: 'Wirlies',
-    value: `${session.wirlies > 0 ? '+' : '-'} <:Wirlies:1455924065972785375> ${Math.abs(session.wirlies).toLocaleString()}`,
+    value: `<:Wirlies:1455924065972785375> ${session.wirlies > 0 ? '+' : '-'}${Math.abs(session.wirlies).toLocaleString()}`,
     inline: true,
   });
 }
@@ -214,7 +214,7 @@ if (session.keys !== 0) {
 if (session.keys !== 0 && page === 0) {
   embed.addFields({
     name: 'Keys',
-    value: `${session.keys > 0 ? '+' : '-'} <:Key:1456059698582392852> ${Math.abs(session.keys).toLocaleString()}`,
+    value: `<:Key:1456059698582392852> ${session.keys > 0 ? '+' : '-'}${Math.abs(session.keys).toLocaleString()}`,
     inline: true,
   });
 }
