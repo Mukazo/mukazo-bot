@@ -89,10 +89,21 @@ module.exports = {
    PULL 3 V5 SPECIAL CARDS (SIMPLE + GUARANTEED)
 =========================== */
 
+const enabled = user.enabledCategories || [];
+
 const pool = await Card.find({
   active: true,
   version: 5,
-   category: { $in: user.enabledCategories },
+  $and: [
+    {
+      $or: [
+        { category: { $in: enabled } },
+        { categoryalias: { $in: enabled } }
+      ]
+    },
+    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
+    ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
+  ]
 }).lean();
 
 if (pool.length < 3) {

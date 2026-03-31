@@ -76,12 +76,16 @@ module.exports = {
       choices = [...new Set(cards.map(c => c.era).filter(Boolean))];
     }
     if (focused.name === 'category') {
-      choices = [
-        ...new Set(
-          cards.flatMap(c => [c.category, c.categoryalias]).filter(Boolean)
-        ),
-      ];
-    }
+  choices = [
+    'Specials',
+    'Video Games',
+    'Entertainment',
+    'Animanga',
+    'Other Music',
+    'Music',
+    'Asia Media',
+  ];
+}
 
     await interaction.respond(
       choices
@@ -114,13 +118,17 @@ module.exports = {
       if (card.batch != null) return false;
 
       if (name) {
-        const q = name.toLowerCase();
-        const n = card.name?.toLowerCase() ?? '';
-        const a = card.namealias?.toLowerCase() ?? '';
-        if (!n.includes(q) && !a.includes(q)) return false;
-      }
+  const q = name.toLowerCase();
+  const n = card.name?.toLowerCase() ?? '';
+  const a = card.namealias?.toLowerCase() ?? '';
+  if (n !== q && a !== q) return false;
+}
 
-      if (group && card.group !== group) return false;
+      if (group) {
+  const q = group.toLowerCase();
+  const g = card.group?.toLowerCase() ?? '';
+  if (g !== q) return false;
+}
       if (era && card.era !== era) return false;
       if (category) {
         const q = category.toLowerCase();
@@ -132,6 +140,20 @@ module.exports = {
 
       return true;
     });
+
+    results.sort((a, b) => {
+  const verA = Number(a.version) || 0;
+  const verB = Number(b.version) || 0;
+
+  if (verA !== verB) return verB - verA;
+
+  const groupA = a.group || '';
+  const groupB = b.group || '';
+  const groupDiff = groupA.localeCompare(groupB);
+  if (groupDiff !== 0) return groupDiff;
+
+  return (a.name || '').localeCompare(b.name || '');
+});
 
     if (!results.length) {
       return interaction.editReply({ content: 'No cards found.' });

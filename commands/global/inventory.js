@@ -131,10 +131,10 @@ const targetKeys =
       }
 
       if (names.length) {
-        const name = normalize(card.name);
-        const alias = normalize(card.namealias); // ✅ your field name
-        if (!names.some(n => name.includes(n) || alias.includes(n))) return false;
-      }
+  const name = normalize(card.name);
+  const alias = normalize(card.namealias);
+  if (!names.some(n => name === n || alias === n)) return false;
+}
 
       return true;
     });
