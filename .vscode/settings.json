@@ -1,0 +1,5 @@
+{
+    "files.exclude": {
+        "**/Thumbs.db": false
+    }
+}

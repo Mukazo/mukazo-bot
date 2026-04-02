@@ -88,7 +88,7 @@ async function buildSeriesCanvas(seriesOptions) {
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 24px Sans';
   ctx.textAlign = 'center';
-  ctx.fillText('Choose a Series', WIDTH / 2, 52);
+  ctx.fillText('Choose 1 out of 3 Series', WIDTH / 2, 52);
 
   const images = await Promise.all(
   seriesOptions.map(series =>
@@ -312,7 +312,11 @@ module.exports = {
       }
 
       if (selectedSeries.localImagePath) {
-  const thumbName = `series_${selectedSeries.code}.png`;
+  const safeCode = String(selectedSeries.code)
+  .toLowerCase()
+  .replace(/[^a-z0-9_-]/g, '_');
+
+const thumbName = `series_${safeCode}.png`;
 
   await select.update({
     embeds: [
