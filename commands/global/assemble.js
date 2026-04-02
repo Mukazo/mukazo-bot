@@ -141,8 +141,8 @@ module.exports = {
     const commandName = 'Assemble';
         const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
     
-        if (await cooldowns.isOnCooldown(ownerId, commandName)) {
-          const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
+        if (await cooldowns.isOnCooldown(userId, commandName)) {
+          const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
           console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
           console.timeEnd(`[summon] total ${interaction.user.id}`);
           return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
