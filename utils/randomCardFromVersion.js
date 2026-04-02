@@ -4,7 +4,9 @@ const Card = require('../models/Card');
 const User = require('../models/User');
 
 async function getRandomCardFromVersion(version, userId) {
-  const user = await User.findOne({ userId }).lean();
+  const user = await User.findOne({ userId })
+  .select('enabledCategories blockedPulls')
+  .lean();
   const blockedGroups = (user?.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
   const blockedNames = (user?.blockedPulls?.names || []).map(v => String(v).toLowerCase());
   const blockedPairs = user?.blockedPulls?.pairs || [];
@@ -82,7 +84,9 @@ async function getRandomCardFromVersion(version, userId) {
     ]
   };
 
-  const cards = await Card.find(filter).lean();
+  const cards = await Card.find(filter)
+  .select('cardCode era group name emoji version localImagePath designerIds discordPermalinkImage imgurImageLink')
+  .lean();
   if (!cards.length) return null;
 
   const cfg = getGlobalPullConfig();
