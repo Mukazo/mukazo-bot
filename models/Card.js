@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const cardSchema = new mongoose.Schema({
-  cardCode: { type: String, required: true, unique: true, index: true },
+  cardCode: { type: String, required: true, unique: true },
   name: { type: String, required: true },                   // Display name
   namealias: { type: String},
   categoryalias: { type: String},
