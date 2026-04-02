@@ -63,30 +63,36 @@ module.exports = {
         console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
 
     /* ===========================
-       PULL 3 RANDOM CARDS (RETRY)
-    =========================== */
-    console.time(`[summon] pulls ${interaction.user.id}`);
-    const pulls = [];
-    const MAX_ATTEMPTS = 30;
-    let attempts = 0;
+   PULL 3 RANDOM CARDS (PARALLEL RETRY)
+=========================== */
 
-    while (pulls.length < 3 && attempts < MAX_ATTEMPTS) {
-      attempts++;
+console.time(`[summon] pulls ${interaction.user.id}`);
 
-      const version = pickVersion();
-      const card = await randomCardFromVersion(version, ownerId);
-      if (!card) continue;
+async function pullOneCard(userId, maxAttempts = 10) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const version = pickVersion();
+    const card = await randomCardFromVersion(version, userId);
+    if (card) return card;
+  }
+  return null;
+}
 
-      pulls.push(card);
-    }
+const pullResults = await Promise.all([
+  pullOneCard(ownerId, 10),
+  pullOneCard(ownerId, 10),
+  pullOneCard(ownerId, 10),
+]);
 
-    console.timeEnd(`[summon] pulls ${interaction.user.id}`);
+const pulls = pullResults.filter(Boolean);
 
-    if (pulls.length < 3) {
-      return interaction.editReply({
-        content: 'Not enough eligible cards available to summon.',
-      });
-    }
+console.timeEnd(`[summon] pulls ${interaction.user.id}`);
+
+if (pulls.length < 3) {
+  console.timeEnd(`[summon] total ${interaction.user.id}`);
+  return interaction.editReply({
+    content: 'Not enough eligible cards available to summon.',
+  });
+}
 
     /* ===========================
        CHECK OWNERSHIP
