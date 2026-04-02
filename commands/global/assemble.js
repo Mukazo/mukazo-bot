@@ -147,7 +147,7 @@ module.exports = {
           console.timeEnd(`[summon] total ${interaction.user.id}`);
           return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
         }
-        await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
+        await cooldowns.setCooldown(userId, commandName, cooldownMs);
 
     const enabled = (user.enabledCategories || []).map(normalize);
 
