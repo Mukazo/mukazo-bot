@@ -91,12 +91,12 @@ async function buildSeriesCanvas(seriesOptions) {
   ctx.fillText('Choose a Series', WIDTH / 2, 52);
 
   const images = await Promise.all(
-    seriesOptions.map(series =>
-      series.image
-        ? Canvas.loadImage(series.image).catch(() => null)
-        : null
-    )
-  );
+  seriesOptions.map(series =>
+    series.localImagePath
+      ? Canvas.loadImage(series.localImagePath).catch(() => null)
+      : null
+  )
+);
 
   for (let i = 0; i < seriesOptions.length; i++) {
     const series = seriesOptions[i];
@@ -164,10 +164,10 @@ module.exports = {
       });
     }
     const seriesDocs = await Series.find({
-      category: { $in: enabled },
-    })
-      .select('code name category image description')
-      .lean();
+  category: { $in: enabled },
+})
+  .select('code name category localImagePath description')
+  .lean();
 
     if (!seriesDocs.length) {
       return interaction.editReply({
@@ -313,16 +313,32 @@ module.exports = {
           }).join('\n')
         );
 
-      if (selectedSeries.image) {
-        resultEmbed.setThumbnail(selectedSeries.image);
-      }
-
-      if (selectedSeries.description) {
+        if (selectedSeries.description) {
         resultEmbed.addFields({
           name: 'Series',
           value: selectedSeries.description.slice(0, 1024),
         });
       }
+
+      if (selectedSeries.localImagePath) {
+  const thumbName = `series_${selectedSeries.code}.png`;
+
+  await select.update({
+    embeds: [
+      resultEmbed.setThumbnail(`attachment://${thumbName}`)
+    ],
+    components: [],
+    files: [
+      {
+        attachment: selectedSeries.localImagePath,
+        name: thumbName,
+      }
+    ],
+  });
+
+  collector.stop('selected');
+  return;
+}
 
       await select.update({
         embeds: [resultEmbed],
