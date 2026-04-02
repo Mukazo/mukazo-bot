@@ -8,6 +8,7 @@ const { EmbedBuilder } = require('discord.js');
 const Maintenance = require('./models/Maintenance');
 const { startReminderPoller } = require('./utils/reminderPoller');
 const User = require('./models/User');
+const syncCardAvailability = require('./utils/syncCardAvailability');
 
 const MAINTENANCE_BYPASS_ROLE_ID = '1455908485425397842';
 
@@ -198,10 +199,15 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Main bot MongoDB connected'))
   .catch(console.error);
 
-client.once(Events.ClientReady, () => {
+client.once(Events.ClientReady, async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   global.client = client;
+
+  await syncCardAvailability().catch(console.error);
+  setInterval(() => {
+    syncCardAvailability().catch(console.error);
+  }, 60_000);
 
   startReminderPoller();
 });

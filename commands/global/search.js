@@ -56,44 +56,53 @@ module.exports = {
      AUTOCOMPLETE
   =========================== */
   async autocomplete(interaction) {
+  try {
     const focused = interaction.options.getFocused(true);
-    const value = focused.value.toLowerCase();
+    const value = String(focused.value || '').toLowerCase().trim();
 
-    const cards = await Card.find({}).lean();
     let choices = [];
 
-    if (focused.name === 'name') {
-      choices = [
-        ...new Set(
-          cards.flatMap(c => [c.name, c.namealias]).filter(Boolean)
-        ),
-      ];
-    }
-    if (focused.name === 'group') {
-      choices = [...new Set(cards.map(c => c.group).filter(Boolean))];
-    }
-    if (focused.name === 'era') {
-      choices = [...new Set(cards.map(c => c.era).filter(Boolean))];
-    }
     if (focused.name === 'category') {
-  choices = [
-    'Specials',
-    'Video Games',
-    'Entertainment',
-    'Animanga',
-    'Other Music',
-    'Music',
-    'Asia Media',
-  ];
-}
+      choices = [
+        'Specials',
+        'Video Games',
+        'Entertainment',
+        'Animanga',
+        'Other Music',
+        'Music',
+        'Asia Media',
+      ];
+    } else if (focused.name === 'group') {
+      const groups = await Card.distinct('group', { batch: null });
+      choices = groups.filter(Boolean);
+    } else if (focused.name === 'era') {
+      const eras = await Card.distinct('era', { batch: null });
+      choices = eras.filter(Boolean);
+    } else if (focused.name === 'name') {
+      const [names, aliases] = await Promise.all([
+        Card.distinct('name', { batch: null }),
+        Card.distinct('namealias', { batch: null }),
+      ]);
 
-    await interaction.respond(
-      choices
-        .filter(c => c.toLowerCase().includes(value))
-        .slice(0, 25)
-        .map(c => ({ name: c, value: c }))
-    );
-  },
+      choices = [...new Set([...names, ...aliases].filter(Boolean))];
+    }
+
+    const filtered = choices
+      .filter(c => c.toLowerCase().includes(value))
+      .slice(0, 25)
+      .map(c => ({ name: c, value: c }));
+
+    await interaction.respond(filtered);
+  } catch (error) {
+    console.error('Autocomplete error:', error);
+
+    if (!interaction.responded) {
+      try {
+        await interaction.respond([]);
+      } catch {}
+    }
+  }
+},
 
   /* ===========================
      EXECUTE

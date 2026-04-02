@@ -81,11 +81,74 @@ module.exports = {
     const versions = parseNumberList(interaction.options.getString('version')); // ✅ numeric list
     const names = parseList(interaction.options.getString('name'));
 
-    const [cards, viewerInv, targetInv] = await Promise.all([
-      Card.find({}).lean(),
-      CardInventory.find({ userId: viewerId }).lean(),
-      CardInventory.find({ userId: targetId }).lean(),
-    ]);
+    const [viewerInv, targetInv] = await Promise.all([
+  CardInventory.find({ userId: viewerId })
+    .select('cardCode quantity')
+    .lean(),
+  CardInventory.find({ userId: targetId })
+    .select('cardCode quantity')
+    .lean(),
+]);
+
+const cardQuery = {
+  batch: null,
+};
+
+if (groups.length) {
+  cardQuery.group = {
+    $in: groups.map(g => new RegExp(`^${g}$`, 'i'))
+  };
+}
+
+if (eras.length) {
+  cardQuery.era = {
+    $in: eras.map(e => new RegExp(`^${e}$`, 'i'))
+  };
+}
+
+if (categories.length) {
+  cardQuery.$or = [
+    { category: { $in: categories.map(c => new RegExp(`^${c}$`, 'i')) } },
+    { categoryalias: { $in: categories.map(c => new RegExp(`^${c}$`, 'i')) } },
+  ];
+}
+
+if (versions.length) {
+  cardQuery.version = { $in: versions };
+}
+
+if (names.length) {
+  cardQuery.$and = [
+    ...(cardQuery.$and || []),
+    {
+      $or: [
+        { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+        { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+      ]
+    }
+  ];
+}
+
+let cards;
+
+if (view === 'owned' || view === 'duplicates') {
+  const allowedCodes = targetInv
+    .filter(i => view === 'owned' ? i.quantity > 0 : i.quantity > 1)
+    .map(i => i.cardCode);
+
+  cards = allowedCodes.length
+    ? await Card.find({
+        ...cardQuery,
+        cardCode: { $in: allowedCodes }
+      })
+        .select('cardCode group name namealias era category categoryalias version emoji')
+        .lean()
+    : [];
+} else {
+  cards = await Card.find(cardQuery)
+    .select('cardCode group name namealias era category categoryalias version emoji')
+    .lean();
+}
 
     const [viewerUserDoc, targetUserDoc] = await Promise.all([
   User.findOne({ userId: viewerId }).lean(),
