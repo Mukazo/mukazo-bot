@@ -15,8 +15,8 @@ const User = require('../../models/User');
 
 const PAGE_SIZE = 6;
 
-const THEY_HAVE_EMOJI = ':hibiscus:';
-const YOU_HAVE_EMOJI  = ':fairy:';
+const THEY_HAVE_EMOJI = '🌺';
+const YOU_HAVE_EMOJI = '🧚';
 
 function normalize(value) {
   if (typeof value !== 'string') return '';
@@ -31,7 +31,6 @@ function parseList(str) {
     .filter(Boolean);
 }
 
-// ✅ versions are numeric in DB; parse input into [Number]
 function parseNumberList(str) {
   if (typeof str !== 'string') return [];
   return str
@@ -64,160 +63,138 @@ module.exports = {
     .addStringOption(o => o.setName('name').setDescription('Filter by name'))
     .addStringOption(o => o.setName('era').setDescription('Filter by era'))
     .addStringOption(o => o.setName('category').setDescription('Filter by category'))
-    // ✅ clarify numeric usage
     .addStringOption(o => o.setName('version').setDescription('Filter by version numbers (e.g. 1,2,3 or 2,4,5)')),
 
   async execute(interaction) {
-    // No deferReply here because your index.js already handles it
-
     const viewerId = interaction.user.id;
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
     const targetId = targetUser.id;
     const view = interaction.options.getString('view');
-
     const groups = parseList(interaction.options.getString('group'));
     const eras = parseList(interaction.options.getString('era'));
     const categories = parseList(interaction.options.getString('category'));
-    const versions = parseNumberList(interaction.options.getString('version')); // ✅ numeric list
+    const versions = parseNumberList(interaction.options.getString('version'));
     const names = parseList(interaction.options.getString('name'));
 
     const [viewerInv, targetInv] = await Promise.all([
-  CardInventory.find({ userId: viewerId })
-    .select('cardCode quantity')
-    .lean(),
-  CardInventory.find({ userId: targetId })
-    .select('cardCode quantity')
-    .lean(),
-]);
-
-const cardQuery = {
-  batch: null,
-};
-
-if (groups.length) {
-  cardQuery.group = {
-    $in: groups.map(g => new RegExp(`^${g}$`, 'i'))
-  };
-}
-
-if (eras.length) {
-  cardQuery.era = {
-    $in: eras.map(e => new RegExp(`^${e}$`, 'i'))
-  };
-}
-
-if (categories.length) {
-  cardQuery.$or = [
-    { category: { $in: categories.map(c => new RegExp(`^${c}$`, 'i')) } },
-    { categoryalias: { $in: categories.map(c => new RegExp(`^${c}$`, 'i')) } },
-  ];
-}
-
-if (versions.length) {
-  cardQuery.version = { $in: versions };
-}
-
-if (names.length) {
-  cardQuery.$and = [
-    ...(cardQuery.$and || []),
-    {
-      $or: [
-        { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-        { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-      ]
-    }
-  ];
-}
-
-let cards;
-
-if (view === 'owned' || view === 'duplicates') {
-  const allowedCodes = targetInv
-    .filter(i => view === 'owned' ? i.quantity > 0 : i.quantity > 1)
-    .map(i => i.cardCode);
-
-  cards = allowedCodes.length
-    ? await Card.find({
-        ...cardQuery,
-        cardCode: { $in: allowedCodes }
-      })
-        .select('cardCode group name namealias era category categoryalias version emoji')
-        .lean()
-    : [];
-} else {
-  cards = await Card.find(cardQuery)
-    .select('cardCode group name namealias era category categoryalias version emoji')
-    .lean();
-}
+      CardInventory.find({ userId: viewerId })
+        .select('cardCode quantity')
+        .lean(),
+      CardInventory.find({ userId: targetId })
+        .select('cardCode quantity')
+        .lean(),
+    ]);
 
     const [viewerUserDoc, targetUserDoc] = await Promise.all([
-  User.findOne({ userId: viewerId }).lean(),
-  viewerId === targetId ? null : User.findOne({ userId: targetId }).lean(),
-]);
+      User.findOne({ userId: viewerId })
+        .select('wirlies keys')
+        .lean(),
+      viewerId === targetId
+        ? null
+        : User.findOne({ userId: targetId })
+            .select('wirlies keys')
+            .lean(),
+    ]);
 
-const viewerBalance = viewerUserDoc?.wirlies ?? 0;
-const viewerKeys = viewerUserDoc?.keys ?? 0;
+    const viewerBalance = viewerUserDoc?.wirlies ?? 0;
+    const viewerKeys = viewerUserDoc?.keys ?? 0;
 
-const targetBalance =
-  targetUserDoc?.wirlies ?? 0;
-
-const targetKeys =
-  targetUserDoc?.keys ?? 0;
-
+    const targetBalance = targetUserDoc?.wirlies ?? 0;
+    const targetKeys = targetUserDoc?.keys ?? 0;
 
     const viewerMap = new Map(viewerInv.map(i => [i.cardCode, i.quantity]));
     const targetMap = new Map(targetInv.map(i => [i.cardCode, i.quantity]));
 
-    let results = cards.filter(card => {
-      if (card.batch != null) return false;
+    const cardQuery = {
+      batch: null,
+    };
 
-      const viewerQty = viewerMap.get(card.cardCode) || 0;
+    if (groups.length) {
+      cardQuery.group = {
+        $in: groups.map(g => new RegExp(`^${g}$`, 'i'))
+      };
+    }
+
+    if (eras.length) {
+      cardQuery.era = {
+        $in: eras.map(e => new RegExp(`^${e}$`, 'i'))
+      };
+    }
+
+    if (versions.length) {
+      cardQuery.version = { $in: versions };
+    }
+
+    if (categories.length) {
+      const categoryCondition = {
+        $or: [
+          { category: { $in: categories.map(c => new RegExp(`^${c}$`, 'i')) } },
+          { categoryalias: { $in: categories.map(c => new RegExp(`^${c}$`, 'i')) } },
+        ]
+      };
+
+      if (cardQuery.$and) cardQuery.$and.push(categoryCondition);
+      else cardQuery.$and = [categoryCondition];
+    }
+
+    if (names.length) {
+      const nameCondition = {
+        $or: [
+          { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+          { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+        ]
+      };
+      if (cardQuery.$and) cardQuery.$and.push(nameCondition);
+      else cardQuery.$and = [nameCondition];
+    }
+
+    let cards = [];
+
+    if (view === 'owned' || view === 'duplicates') {
+      const allowedCodes = targetInv
+        .filter(i => (view === 'owned' ? i.quantity > 0 : i.quantity > 1))
+        .map(i => i.cardCode);
+
+      cards = allowedCodes.length
+        ? await Card.find({
+            ...cardQuery,
+            cardCode: { $in: allowedCodes },
+          })
+            .select('cardCode group name namealias era category categoryalias version emoji')
+            .lean()
+        : [];
+    } else {
+      cards = await Card.find(cardQuery)
+        .select('cardCode group name namealias era category categoryalias version emoji')
+        .lean();
+    }
+
+    let results = cards.filter(card => {
       const targetQty = targetMap.get(card.cardCode) || 0;
 
       if (view === 'owned' && targetQty <= 0) return false;
       if (view === 'missing' && targetQty > 0) return false;
       if (view === 'duplicates' && targetQty <= 1) return false;
 
-      if (groups.length && !groups.includes(normalize(card.group))) return false;
-      if (eras.length && !eras.includes(normalize(card.era))) return false;
-      if (categories.length) {
-        const category = normalize(card.category);
-        const alias = normalize(card.categoryalias); // ✅ your field name
-        if (!categories.some(c => category.includes(c) || alias.includes(c))) return false;
-      }
-
-      // ✅ numeric compare against numeric list
-      if (versions.length) {
-        const v = Number(card.version);
-        if (!Number.isFinite(v)) return false;
-        if (!versions.includes(v)) return false;
-      }
-
-      if (names.length) {
-  const name = normalize(card.name);
-  const alias = normalize(card.namealias);
-  if (!names.some(n => name === n || alias === n)) return false;
-}
-
       return true;
     });
 
     const defaultSort = () => {
       results.sort((a, b) => {
-        // ✅ Version: highest first (5→1) because it's numeric
-        if (Number.isFinite(b.version) && Number.isFinite(a.version) && b.version !== a.version) {
-          return b.version - a.version;
+        const versionA = Number(a.version);
+        const versionB = Number(b.version);
+
+        if (Number.isFinite(versionB) && Number.isFinite(versionA) && versionB !== versionA) {
+          return versionB - versionA;
         }
-        // If version missing, push missing versions lower
-        if (Number.isFinite(b.version) && !Number.isFinite(a.version)) return -1;
-        if (!Number.isFinite(b.version) && Number.isFinite(a.version)) return 1;
 
-        // You said you don't want date sorting, so we skip it.
+        if (Number.isFinite(versionB) && !Number.isFinite(versionA)) return -1;
+        if (!Number.isFinite(versionB) && Number.isFinite(versionA)) return 1;
 
-        const gDiff = a.group.localeCompare(b.group);
+        const gDiff = (a.group || '').localeCompare(b.group || '');
         if (gDiff !== 0) return gDiff;
 
-        return a.name.localeCompare(b.name);
+        return (a.name || '').localeCompare(b.name || '');
       });
     };
 
@@ -228,7 +205,7 @@ const targetKeys =
     }
 
     let page = 0;
-    let sortMode = 'default'; // 'default' | 'copies'
+    let sortMode = 'default';
 
     const getEmbed = () => {
       const slice = results.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
@@ -245,21 +222,19 @@ const targetKeys =
 
         const emoji = card.emoji || generateVersion(card);
         const eraText = card.era ? ` ( ${card.era} )` : '';
-
-        // ❗ layout unchanged (keeps newline exactly as you had)
         return `${emoji} ${card.group} **${card.name}**\n> ${eraText} \`${card.cardCode}\` × **${targetQty}** ${compareEmoji}`.trim();
       }).join('\n');
 
       return new EmbedBuilder()
         .setDescription([
-            viewerId === targetId
+          viewerId === targetId
             ? `# ${interaction.user.username}'s Inventory`
             : `# ${targetUser.username}'s Inventory`,
-            viewerId === targetId
+          viewerId === targetId
             ? `### Balance: <:Wirlies:1455924065972785375> ${viewerBalance.toLocaleString()} &  <:Key:1456059698582392852> ${viewerKeys.toLocaleString()}`
             : `### Balance: <:Wirlies:1455924065972785375> ${targetBalance.toLocaleString()} &  <:Key:1456059698582392852> ${targetKeys.toLocaleString()}`,
-            '',
-            description || ' '
+          '',
+          description || ' '
         ].join('\n'))
         .setFooter({
           text: `Page ${page + 1} / ${Math.max(1, Math.ceil(results.length / PAGE_SIZE))}`,
@@ -301,16 +276,20 @@ const targetKeys =
           results.sort((a, b) => {
             const qa = targetMap.get(a.cardCode) || 0;
             const qb = targetMap.get(b.cardCode) || 0;
-            // Highest copies first; tie-breaker keep your existing default ordering
+
             if (qb !== qa) return qb - qa;
 
-            // Tie-breaker: version desc, then group, then name
-            if (Number.isFinite(b.version) && Number.isFinite(a.version) && b.version !== a.version) {
-              return b.version - a.version;
+            const versionA = Number(a.version);
+            const versionB = Number(b.version);
+
+            if (Number.isFinite(versionB) && Number.isFinite(versionA) && versionB !== versionA) {
+              return versionB - versionA;
             }
-            const gDiff = a.group.localeCompare(b.group);
+
+            const gDiff = (a.group || '').localeCompare(b.group || '');
             if (gDiff !== 0) return gDiff;
-            return a.name.localeCompare(b.name);
+
+            return (a.name || '').localeCompare(b.name || '');
           });
         } else {
           defaultSort();
@@ -330,7 +309,7 @@ const targetKeys =
 
     collector.on('end', async () => {
       row.components.forEach(b => b.setDisabled(true));
-      await message.edit({ components: [row] });
+      await message.edit({ components: [row] }).catch(() => {});
     });
 
     await emitQuestEvent(

@@ -5,7 +5,6 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
-  AttachmentBuilder,
 } = require('discord.js');
 
 const Card = require('../../models/Card');
@@ -13,8 +12,6 @@ const CardInventory = require('../../models/CardInventory');
 const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 1;
-const CARD_WIDTH = 320;
-const CARD_HEIGHT = 480;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -56,53 +53,53 @@ module.exports = {
      AUTOCOMPLETE
   =========================== */
   async autocomplete(interaction) {
-  try {
-    const focused = interaction.options.getFocused(true);
-    const value = String(focused.value || '').toLowerCase().trim();
+    try {
+      const focused = interaction.options.getFocused(true);
+      const value = String(focused.value || '').toLowerCase().trim();
 
-    let choices = [];
+      let choices = [];
 
-    if (focused.name === 'category') {
-      choices = [
-        'Specials',
-        'Video Games',
-        'Entertainment',
-        'Animanga',
-        'Other Music',
-        'Music',
-        'Asia Media',
-      ];
-    } else if (focused.name === 'group') {
-      const groups = await Card.distinct('group', { batch: null });
-      choices = groups.filter(Boolean);
-    } else if (focused.name === 'era') {
-      const eras = await Card.distinct('era', { batch: null });
-      choices = eras.filter(Boolean);
-    } else if (focused.name === 'name') {
-      const [names, aliases] = await Promise.all([
-        Card.distinct('name', { batch: null }),
-        Card.distinct('namealias', { batch: null }),
-      ]);
+      if (focused.name === 'category') {
+        choices = [
+          'Specials',
+          'Video Games',
+          'Entertainment',
+          'Animanga',
+          'Other Music',
+          'Music',
+          'Asia Media',
+        ];
+      } else if (focused.name === 'group') {
+        const groups = await Card.distinct('group', { batch: null });
+        choices = groups.filter(Boolean);
+      } else if (focused.name === 'era') {
+        const eras = await Card.distinct('era', { batch: null });
+        choices = eras.filter(Boolean);
+      } else if (focused.name === 'name') {
+        const [names, aliases] = await Promise.all([
+          Card.distinct('name', { batch: null }),
+          Card.distinct('namealias', { batch: null }),
+        ]);
 
-      choices = [...new Set([...names, ...aliases].filter(Boolean))];
+        choices = [...new Set([...names, ...aliases].filter(Boolean))];
+      }
+
+      const filtered = choices
+        .filter(c => c.toLowerCase().includes(value))
+        .slice(0, 25)
+        .map(c => ({ name: c, value: c }));
+
+      await interaction.respond(filtered);
+    } catch (error) {
+      console.error('Autocomplete error:', error);
+
+      if (!interaction.responded) {
+        try {
+          await interaction.respond([]);
+        } catch {}
+      }
     }
-
-    const filtered = choices
-      .filter(c => c.toLowerCase().includes(value))
-      .slice(0, 25)
-      .map(c => ({ name: c, value: c }));
-
-    await interaction.respond(filtered);
-  } catch (error) {
-    console.error('Autocomplete error:', error);
-
-    if (!interaction.responded) {
-      try {
-        await interaction.respond([]);
-      } catch {}
-    }
-  }
-},
+  },
 
   /* ===========================
      EXECUTE
@@ -116,53 +113,74 @@ module.exports = {
     const category = interaction.options.getString('category');
     const version = interaction.options.getInteger('version');
 
-    const [cards, inventory] = await Promise.all([
-      Card.find({}).lean(),
-      CardInventory.find({ userId }).lean(),
-    ]);
+    const cardQuery = {
+      batch: null,
+    };
 
+    if (name) {
+      cardQuery.$or = [
+        { name: new RegExp(`^${name}$`, 'i') },
+        { namealias: new RegExp(`^${name}$`, 'i') },
+      ];
+    }
+
+    if (group) {
+      cardQuery.group = new RegExp(`^${group}$`, 'i');
+    }
+
+    if (era) {
+      cardQuery.era = new RegExp(`^${era}$`, 'i');
+    }
+
+    if (category) {
+      const categoryRegex = new RegExp(`^${category}$`, 'i');
+
+      if (cardQuery.$and) {
+        cardQuery.$and.push({
+          $or: [
+            { category: categoryRegex },
+            { categoryalias: categoryRegex },
+          ]
+        });
+      } else {
+        cardQuery.$and = [
+          {
+            $or: [
+              { category: categoryRegex },
+              { categoryalias: categoryRegex },
+            ]
+          }
+        ];
+      }
+    }
+
+    if (version) {
+      cardQuery.version = version;
+    }
+
+    const [results, inventory] = await Promise.all([
+      Card.find(cardQuery)
+        .select('cardCode group name era emoji version localImagePath designerIds discordPermalinkImage imgurImageLink category categoryalias namealias')
+        .lean(),
+      CardInventory.find({ userId })
+        .select('cardCode quantity')
+        .lean(),
+    ]);
     const ownedMap = new Map(inventory.map(i => [i.cardCode, i.quantity]));
 
-    let results = cards.filter(card => {
-      if (card.batch != null) return false;
-
-      if (name) {
-  const q = name.toLowerCase();
-  const n = card.name?.toLowerCase() ?? '';
-  const a = card.namealias?.toLowerCase() ?? '';
-  if (n !== q && a !== q) return false;
-}
-
-      if (group) {
-  const q = group.toLowerCase();
-  const g = card.group?.toLowerCase() ?? '';
-  if (g !== q) return false;
-}
-      if (era && card.era !== era) return false;
-      if (category) {
-        const q = category.toLowerCase();
-        const n = card.category?.toLowerCase() ?? '';
-        const a = card.categoryalias?.toLowerCase() ?? '';
-        if (!n.includes(q) && !a.includes(q)) return false;
-      }
-      if (version && card.version !== version) return false;
-
-      return true;
-    });
-
     results.sort((a, b) => {
-  const verA = Number(a.version) || 0;
-  const verB = Number(b.version) || 0;
+      const verA = Number(a.version) || 0;
+      const verB = Number(b.version) || 0;
 
-  if (verA !== verB) return verB - verA;
+      if (verA !== verB) return verB - verA;
 
-  const groupA = a.group || '';
-  const groupB = b.group || '';
-  const groupDiff = groupA.localeCompare(groupB);
-  if (groupDiff !== 0) return groupDiff;
+      const groupA = a.group || '';
+      const groupB = b.group || '';
+      const groupDiff = groupA.localeCompare(groupB);
+      if (groupDiff !== 0) return groupDiff;
 
-  return (a.name || '').localeCompare(b.name || '');
-});
+      return (a.name || '').localeCompare(b.name || '');
+    });
 
     if (!results.length) {
       return interaction.editReply({ content: 'No cards found.' });
@@ -171,41 +189,40 @@ module.exports = {
     let page = 0;
 
     const renderPage = async () => {
-  const card = results[page]; // PAGE_SIZE = 1
+      const card = results[page];
+      const copies = ownedMap.get(card.cardCode) || 0;
 
-  const copies = ownedMap.get(card.cardCode) || 0;
+      const fileName = `${card._id}.png`;
+      const imageSource = card.localImagePath
+        ? `attachment://${fileName}`
+        : (card.discordPermalinkImage || card.imgurImageLink);
 
-  const fileName = `${card._id}.png`;
-  const imageSource = card.localImagePath
-    ? `attachment://${fileName}`
-    : (card.discordPermalinkImage || card.imgurImageLink);
+      const files = card.localImagePath
+        ? [{ attachment: card.localImagePath, name: fileName }]
+        : [];
 
-  const files = card.localImagePath
-    ? [{ attachment: card.localImagePath, name: fileName }]
-    : [];
+      const embed = new EmbedBuilder()
+        .setDescription('## Searching for . . .\n> Here you can view & find all \n> Mukazo\'s cards information!')
+        .setImage(imageSource)
+        .setFooter({
+          text: `Page ${page + 1} / ${results.length}`,
+        })
+        .addFields({
+          name: `${card.emoji || generateVersion(card)} ${card.name}`,
+          value: [
+            `**Group:** ${card.group}`,
+            card.era ? `**Era:** ${card.era}` : null,
+            card.designerIds?.length
+              ? `> **Designers:** ${card.designerIds.map(id => `<@${id}>`).join(', ')}`
+              : null,
+            `> **Code:** \`${card.cardCode}\``,
+            `> **Copies:** ${copies}`,
+          ].filter(Boolean).join('\n'),
+          inline: false,
+        });
 
-  const embed = new EmbedBuilder()
-    .setDescription('## Searching for . . .\n> Here you can view & find all \n> Mukazo\'s cards information!')
-    .setImage(imageSource)
-    .setFooter({
-      text: `Page ${page + 1} / ${results.length}`,
-    })
-    .addFields({
-      name: `${card.emoji || generateVersion(card)} ${card.name}`,
-      value: [
-        `**Group:** ${card.group}`,
-        card.era ? `**Era:** ${card.era}` : null,
-        card.designerIds?.length
-          ? `> **Designers:** ${card.designerIds.map(id => `<@${id}>`).join(', ')}`
-          : null,
-        `> **Code:** \`${card.cardCode}\``,
-        `> **Copies:** ${copies}`,
-      ].filter(Boolean).join('\n'),
-      inline: false,
-    });
-
-  return { embed, files };
-};
+      return { embed, files };
+    };
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('prev').setLabel(' • Previous').setStyle(ButtonStyle.Secondary),
@@ -226,31 +243,31 @@ module.exports = {
     });
 
     collector.on('collect', async btn => {
-  await btn.deferUpdate();
+      await btn.deferUpdate();
 
-  if (btn.customId === 'prev') page = Math.max(0, page - 1);
-  if (btn.customId === 'next') page = Math.min(Math.ceil(results.length / PAGE_SIZE) - 1, page + 1);
+      if (btn.customId === 'prev') page = Math.max(0, page - 1);
+      if (btn.customId === 'next') page = Math.min(results.length - 1, page + 1);
 
-  row.components[0].setDisabled(page === 0);
-  row.components[1].setDisabled(page === results.length - 1);
+      row.components[0].setDisabled(page === 0);
+      row.components[1].setDisabled(page === results.length - 1);
 
-  const { embed, files } = await renderPage();
-  await message.edit({
-    embeds: [embed],
-    files,
-    components: [row],
-  }).catch(() => {});
-});
+      const { embed, files } = await renderPage();
+      await message.edit({
+        embeds: [embed],
+        files,
+        components: [row],
+      }).catch(() => {});
+    });
 
-collector.on('end', async () => {
-  row.components.forEach(b => b.setDisabled(true));
+    collector.on('end', async () => {
+      row.components.forEach(b => b.setDisabled(true));
 
-  const { embed, files } = await renderPage();
-  await message.edit({
-    embeds: [embed],
-    files,
-    components: [row],
-  }).catch(() => {});
-});
+      const { embed, files } = await renderPage();
+      await message.edit({
+        embeds: [embed],
+        files,
+        components: [row],
+      }).catch(() => {});
+    });
   },
 };

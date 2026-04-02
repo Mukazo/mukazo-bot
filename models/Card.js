@@ -28,4 +28,21 @@ timesPulled: { type: Number, default: 0 },          // counter
   timestamps: true
 });
 
+cardSchema.index({ cardCode: 1 }, { unique: true });
+
+cardSchema.index({ version: 1, active: 1, batch: 1 });
+cardSchema.index({ category: 1 });
+cardSchema.index({ categoryalias: 1 });
+
+cardSchema.index({ group: 1 });
+cardSchema.index({ name: 1 });
+cardSchema.index({ namealias: 1 });
+cardSchema.index({ era: 1 });
+
+cardSchema.index({ releaseAt: 1 });
+cardSchema.index({ deactivateAt: 1 });
+
+cardSchema.index({ availableQuantity: 1 });
+cardSchema.index({ timesPulled: 1 });
+
 module.exports = mongoose.model('Card', cardSchema);

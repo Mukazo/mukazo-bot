@@ -11,12 +11,12 @@ const cooldownConfig = require('../../utils/cooldownConfig');
 const { giveCurrency } = require('../../utils/giveCurrency');
 const handleReminders = require('../../utils/reminderHandler');
 
-const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const User = require('../../models/User');
 const { emitQuestEvent } = require('../../utils/quest/tracker');
 
 const generateVersion = require('../../utils/generateVersion');
+const { getPullPool } = require('../../utils/pullPoolCache');
 
 /* ===========================
    UTILS
@@ -35,6 +35,7 @@ function pickRandom(arr, count) {
 
   return result;
 }
+
 function calculateWeeklyReward(streak) {
   const wirlies = 5000 + Math.min(7500, Math.floor(streak / 2) * 750);
   const keys = 8 + Math.min(7, Math.floor(streak / 4));
@@ -79,7 +80,6 @@ module.exports = {
         enabledCategories: [],
       });
     }
-
     if (!user.enabledCategories || user.enabledCategories.length === 0) {
       console.timeEnd(`[weekly] total ${interaction.user.id}`);
       return interaction.editReply({
@@ -116,75 +116,25 @@ module.exports = {
     await user.save();
 
     /* ===========================
-       CARD POOLS
+       CARD POOLS (SHARED CACHE)
     =========================== */
     console.time(`[weekly] pools ${interaction.user.id}`);
 
-    const enabled = user.enabledCategories;
-    const blockedGroups = (user.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
-    const blockedNames = (user.blockedPulls?.names || []).map(v => String(v).toLowerCase());
-    const blockedPairs = user.blockedPulls?.pairs || [];
-    const [v5Pool, v1to4Pool] = await Promise.all([
-      Card.find({
-        active: true,
-        version: 5,
-        batch: null,
-        $and: [
-          {
-            $or: [
-              { category: { $in: enabled } },
-              { categoryalias: { $in: enabled } }
-            ]
-          },
-          ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
-          ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
-        ]
-      })
-        .select('cardCode era group name emoji version localImagePath')
-        .lean(),
-
-      Card.find({
-        active: true,
-        version: { $gte: 1, $lte: 4 },
-        batch: null,
-        $and: [
-          {
-            $or: [
-              { category: { $in: enabled } },
-              { categoryalias: { $in: enabled } }
-            ]
-          },
-          ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
-          ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
-          ...(blockedGroups.length
-            ? [{
-                group: { $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i')) }
-              }]
-            : []),
-          ...(blockedNames.length
-            ? [{
-                $and: [
-                  { name: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } },
-                  { namealias: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } }
-                ]
-              }]
-            : []),
-          ...(blockedPairs.length
-            ? [{
-                $nor: blockedPairs.map(p => ({
-                  group: new RegExp(`^${p.group}$`, 'i'),
-                  $or: [
-                    { name: new RegExp(`^${p.name}$`, 'i') },
-                    { namealias: new RegExp(`^${p.name}$`, 'i') }
-                  ]
-                }))
-              }]
-            : [])
-        ]
-      })
-        .select('cardCode era group name emoji version localImagePath')
-        .lean()
+    const [v5Cached, v1Cached, v2Cached, v3Cached, v4Cached] = await Promise.all([
+      getPullPool(5, user),
+      getPullPool(1, user),
+      getPullPool(2, user),
+      getPullPool(3, user),
+      getPullPool(4, user),
     ]);
+
+    const v5Pool = v5Cached.cards;
+    const v1to4Pool = [
+      ...v1Cached.cards,
+      ...v2Cached.cards,
+      ...v3Cached.cards,
+      ...v4Cached.cards,
+    ];
 
     console.timeEnd(`[weekly] pools ${interaction.user.id}`);
 
@@ -204,10 +154,13 @@ module.exports = {
        OWNERSHIP CHECK
     =========================== */
     console.time(`[weekly] ownership ${interaction.user.id}`);
+
     const owned = await CardInventory.find({
       userId,
       cardCode: { $in: pulls.map(c => c.cardCode) },
-    }).lean();
+    })
+      .select('cardCode quantity')
+      .lean();
 
     const ownedSet = new Set(owned.map(o => o.cardCode));
 

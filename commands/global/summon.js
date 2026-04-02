@@ -5,7 +5,6 @@ const {
   ButtonBuilder,
   ButtonStyle,
   AttachmentBuilder,
-  ComponentType,
 } = require('discord.js');
 
 const Canvas = require('canvas');
@@ -19,6 +18,7 @@ const handleReminders = require('../../utils/reminderHandler');
 
 const CardInventory = require('../../models/CardInventory');
 const SummonSession = require('../../models/SummonSession');
+const User = require('../../models/User');
 
 function grayscaleRegion(ctx, x, y, w, h) {
   const imgData = ctx.getImageData(x, y, w, h);
@@ -29,18 +29,26 @@ function grayscaleRegion(ctx, x, y, w, h) {
     const g = data[i + 1];
     const b = data[i + 2];
 
-    // luminance formula (looks better than averaging)
     const gray = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
 
     data[i] = gray;
     data[i + 1] = gray;
     data[i + 2] = gray;
-    // alpha stays data[i+3]
   }
 
   ctx.putImageData(imgData, x, y);
 }
 
+function buttonLabelForCard(card) {
+  const MAX = 80;
+  let name = card.name;
+
+  if (name.length > MAX - 8) {
+    name = name.slice(0, MAX - 9) + '…';
+  }
+
+  return `Claim ୨୧ ${name}`;
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -49,50 +57,59 @@ module.exports = {
 
   async execute(interaction) {
     console.time(`[summon] total ${interaction.user.id}`);
+
     const ownerId = interaction.user.id;
+
     console.time(`[summon] cooldown ${interaction.user.id}`);
     const commandName = 'Summon';
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
-        if (await cooldowns.isOnCooldown(ownerId, commandName)) {
-          const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
-          return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
-        }
-    
-        // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
-        await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
-        console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
+
+    if (await cooldowns.isOnCooldown(ownerId, commandName)) {
+      const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
+      console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
+      console.timeEnd(`[summon] total ${interaction.user.id}`);
+      return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+    }
+    await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
+    console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
 
     /* ===========================
-   PULL 3 RANDOM CARDS (PARALLEL RETRY)
-=========================== */
+       LOAD USER ONCE
+    =========================== */
+    const summonUser = await User.findOne({ userId: ownerId })
+      .select('enabledCategories blockedPulls')
+      .lean();
 
-console.time(`[summon] pulls ${interaction.user.id}`);
+    /* ===========================
+       PULL 3 RANDOM CARDS (PARALLEL RETRY)
+    =========================== */
+    console.time(`[summon] pulls ${interaction.user.id}`);
 
-async function pullOneCard(userId, maxAttempts = 10) {
-  for (let i = 0; i < maxAttempts; i++) {
-    const version = pickVersion();
-    const card = await randomCardFromVersion(version, userId);
-    if (card) return card;
-  }
-  return null;
-}
+    async function pullOneCard(userId, loadedUser, maxAttempts = 10) {
+      for (let i = 0; i < maxAttempts; i++) {
+        const version = pickVersion();
+        const card = await randomCardFromVersion(version, userId, loadedUser);
+        if (card) return card;
+      }
+      return null;
+    }
 
-const pullResults = await Promise.all([
-  pullOneCard(ownerId, 10),
-  pullOneCard(ownerId, 10),
-  pullOneCard(ownerId, 10),
-]);
+    const pullResults = await Promise.all([
+      pullOneCard(ownerId, summonUser, 10),
+      pullOneCard(ownerId, summonUser, 10),
+      pullOneCard(ownerId, summonUser, 10),
+    ]);
 
-const pulls = pullResults.filter(Boolean);
+    const pulls = pullResults.filter(Boolean);
 
-console.timeEnd(`[summon] pulls ${interaction.user.id}`);
+    console.timeEnd(`[summon] pulls ${interaction.user.id}`);
 
-if (pulls.length < 3) {
-  console.timeEnd(`[summon] total ${interaction.user.id}`);
-  return interaction.editReply({
-    content: 'Not enough eligible cards available to summon.',
-  });
-}
+    if (pulls.length < 3) {
+      console.timeEnd(`[summon] total ${interaction.user.id}`);
+      return interaction.editReply({
+        content: 'Not enough eligible cards available to summon.',
+      });
+    }
 
     /* ===========================
        CHECK OWNERSHIP
@@ -102,13 +119,16 @@ if (pulls.length < 3) {
     const owned = await CardInventory.find({
       userId: ownerId,
       cardCode: { $in: pulls.map(c => c.cardCode) },
-    }).lean();
+    })
+      .select('cardCode quantity')
+      .lean();
 
     const ownedSet = new Set(owned.map(o => o.cardCode));
+
     console.timeEnd(`[summon] ownership ${interaction.user.id}`);
 
     /* ===========================
-       CANVAS (GRAYSCALE IF UNOWNED)
+       CANVAS
     =========================== */
     console.time(`[summon] canvas ${interaction.user.id}`);
 
@@ -120,68 +140,51 @@ if (pulls.length < 3) {
       pulls.length * (CARD_WIDTH + GAP),
       CARD_HEIGHT
     );
-
     const ctx = canvas.getContext('2d');
 
     const loadedImages = await Promise.all(
-  pulls.map(card =>
-    Canvas.loadImage(card.localImagePath).catch(() => null)
-  )
-);
+      pulls.map(card =>
+        Canvas.loadImage(card.localImagePath).catch(() => null)
+      )
+    );
 
-for (let i = 0; i < pulls.length; i++) {
-  const card = pulls[i];
-  const img = loadedImages[i];
-  const x = i * (CARD_WIDTH + GAP);
+    for (let i = 0; i < pulls.length; i++) {
+      const card = pulls[i];
+      const img = loadedImages[i];
+      const x = i * (CARD_WIDTH + GAP);
 
-  if (!img) continue;
+      if (!img) continue;
 
-  ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
+      ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
 
-  if (!ownedSet.has(card.cardCode)) {
-    grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
-  }
-}
+      if (!ownedSet.has(card.cardCode)) {
+        grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
+      }
+    }
 
     const attachment = new AttachmentBuilder(canvas.toBuffer(), {
       name: 'summon.png',
     });
+
     console.timeEnd(`[summon] canvas ${interaction.user.id}`);
 
     /* ===========================
-       SINGLE EMBED
+       EMBED
     =========================== */
-
     const fields = pulls.map(card => ({
-  name: `Version — ${card.emoji || generateVersion(card)}`,
-  value: [
-    `**Group:** ${card.group}`,
-    card.era ? `**Era:** ${card.era}` : null,
-    `> **Code:** \`${card.cardCode}\``,
-  ].filter(Boolean).join('\n'),
-  inline: true,
-}));
-
+      name: `Version — ${card.emoji || generateVersion(card)}`,
+      value: [
+        `**Group:** ${card.group}`,
+        card.era ? `**Era:** ${card.era}` : null,
+        `> **Code:** \`${card.cardCode}\``,
+      ].filter(Boolean).join('\n'),
+      inline: true,
+    }));
 
     const embed = new EmbedBuilder()
       .setDescription('## Summoning 3 Cards\n> Choose one of the cards below to claim, pick wisely!')
       .addFields(fields)
       .setImage('attachment://summon.png');
-
-    /* ===========================
-       BUTTONS
-    =========================== */
-
-    function buttonLabelForCard(card) {
-  const MAX = 80;
-  let name = card.name;
-
-  if (name.length > MAX - 8) {
-    name = name.slice(0, MAX - 9) + '…';
-  }
-
-  return `Claim ୨୧ ${name}`;
-}
 
     const row = new ActionRowBuilder().addComponents(
       pulls.map((card, i) =>
@@ -191,6 +194,7 @@ for (let i = 0; i < pulls.length; i++) {
           .setStyle(ButtonStyle.Secondary)
       )
     );
+
     console.time(`[summon] reply ${interaction.user.id}`);
 
     const reply = await interaction.editReply({
@@ -200,20 +204,19 @@ for (let i = 0; i < pulls.length; i++) {
     });
 
     console.timeEnd(`[summon] reply ${interaction.user.id}`);
-console.timeEnd(`[summon] total ${interaction.user.id}`);
+    console.timeEnd(`[summon] total ${interaction.user.id}`);
 
     /* ===========================
        SAVE SESSION
     =========================== */
-
     await emitQuestEvent(
-          interaction.user.id,
-          {
-            type: 'command',
-            commandName: 'summon',
-          },
-          interaction
-        );
+      interaction.user.id,
+      {
+        type: 'command',
+        commandName: 'summon',
+      },
+      interaction
+    );
 
     await handleReminders(interaction, 'summon', cooldownMs);
 
@@ -231,22 +234,22 @@ console.timeEnd(`[summon] total ${interaction.user.id}`);
     });
 
     setTimeout(async () => {
-  try {
-    const channel = await interaction.client.channels.fetch(reply.channel.id);
-    const message = await channel.messages.fetch(reply.id);
+      try {
+        const channel = await interaction.client.channels.fetch(reply.channel.id);
+        const message = await channel.messages.fetch(reply.id);
 
-    if (!message.editable) return;
+        if (!message.editable) return;
 
-    const disabledRow = new ActionRowBuilder().addComponents(
-      message.components[0].components.map(btn =>
-        ButtonBuilder.from(btn).setDisabled(true)
-      )
-    );
+        const disabledRow = new ActionRowBuilder().addComponents(
+          message.components[0].components.map(btn =>
+            ButtonBuilder.from(btn).setDisabled(true)
+          )
+        );
 
-    await message.edit({ components: [disabledRow] });
-  } catch {
-    // message deleted, channel gone, bot restarted — safe to ignore
-  }
-}, 180_000);
+        await message.edit({ components: [disabledRow] });
+      } catch {
+        // message deleted, channel gone, bot restarted — safe to ignore
+      }
+    }, 180_000);
   },
 };
