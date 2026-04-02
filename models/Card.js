@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const cardSchema = new mongoose.Schema({
-  cardCode: { type: String, required: true, unique: true },
+  cardCode: { type: String, required: true, unique: true, index: true },
   name: { type: String, required: true },                   // Display name
   namealias: { type: String},
   categoryalias: { type: String},
@@ -28,7 +28,6 @@ timesPulled: { type: Number, default: 0 },          // counter
   timestamps: true
 });
 
-cardSchema.index({ cardCode: 1 }, { unique: true });
 
 cardSchema.index({ version: 1, active: 1, batch: 1 });
 cardSchema.index({ category: 1 });
