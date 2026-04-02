@@ -48,7 +48,9 @@ module.exports = {
     .setDescription('Summon cards and choose one'),
 
   async execute(interaction) {
+    console.time(`[summon] total ${interaction.user.id}`);
     const ownerId = interaction.user.id;
+    console.time(`[summon] cooldown ${interaction.user.id}`);
     const commandName = 'Summon';
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
         if (await cooldowns.isOnCooldown(ownerId, commandName)) {
@@ -58,11 +60,12 @@ module.exports = {
     
         // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
         await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
+        console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
 
     /* ===========================
        PULL 3 RANDOM CARDS (RETRY)
     =========================== */
-
+    console.time(`[summon] pulls ${interaction.user.id}`);
     const pulls = [];
     const MAX_ATTEMPTS = 30;
     let attempts = 0;
@@ -77,6 +80,8 @@ module.exports = {
       pulls.push(card);
     }
 
+    console.timeEnd(`[summon] pulls ${interaction.user.id}`);
+
     if (pulls.length < 3) {
       return interaction.editReply({
         content: 'Not enough eligible cards available to summon.',
@@ -86,6 +91,7 @@ module.exports = {
     /* ===========================
        CHECK OWNERSHIP
     =========================== */
+    console.time(`[summon] ownership ${interaction.user.id}`);
 
     const owned = await CardInventory.find({
       userId: ownerId,
@@ -93,10 +99,12 @@ module.exports = {
     }).lean();
 
     const ownedSet = new Set(owned.map(o => o.cardCode));
+    console.timeEnd(`[summon] ownership ${interaction.user.id}`);
 
     /* ===========================
        CANVAS (GRAYSCALE IF UNOWNED)
     =========================== */
+    console.time(`[summon] canvas ${interaction.user.id}`);
 
     const CARD_WIDTH = 320;
     const CARD_HEIGHT = 480;
@@ -132,6 +140,7 @@ for (let i = 0; i < pulls.length; i++) {
     const attachment = new AttachmentBuilder(canvas.toBuffer(), {
       name: 'summon.png',
     });
+    console.timeEnd(`[summon] canvas ${interaction.user.id}`);
 
     /* ===========================
        SINGLE EMBED
@@ -176,12 +185,16 @@ for (let i = 0; i < pulls.length; i++) {
           .setStyle(ButtonStyle.Secondary)
       )
     );
+    console.time(`[summon] reply ${interaction.user.id}`);
 
     const reply = await interaction.editReply({
       embeds: [embed],
       files: [attachment],
       components: [row],
     });
+
+    console.timeEnd(`[summon] reply ${interaction.user.id}`);
+console.timeEnd(`[summon] total ${interaction.user.id}`);
 
     /* ===========================
        SAVE SESSION
