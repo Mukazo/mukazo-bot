@@ -9,6 +9,7 @@ const User = require('../../../models/User');
 const { emitQuestEvent } = require('../../../utils/quest/tracker');
 const CardInventory = require('../../../models/CardInventory');
 const generateVersion = require('../../../utils/generateVersion');
+const { getPullPool } = require('../../../utils/pullPoolCache');
 
 const PACK_CONFIG = {
   selective: { cost: 750, keys: 0, cards: 5 },
@@ -21,24 +22,43 @@ const eraByPack = {
   monthlies: ['February 2026', 'March 2026', 'April 2026', 'May 2026']
 };
 
+function parseCsv(input) {
+  return (input || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function randomFrom(arr) {
+  if (!arr.length) return null;
+  return arr[Math.floor(Math.random() * arr.length)] || null;
+}
+
 module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
     const pack = interaction.options.getString('pack');
     const quantity = interaction.options.getInteger('quantity') || 1;
-    let groups = [], names = [];
-if (pack === 'selective') {
-  groups = (interaction.options.getString('groups') || '').split(',').map(s => s.trim()).filter(Boolean);
-  names = (interaction.options.getString('names') || '').split(',').map(s => s.trim()).filter(Boolean);
-}
+
+    let groups = [];
+    let names = [];
+
+    if (pack === 'selective') {
+      groups = parseCsv(interaction.options.getString('groups'));
+      names = parseCsv(interaction.options.getString('names'));
+    }
 
     const user = await User.findOne({ userId });
     if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
-    const blockedGroups = (user.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
-const blockedNames = (user.blockedPulls?.names || []).map(v => String(v).toLowerCase());
-const blockedPairs = user.blockedPulls?.pairs || [];
 
     const { cost, keys, cards: cardsPerPack } = PACK_CONFIG[pack];
+    if (!cost && cost !== 0) {
+      return interaction.editReply({
+        content: 'Invalid pack selected.',
+        ephemeral: true
+      });
+    }
+
     const totalCost = cost * quantity;
     const totalKeys = keys * quantity;
 
@@ -50,9 +70,34 @@ const blockedPairs = user.blockedPulls?.pairs || [];
     }
 
     const allPulled = [];
+
     if (!user.pityData) user.pityData = new Map();
-let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
+    let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
     let pityUsedThisSession = false;
+
+    // Shared cached pools
+    let selectiveFallbackPool = [];
+    let eventMonthlyV5Pool = [];
+
+    if (pack === 'selective' && user.enabledCategories?.length) {
+      const [v1, v2, v3, v4] = await Promise.all([
+        getPullPool(1, user),
+        getPullPool(2, user),
+        getPullPool(3, user),
+        getPullPool(4, user),
+      ]);
+
+      selectiveFallbackPool = [
+        ...v1.cards,
+        ...v2.cards,
+        ...v3.cards,
+        ...v4.cards,
+      ];
+    }
+    if (pack === 'events' || pack === 'monthlies') {
+      const v5 = await getPullPool(5, user);
+      eventMonthlyV5Pool = v5.cards.filter(card => eraByPack[pack].includes(card.era));
+    }
 
     for (let i = 0; i < quantity; i++) {
       const packCards = [];
@@ -64,182 +109,159 @@ let pity = user.pityData.get(pack) || { count: 0, codes: [], lastUsed: null };
           const isInputPick = Math.random() < 0.70;
 
           if (isInputPick) {
-  if (groups.length && names.length) {
-    // Exact pair mode: group[i] matches name[i]
-    if (groups.length === names.length) {
-      const pairs = groups.map((g, idx) => ({
-        group: new RegExp(`^${g}$`, 'i'),
-        $or: [
-          { name: new RegExp(`^${names[idx]}$`, 'i') },
-          { namealias: new RegExp(`^${names[idx]}$`, 'i') }
-        ]
-      }));
+            if (groups.length && names.length) {
+              if (groups.length === names.length) {
+                const pairs = groups.map((g, idx) => ({
+                  group: new RegExp(`^${g}$`, 'i'),
+                  $or: [
+                    { name: new RegExp(`^${names[idx]}$`, 'i') },
+                    { namealias: new RegExp(`^${names[idx]}$`, 'i') }
+                  ]
+                }));
 
-      pool = await Card.find({
-        $or: pairs,
-        version: { $in: [1, 2, 3, 4] },
-        active: true
-      }).lean();
-
-    } else {
-      // Fallback: respect BOTH filters instead of ignoring names
-      pool = await Card.find({
-        group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
-        $or: [
-          { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-          { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
-        ],
-        version: { $in: [1, 2, 3, 4] },
-        active: true
-      }).lean();
-    }
-
-  } else if (groups.length) {
-    pool = await Card.find({
-      group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
-      version: { $in: [1, 2, 3, 4] },
-      active: true
-    }).lean();
-
-  } else if (names.length) {
-    pool = await Card.find({
-      $or: [
-        { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-        { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
-      ],
-      version: { $in: [1, 2, 3, 4] },
-      active: true
-    }).lean();
-  }
-}
+                pool = await Card.find({
+                  $or: pairs,
+                  version: { $in: [1, 2, 3, 4] },
+                  active: true,
+                  batch: null
+                })
+                  .select('cardCode group name era emoji version localImagePath')
+                  .lean();
+              } else {
+                pool = await Card.find({
+                  group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
+                  $or: [
+                    { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+                    { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
+                  ],
+                  version: { $in: [1, 2, 3, 4] },
+                  active: true,
+                  batch: null
+                })
+                  .select('cardCode group name era emoji version localImagePath')
+                  .lean();
+              }
+            } else if (groups.length) {
+              pool = await Card.find({
+                group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
+                version: { $in: [1, 2, 3, 4] },
+                active: true,
+                batch: null
+              })
+                .select('cardCode group name era emoji version localImagePath')
+                .lean();
+            } else if (names.length) {
+              pool = await Card.find({
+                $or: [
+                  { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
+                  { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
+                ],
+                version: { $in: [1, 2, 3, 4] },
+                active: true,
+                batch: null
+              })
+                .select('cardCode group name era emoji version localImagePath')
+                .lean();
+            }
+          }
         }
 
         if ((pack === 'events' || pack === 'monthlies') && pity.count >= 4 && Math.random() < 0.75 && pity.codes?.length) {
-  pool = await Card.find({
-    cardCode: { $in: pity.codes },
-    active: true
-  }).lean();
+          pool = await Card.find({
+            cardCode: { $in: pity.codes },
+            active: true,
+            batch: null
+          })
+            .select('cardCode group name era emoji version localImagePath')
+            .lean();
 
-  if (pool.length) {
-    pity.count = 0;
-    pity.lastUsed = new Date();
-    pityUsedThisSession = true;
-  }
-}
+          if (pool.length) {
+            pity.count = 0;
+            pity.lastUsed = new Date();
+            pityUsedThisSession = true;
+          }
+        }
 
-        // If pool is empty and it's selective, try user's categories
-if (!pool.length && pack === 'selective' && user.enabledCategories?.length) {
-  const enabled = user.enabledCategories;
-
-  pool = await Card.find({
-    active: true,
-    version: { $in: [1, 2, 3, 4] },
-    $and: [
-      {
-        $or: [
-          { category: { $in: enabled } },
-          { categoryalias: { $in: enabled } }
-        ]
-      },
-      ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
-      ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
-      ...(blockedGroups.length
-  ? [{
-      group: { $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i')) }
-    }]
-  : []),
-...(blockedNames.length
-  ? [{
-      $and: [
-        { name: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } },
-        { namealias: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } }
-      ]
-    }]
-  : []),
-...(blockedPairs.length
-  ? [{
-      $nor: blockedPairs.map(p => ({
-        group: new RegExp(`^${p.group}$`, 'i'),
-        $or: [
-          { name: new RegExp(`^${p.name}$`, 'i') },
-          { namealias: new RegExp(`^${p.name}$`, 'i') }
-        ]
-      }))
-    }]
-  : [])
-    ]
-  }).lean();
-}
-
-// If still empty and this is events/monthlies, pull based on era + version 5
-if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
-  pool = await Card.find({
-    active: true,
-    version: 5,
-    era: { $in: eraByPack[pack] }
-  }).lean();
-}
+        // Shared cached selective fallback
+        if (!pool.length && pack === 'selective' && selectiveFallbackPool.length) {
+          pool = selectiveFallbackPool;
+        }
+        // Shared cached events/monthlies fallback
+        if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
+          pool = eventMonthlyV5Pool;
+        }
 
         if (pool.length) {
-          const chosen = pool[Math.floor(Math.random() * pool.length)];
-          packCards.push(chosen);
+          const chosen = randomFrom(pool);
+          if (chosen) packCards.push(chosen);
         }
       }
 
       allPulled.push(packCards);
-      if (pack === 'events' || pack === 'monthlies') pity.count++;
 
-      // ❗ Cancel purchase if no cards pulled for event/monthlies
-if ((pack === 'events' || pack === 'monthlies') && allPulled.every(pack => pack.length === 0)) {
-  return interaction.editReply({
-    content: `Currently no available cards for the **${pack}** pack.`,
-    ephemeral: true
-  });
-}
+      if (pack === 'events' || pack === 'monthlies') {
+        if (!pityUsedThisSession) pity.count++;
+        pityUsedThisSession = false;
+      }
+
+      if ((pack === 'events' || pack === 'monthlies') && allPulled.every(packCards => packCards.length === 0)) {
+        return interaction.editReply({
+          content: `Currently no available cards for the **${pack}** pack.`,
+          ephemeral: true
+        });
+      }
     }
 
     user.wirlies -= totalCost;
     user.keys -= totalKeys;
+
     if (!user.pityData) user.pityData = new Map();
-user.pityData.set(pack, pity);
+    user.pityData.set(pack, pity);
+
     await user.save();
-    // Update inventory
-    for (const pack of allPulled) {
-      for (const card of pack) {
-        await CardInventory.updateOne(
-          { userId, cardCode: card.cardCode },
-          { $inc: { quantity: 1 } },
-          { upsert: true }
-        );
+
+    const flatPulled = allPulled.flat();
+
+    if (flatPulled.length) {
+      await CardInventory.bulkWrite(
+        flatPulled.map(card => ({
+          updateOne: {
+            filter: { userId, cardCode: card.cardCode },
+            update: { $inc: { quantity: 1 } },
+            upsert: true
+          }
+        }))
+      );
+
+      for (const card of flatPulled) {
         await emitQuestEvent(
-            interaction.user.id,
-            {
-              type: 'shopbuy',
-              card: {
-                cardCode: card.cardCode,
-                version: card.version,
-                group: card.group,
-                era: card.era,
-              },
+          interaction.user.id,
+          {
+            type: 'shopbuy',
+            card: {
+              cardCode: card.cardCode,
+              version: card.version,
+              group: card.group,
+              era: card.era,
             },
-            interaction
-          );
+          },
+          interaction
+        );
       }
     }
 
-    // Paginate display
     const pages = allPulled.map((cards, index) => {
-        const desc = cards.map(c => {
-  const emoji = c.emoji || generateVersion(c);
-  const eraText = c.era ? `( ${c.era} )` : '';
-  return `• ${emoji} **${c.group}** __${c.name}__ ${eraText} \`${c.cardCode}\``;
-}).filter(Boolean).join('\n');
+      const desc = cards.map(c => {
+        const emoji = c.emoji || generateVersion(c);
+        const eraText = c.era ? `( ${c.era} )` : '';
+        return `• ${emoji} **${c.group}** __${c.name}__ ${eraText} \`${c.cardCode}\``;
+      }).filter(Boolean).join('\n');
 
       return new EmbedBuilder()
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
         .setDescription([
-            `# Mukazo\'s Pack ${index + 1} / ${allPulled.length}`,
-            desc || '*No cards pulled.*'
+          `# Mukazo's Pack ${index + 1} / ${allPulled.length}`,
+          desc || '*No cards pulled.*'
         ].filter(Boolean).join('\n'))
         .setColor('#2f3136');
     });
@@ -266,6 +288,7 @@ user.pityData.set(pack, pity);
     });
 
     if (pages.length <= 1) return;
+
     const collector = msg.createMessageComponentCollector({ time: 120000 });
 
     collector.on('collect', async btn => {
@@ -289,12 +312,12 @@ user.pityData.set(pack, pity);
     });
 
     await emitQuestEvent(
-          interaction.user.id,
-          {
-            type: 'command',
-            commandName: 'shopbuy',
-          },
-          interaction
-        );
+      interaction.user.id,
+      {
+        type: 'command',
+        commandName: 'shopbuy',
+      },
+      interaction
+    );
   }
 };
