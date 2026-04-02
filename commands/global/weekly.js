@@ -23,12 +23,18 @@ const generateVersion = require('../../utils/generateVersion');
 =========================== */
 
 function pickRandom(arr, count) {
-  return arr
-    .slice()
-    .sort(() => 0.5 - Math.random())
-    .slice(0, count);
-}
+  const copy = arr.slice();
+  const result = [];
+  const max = Math.min(count, copy.length);
 
+  for (let i = 0; i < max; i++) {
+    const idx = Math.floor(Math.random() * copy.length);
+    result.push(copy[idx]);
+    copy.splice(idx, 1);
+  }
+
+  return result;
+}
 function calculateWeeklyReward(streak) {
   const wirlies = 5000 + Math.min(7500, Math.floor(streak / 2) * 750);
   const keys = 8 + Math.min(7, Math.floor(streak / 4));
@@ -38,12 +44,14 @@ function calculateWeeklyReward(streak) {
 function grayscaleRegion(ctx, x, y, w, h) {
   const imgData = ctx.getImageData(x, y, w, h);
   const data = imgData.data;
+
   for (let i = 0; i < data.length; i += 4) {
     const gray = Math.round(
       0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]
     );
     data[i] = data[i + 1] = data[i + 2] = gray;
   }
+
   ctx.putImageData(imgData, x, y);
 }
 
@@ -57,30 +65,34 @@ module.exports = {
     .setDescription('Claim your weekly rewards'),
 
   async execute(interaction) {
-    
+    console.time(`[weekly] total ${interaction.user.id}`);
+
     const userId = interaction.user.id;
     const commandName = 'Weekly';
     const cooldownDuration = cooldownConfig[commandName];
+
     let user = await User.findOne({ userId });
 
-if (!user) {
-  user = await User.create({
-    userId,
-    enabledCategories: [],
-  });
-}
+    if (!user) {
+      user = await User.create({
+        userId,
+        enabledCategories: [],
+      });
+    }
 
-    if (!user || !user.enabledCategories || user.enabledCategories.length === 0) {
-  return interaction.editReply({
-    content: 'You have no enabled categories. Please run `/setup` first.',
-  });
-}
+    if (!user.enabledCategories || user.enabledCategories.length === 0) {
+      console.timeEnd(`[weekly] total ${interaction.user.id}`);
+      return interaction.editReply({
+        content: 'You have no enabled categories. Please run `/setup` first.',
+      });
+    }
 
     /* ===========================
        COOLDOWN
     =========================== */
     if (await cooldowns.isOnCooldown(userId, commandName)) {
       const next = await cooldowns.getCooldownTimestamp(userId, commandName);
+      console.timeEnd(`[weekly] total ${interaction.user.id}`);
       return interaction.editReply({
         content: `Command on cooldown! Try again ${next}.`,
       });
@@ -91,13 +103,11 @@ if (!user) {
     =========================== */
     const now = new Date();
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    
-    if (!user) user = await User.create({ userId });
 
     const lastClaim = new Date(user.weeklystreak?.lastClaim || 0);
     const diff = now - lastClaim;
 
-    let streak =
+    const streak =
       diff < oneWeek * 2
         ? (user.weeklystreak?.count || 0) + 1
         : 1;
@@ -108,68 +118,78 @@ if (!user) {
     /* ===========================
        CARD POOLS
     =========================== */
+    console.time(`[weekly] pools ${interaction.user.id}`);
+
     const enabled = user.enabledCategories;
     const blockedGroups = (user.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
-const blockedNames = (user.blockedPulls?.names || []).map(v => String(v).toLowerCase());
-const blockedPairs = user.blockedPulls?.pairs || [];
-
-const v5Pool = await Card.find({
-  active: true,
-  version: 5,
-  batch: null,
-  $and: [
-    {
-      $or: [
-        { category: { $in: enabled } },
-        { categoryalias: { $in: enabled } }
-      ]
-    },
-    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
-    ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
-  ]
-}).lean();
-
-    const v1to4Pool = await Card.find({
-  active: true,
-  version: { $gte: 1, $lte: 4 },
-  batch: null,
-  $and: [
-    {
-      $or: [
-        { category: { $in: enabled } },
-        { categoryalias: { $in: enabled } }
-      ]
-    },
-    ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
-    ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
-    ...(blockedGroups.length
-  ? [{
-      group: { $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i')) }
-    }]
-  : []),
-...(blockedNames.length
-  ? [{
-      $and: [
-        { name: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } },
-        { namealias: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } }
-      ]
-    }]
-  : []),
-...(blockedPairs.length
-  ? [{
-      $nor: blockedPairs.map(p => ({
-        group: new RegExp(`^${p.group}$`, 'i'),
-        $or: [
-          { name: new RegExp(`^${p.name}$`, 'i') },
-          { namealias: new RegExp(`^${p.name}$`, 'i') }
+    const blockedNames = (user.blockedPulls?.names || []).map(v => String(v).toLowerCase());
+    const blockedPairs = user.blockedPulls?.pairs || [];
+    const [v5Pool, v1to4Pool] = await Promise.all([
+      Card.find({
+        active: true,
+        version: 5,
+        batch: null,
+        $and: [
+          {
+            $or: [
+              { category: { $in: enabled } },
+              { categoryalias: { $in: enabled } }
+            ]
+          },
+          ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
+          ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }])
         ]
-      }))
-    }]
-  : [])
-  ]
-}).lean();
+      })
+        .select('cardCode era group name emoji version localImagePath')
+        .lean(),
+
+      Card.find({
+        active: true,
+        version: { $gte: 1, $lte: 4 },
+        batch: null,
+        $and: [
+          {
+            $or: [
+              { category: { $in: enabled } },
+              { categoryalias: { $in: enabled } }
+            ]
+          },
+          ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
+          ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
+          ...(blockedGroups.length
+            ? [{
+                group: { $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i')) }
+              }]
+            : []),
+          ...(blockedNames.length
+            ? [{
+                $and: [
+                  { name: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } },
+                  { namealias: { $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i')) } }
+                ]
+              }]
+            : []),
+          ...(blockedPairs.length
+            ? [{
+                $nor: blockedPairs.map(p => ({
+                  group: new RegExp(`^${p.group}$`, 'i'),
+                  $or: [
+                    { name: new RegExp(`^${p.name}$`, 'i') },
+                    { namealias: new RegExp(`^${p.name}$`, 'i') }
+                  ]
+                }))
+              }]
+            : [])
+        ]
+      })
+        .select('cardCode era group name emoji version localImagePath')
+        .lean()
+    ]);
+
+    console.timeEnd(`[weekly] pools ${interaction.user.id}`);
 
     if (v5Pool.length < 1 || v1to4Pool.length < 2) {
+      console.timeEnd(`[weekly] total ${interaction.user.id}`);
       return interaction.editReply({
         content: 'Not enough cards available for weekly rewards.',
       });
@@ -181,15 +201,34 @@ const v5Pool = await Card.find({
     ];
 
     /* ===========================
+       OWNERSHIP CHECK
+    =========================== */
+    console.time(`[weekly] ownership ${interaction.user.id}`);
+    const owned = await CardInventory.find({
+      userId,
+      cardCode: { $in: pulls.map(c => c.cardCode) },
+    }).lean();
+
+    const ownedSet = new Set(owned.map(o => o.cardCode));
+
+    console.timeEnd(`[weekly] ownership ${interaction.user.id}`);
+
+    /* ===========================
        INVENTORY UPDATE
     =========================== */
-    for (const card of pulls) {
-      await CardInventory.updateOne(
-        { userId, cardCode: card.cardCode },
-        { $inc: { quantity: 1 } },
-        { upsert: true }
-      );
-    }
+    console.time(`[weekly] inventory ${interaction.user.id}`);
+
+    await CardInventory.bulkWrite(
+      pulls.map(card => ({
+        updateOne: {
+          filter: { userId, cardCode: card.cardCode },
+          update: { $inc: { quantity: 1 } },
+          upsert: true,
+        }
+      }))
+    );
+
+    console.timeEnd(`[weekly] inventory ${interaction.user.id}`);
 
     /* ===========================
        CURRENCY
@@ -200,8 +239,10 @@ const v5Pool = await Card.find({
     await cooldowns.setCooldown(userId, commandName, cooldownDuration);
 
     /* ===========================
-       CANVAS (SUMMON STYLE)
+       CANVAS
     =========================== */
+    console.time(`[weekly] canvas ${interaction.user.id}`);
+
     const CARD_WIDTH = 320;
     const CARD_HEIGHT = 480;
     const GAP = 15;
@@ -213,30 +254,31 @@ const v5Pool = await Card.find({
 
     const ctx = canvas.getContext('2d');
 
-    const owned = await CardInventory.find({
-      userId,
-      cardCode: { $in: pulls.map(c => c.cardCode) },
-    }).lean();
-
-    const ownedSet = new Set(owned.map(o => o.cardCode));
+    const loadedImages = await Promise.all(
+      pulls.map(card =>
+        Canvas.loadImage(card.localImagePath).catch(() => null)
+      )
+    );
 
     for (let i = 0; i < pulls.length; i++) {
       const card = pulls[i];
+      const img = loadedImages[i];
       const x = i * (CARD_WIDTH + GAP);
 
-      try {
-        const img = await Canvas.loadImage(card.localImagePath);
-        ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
+      if (!img) continue;
 
-        if (!ownedSet.has(card.cardCode)) {
-          grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
-        }
-      } catch {}
+      ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
+
+      if (!ownedSet.has(card.cardCode)) {
+        grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
+      }
     }
 
     const attachment = new AttachmentBuilder(canvas.toBuffer(), {
       name: 'weekly.png',
     });
+
+    console.timeEnd(`[weekly] canvas ${interaction.user.id}`);
 
     /* ===========================
        EMBED
@@ -244,11 +286,7 @@ const v5Pool = await Card.find({
     const lines = pulls.map(card => {
       const emoji = card.emoji || generateVersion(card);
       const eraText = card.era ? `${card.era}` : '';
-      return [
-        `${emoji} **${card.group}** __${card.name}__ ${eraText} \`${card.cardCode}\``,
-      ]
-        .filter(Boolean)
-        .join('\n');
+      return `${emoji} **${card.group}** __${card.name}__ ${eraText} \`${card.cardCode}\``;
     });
 
     const embed = new EmbedBuilder()
@@ -267,20 +305,27 @@ const v5Pool = await Card.find({
         ].join('\n')
       );
 
-      await emitQuestEvent(
-            interaction.user.id,
-            {
-              type: 'command',
-              commandName: 'weekly',
-            },
-            interaction
-          );
+    await emitQuestEvent(
+      interaction.user.id,
+      {
+        type: 'command',
+        commandName: 'weekly',
+      },
+      interaction
+    );
 
-      await handleReminders(interaction, 'weekly', cooldownDuration);
+    await handleReminders(interaction, 'weekly', cooldownDuration);
 
-    return interaction.editReply({
+    console.time(`[weekly] reply ${interaction.user.id}`);
+
+    const response = await interaction.editReply({
       embeds: [embed],
       files: [attachment],
     });
+
+    console.timeEnd(`[weekly] reply ${interaction.user.id}`);
+    console.timeEnd(`[weekly] total ${interaction.user.id}`);
+
+    return response;
   },
 };

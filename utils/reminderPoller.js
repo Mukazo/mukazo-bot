@@ -43,10 +43,50 @@ async function processDueReminders() {
       await sendReminder(claimed);
       sentPerCommand.set(cmd, already + 1);
     } catch (e) {
-      console.warn(`[reminderPoller] send failed ${r._id}:`, e?.message || e);
-      // optional: unclaim to retry later
-      await Reminder.updateOne({ _id: r._id }, { $unset: { claimedAt: 1 } }).catch(()=>{});
+  const msg = String(e?.message || e || '');
+
+  console.warn(`[reminderPoller] send failed ${r._id}:`, msg);
+
+  const undeliverable =
+    msg.includes('Cannot send messages to this user') ||
+    msg.includes('Missing Access') ||
+    msg.includes('Unknown User');
+
+  if (undeliverable) {
+    await Reminder.updateOne(
+      { _id: r._id },
+      {
+        $set: {
+          failedAt: new Date(),
+          failureReason: msg,
+        }
+      }
+    ).catch(() => {});
+  } else {
+    const nextAttempts = (r.attempts || 0) + 1;
+
+    if (nextAttempts >= 3) {
+      await Reminder.updateOne(
+        { _id: r._id },
+        {
+          $set: {
+            failedAt: new Date(),
+            failureReason: msg,
+            attempts: nextAttempts,
+          }
+        }
+      ).catch(() => {});
+    } else {
+      await Reminder.updateOne(
+        { _id: r._id },
+        {
+          $unset: { claimedAt: 1 },
+          $set: { attempts: nextAttempts },
+        }
+      ).catch(() => {});
     }
+  }
+}
   }
 }
 
