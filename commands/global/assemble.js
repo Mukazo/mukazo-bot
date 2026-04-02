@@ -15,8 +15,10 @@ const Card = require('../../models/Card');
 const CardInventory = require('../../models/CardInventory');
 const Series = require('../../models/Series');
 const generateVersion = require('../../utils/generateVersion');
+const cooldowns = require('../../utils/cooldownManager');
+const handleReminders = require('../../utils/reminderHandler');
 
-const CARDS_TO_GIVE = 3;
+const CARDS_TO_GIVE = 5;
 const SERIES_OPTIONS = 3;
 const MENU_TIMEOUT = 120_000;
 
@@ -88,7 +90,7 @@ async function buildSeriesCanvas(seriesOptions) {
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 24px Sans';
   ctx.textAlign = 'center';
-  ctx.fillText('Choose 1 out of 3 Series', WIDTH / 2, 52);
+  ctx.fillText('Choose 1 of the 3 Series', WIDTH / 2, 52);
 
   const images = await Promise.all(
   seriesOptions.map(series =>
@@ -103,10 +105,6 @@ async function buildSeriesCanvas(seriesOptions) {
     const img = images[i];
     const x = START_X + i * (CARD_W + GAP);
 
-    // card background
-    ctx.fillStyle = '#14171c';
-    ctx.fillRect(x, Y, CARD_W, CARD_H);
-
     if (img) {
       ctx.drawImage(img, x, Y, CARD_W, CARD_H);
     } else {
@@ -115,13 +113,6 @@ async function buildSeriesCanvas(seriesOptions) {
     }
 
     // dark footer label
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
-    ctx.fillRect(x, Y + CARD_H - 62, CARD_W, 62);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 22px Sans';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${i + 1}`, x + CARD_W / 2, Y + CARD_H - 35);
   }
 
   return new AttachmentBuilder(canvas.toBuffer(), {
@@ -132,7 +123,7 @@ async function buildSeriesCanvas(seriesOptions) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('assemble')
-    .setDescription('Choose 1 of 3 random series and receive 3 cards from that series.'),
+    .setDescription('Choose a series and receive cards'),
 
   async execute(interaction) {
     const userId = interaction.user.id;
@@ -146,6 +137,17 @@ module.exports = {
         content: 'User not found.',
       });
     }
+
+    const commandName = 'Assemble';
+        const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
+    
+        if (await cooldowns.isOnCooldown(ownerId, commandName)) {
+          const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
+          console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
+          console.timeEnd(`[summon] total ${interaction.user.id}`);
+          return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+        }
+        await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
 
     const enabled = (user.enabledCategories || []).map(normalize);
 
@@ -209,10 +211,11 @@ module.exports = {
     const attachment = await buildSeriesCanvas(optionsPool);
 
     const embed = new EmbedBuilder()
+      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
-        '## Assemble a Series',
+        '## Assemble a Series collection . . .ᐟ',
         '',
-        '> Choose **1** of the 3 series below.',
+        ' ˗ˏˋChoose **1** of the 3 series below.',
         `> You will receive **${CARDS_TO_GIVE}** cards from the chosen series.`,
       ].join('\n'))
       .setImage('attachment://assemble_series.png');
@@ -294,8 +297,7 @@ module.exports = {
       );
 
       const resultEmbed = new EmbedBuilder()
-        .setColor('#2f3136')
-        .setTitle(`Assembled: ${selectedSeries.name}`)
+        .setTitle(`You Selected . . *${selectedSeries.name}*`)
         .setDescription(
           chosenCards.map(card => {
             const emoji = card.emoji || generateVersion(card);
@@ -334,6 +336,8 @@ const thumbName = `series_${safeCode}.png`;
   collector.stop('selected');
   return;
 }
+
+await handleReminders(interaction, 'assemble', cooldownMs);
 
       await select.update({
         embeds: [resultEmbed],

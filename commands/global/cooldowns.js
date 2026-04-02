@@ -11,10 +11,11 @@ const emojiMap = {
   Bewitch: '',
   Fortune: '',
   Slots: '',
+  Assemble: '',
 };
 
 const categories = {
-  Cards: ['Summon', 'Claim', 'Enchant'],
+  Cards: ['Summon', 'Claim', 'Enchant', 'Assemble'],
   Money: ['Route', 'Fortune', 'Bewitch'],
   Both: ['Slots', 'Daily', 'Weekly'],
 };
