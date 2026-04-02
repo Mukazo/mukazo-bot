@@ -69,7 +69,7 @@ async function buildSeriesCanvas(seriesOptions) {
   const CARD_H = 310;
   const GAP = 30;
   const START_X = Math.floor((WIDTH - ((CARD_W * 3) + (GAP * 2))) / 2);
-  const Y = 45;
+  const Y = 80;
 
   const canvas = Canvas.createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext('2d');
@@ -112,11 +112,6 @@ async function buildSeriesCanvas(seriesOptions) {
     } else {
       ctx.fillStyle = '#444b57';
       ctx.fillRect(x, Y, CARD_W, CARD_H);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 20px Sans';
-      ctx.textAlign = 'center';
-      ctx.fillText(series.name.slice(0, 20), x + CARD_W / 2, Y + CARD_H / 2);
     }
 
     // dark footer label
@@ -127,10 +122,6 @@ async function buildSeriesCanvas(seriesOptions) {
     ctx.font = 'bold 22px Sans';
     ctx.textAlign = 'center';
     ctx.fillText(`${i + 1}`, x + CARD_W / 2, Y + CARD_H - 35);
-
-    ctx.font = '18px Sans';
-    const label = series.name.length > 24 ? `${series.name.slice(0, 23)}…` : series.name;
-    ctx.fillText(label, x + CARD_W / 2, Y + CARD_H - 12);
   }
 
   return new AttachmentBuilder(canvas.toBuffer(), {
