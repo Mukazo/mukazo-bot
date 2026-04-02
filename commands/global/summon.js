@@ -109,25 +109,32 @@ module.exports = {
 
     const ctx = canvas.getContext('2d');
 
+    const loadedImages = await Promise.all(
+      pulls.map(card =>
+        Canvas.loadImage(card.localImagePath).catch(() => null)
+      )
+    );
+
     for (let i = 0; i < pulls.length; i++) {
       const card = pulls[i];
+      const img = loadedImages[i];
       const x = i * (CARD_WIDTH + GAP);
 
-      try {
-        const img = await Canvas.loadImage(card.localImagePath);
+      if (!img) continue;
 
-        ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
+      ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
 
-        if (!ownedSet.has(card.cardCode)) {
+      if (!ownedSet.has(card.cardCode)) {
         grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
-        }
-
-      } catch {}
+      }
     }
 
-    const attachment = new AttachmentBuilder(canvas.toBuffer(), {
-      name: 'summon.png',
-    });
+    const attachment = new AttachmentBuilder(
+      canvas.toBuffer('image/jpeg', { quality: 0.9 }),
+      {
+        name: 'summon.jpg',
+      }
+    );
 
     /* ===========================
        SINGLE EMBED
@@ -147,7 +154,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setDescription('## Summoning 3 Cards\n> Choose one of the cards below to claim, pick wisely!')
       .addFields(fields)
-      .setImage('attachment://summon.png');
+      .setImage('attachment://summon.jpg');
 
     /* ===========================
        BUTTONS
