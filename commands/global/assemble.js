@@ -18,7 +18,7 @@ const generateVersion = require('../../utils/generateVersion');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
 
-const CARDS_TO_GIVE = 5;
+const CARDS_TO_GIVE = 4;
 const SERIES_OPTIONS = 3;
 const MENU_TIMEOUT = 120_000;
 
@@ -37,6 +37,18 @@ function randomUnique(arr, count) {
     const idx = Math.floor(Math.random() * copy.length);
     picked.push(copy[idx]);
     copy.splice(idx, 1);
+  }
+
+  return picked;
+}
+
+function randomWithDuplicates(arr, count) {
+  const picked = [];
+  const max = Math.max(0, count);
+
+  for (let i = 0; i < max; i++) {
+    const chosen = arr[Math.floor(Math.random() * arr.length)];
+    if (chosen) picked.push(chosen);
   }
 
   return picked;
@@ -284,17 +296,23 @@ module.exports = {
         });
       }
 
-      const chosenCards = randomUnique(pool, CARDS_TO_GIVE);
+      const chosenCards = randomWithDuplicates(pool, CARDS_TO_GIVE);
 
-      await CardInventory.bulkWrite(
-        chosenCards.map(card => ({
-          updateOne: {
-            filter: { userId, cardCode: card.cardCode },
-            update: { $inc: { quantity: 1 } },
-            upsert: true,
-          },
-        }))
-      );
+      const qtyMap = new Map();
+
+for (const card of chosenCards) {
+  qtyMap.set(card.cardCode, (qtyMap.get(card.cardCode) || 0) + 1);
+}
+
+await CardInventory.bulkWrite(
+  [...qtyMap.entries()].map(([cardCode, qty]) => ({
+    updateOne: {
+      filter: { userId, cardCode },
+      update: { $inc: { quantity: qty } },
+      upsert: true,
+    },
+  }))
+);
 
       const resultEmbed = new EmbedBuilder()
         .setTitle(`You Selected . . *${selectedSeries.name}*`)
