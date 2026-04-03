@@ -139,6 +139,7 @@ module.exports = {
 
   async execute(interaction) {
     const userId = interaction.user.id;
+    const ownerId = interaction.user.id;
 
     const user = await User.findOne({ userId })
       .select('enabledCategories')
@@ -151,15 +152,14 @@ module.exports = {
     }
 
     const commandName = 'Assemble';
-        const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
-    
-        if (await cooldowns.isOnCooldown(userId, commandName)) {
-          const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
-          console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
-          console.timeEnd(`[summon] total ${interaction.user.id}`);
-          return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
-        }
-        await cooldowns.setCooldown(userId, commandName, cooldownMs);
+            const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
+                if (await cooldowns.isOnCooldown(ownerId, commandName)) {
+                  const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
+                  return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+                }
+            
+                // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
+                await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
 
     const enabled = (user.enabledCategories || []).map(normalize);
 
@@ -355,8 +355,6 @@ const thumbName = `series_${safeCode}.png`;
   return;
 }
 
-await handleReminders(interaction, 'assemble', cooldownMs);
-
       await select.update({
         embeds: [resultEmbed],
         components: [],
@@ -365,6 +363,8 @@ await handleReminders(interaction, 'assemble', cooldownMs);
 
       collector.stop('selected');
     });
+
+    await handleReminders(interaction, 'assemble', cooldownMs);
 
     collector.on('end', async (_collected, reason) => {
       if (reason === 'selected') return;
