@@ -221,10 +221,6 @@ module.exports = {
       if (!img) continue;
 
       ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
-
-      if (!ownedSet.has(card.cardCode)) {
-        grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
-      }
     }
 
     const attachment = new AttachmentBuilder(canvas.toBuffer(), {
