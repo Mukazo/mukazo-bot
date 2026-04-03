@@ -17,12 +17,12 @@ module.exports = {
   Assemble: {
     default: 13 * 60 * 1000,
     reductions: [
-  { id: '1447006737042378772', percent: 15, group: 'patreon' }, // Daydream
-  { id: '1447006766733725747', percent: 25, group: 'patreon' }, // Ethereal
-  { id: '1447006809419415622', percent: 40, group: 'patreon' }, // Stardust
-  { id: '1465789192326873231', percent: 50, group: 'patreon' }, // Pixie
+  { id: '1447006737042378772', percent: 10, group: 'patreon' }, // Daydream
+  { id: '1447006766733725747', percent: 15, group: 'patreon' }, // Ethereal
+  { id: '1447006809419415622', percent: 30, group: 'patreon' }, // Stardust
+  { id: '1465789192326873231', percent: 40, group: 'patreon' }, // Pixie
 
-  { id: '1447197066156703774', percent: 10 },  // Booster
+  { id: '1447197066156703774', percent: 5 },  // Booster
   { id: '1459260084034076823', percent: 5 },  // /mukazobot
     ]
   },
