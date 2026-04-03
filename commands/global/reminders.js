@@ -9,6 +9,7 @@ const VALID_COMMANDS = [
   'slots',
   'daily',
   'weekly',
+  'assemble',
 ];
 
 // ✨ Pretty display names (SAFE to decorate)
@@ -20,6 +21,7 @@ const COMMAND_DISPLAY = {
   slots: '─ Slots',
   daily: '─ Daily',
   weekly: '─ Weekly',
+  assemble: '─ Assemble',
 };
 
 // 💖 Cute mode formatter
