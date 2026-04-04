@@ -18,7 +18,7 @@ const generateVersion = require('../../utils/generateVersion');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
 
-const CARDS_TO_GIVE = 4;
+const CARDS_TO_GIVE = 5;
 const SERIES_OPTIONS = 3;
 const MENU_TIMEOUT = 120_000;
 

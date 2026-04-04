@@ -15,10 +15,10 @@ module.exports = {
   },
 
   Assemble: {
-    default: 13 * 60 * 1000,
+    default: 25 * 60 * 1000,
     reductions: [
   { id: '1447006737042378772', percent: 10, group: 'patreon' }, // Daydream
-  { id: '1447006766733725747', percent: 15, group: 'patreon' }, // Ethereal
+  { id: '1447006766733725747', percent: 20, group: 'patreon' }, // Ethereal
   { id: '1447006809419415622', percent: 30, group: 'patreon' }, // Stardust
   { id: '1465789192326873231', percent: 40, group: 'patreon' }, // Pixie
 
