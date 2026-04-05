@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const Card = require('../../models/Card');
 const User = require('../../models/User');
 const CardInventory = require('../../models/CardInventory');
+const generateVersion = require('../../utils/generateVersion');
 
 // Use Discord Role IDs for accurate tier detection
 const ROLE_TIERS = {
@@ -78,11 +79,24 @@ if (user.brewData.used >= effectiveLimit) {
       return interaction.editReply({ content: 'You need <:Wirlies:1455924065972785375> **5,000** to cast.', ephemeral: true });
     }
 
+    const targetCard = await Card.findOne({
+          cardCode: codeInput,
+          version: 5,
+          active: false,
+          batch: null
+        });
+    
+        if (!targetCard) {
+          return interaction.editReply({
+            content: `\`${codeInput}\` is not a valid active Version 5 card code.`,
+            ephemeral: true
+          });
+        }
+
     let pulledCard = null;
 
     // Try to get the requested card
     if (codeInput) {
-      const targetCard = await Card.findOne({ cardCode: codeInput, version: 5, active: false });
       if (targetCard && Math.random() < chance) {
         pulledCard = targetCard;
       }
