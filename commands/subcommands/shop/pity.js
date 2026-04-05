@@ -13,11 +13,19 @@ module.exports = {
       return interaction.editReply({ content: 'You must enter at least one valid card code.', ephemeral: true });
     }
 
-    const foundCards = await Card.find({ cardCode: { $in: codes } });
+    const foundCards = await Card.find({
+      cardCode: { $in: codes },
+      active: true
+    })
+      .select('cardCode active')
+      .lean();
 
-    if (foundCards.length !== codes.length) {
+    const foundCodeSet = new Set(foundCards.map(card => card.cardCode));
+    const invalidCodes = codes.filter(code => !foundCodeSet.has(code));
+
+    if (invalidCodes.length > 0) {
       return interaction.editReply({
-        content: `Some card codes were not found. Valid ones: ${foundCards.map(c => c.cardCode).join(', ')}`,
+        content: `These card codes are invalid or inactive: ${invalidCodes.map(c => `\`${c}\``).join(', ')}`,
         ephemeral: true
       });
     }
