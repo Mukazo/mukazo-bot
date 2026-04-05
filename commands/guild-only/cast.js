@@ -99,7 +99,7 @@ module.exports = {
 
     if (!targetCard) {
       return interaction.editReply({
-        content: `\`${codeInput}\` is not a valid active Version 5 card code.`,
+        content: `\`${codeInput}\` is not an active valid cardcode.`,
         ephemeral: true
       });
     }

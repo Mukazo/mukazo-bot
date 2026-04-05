@@ -88,7 +88,7 @@ if (user.brewData.used >= effectiveLimit) {
     
         if (!targetCard) {
           return interaction.editReply({
-            content: `\`${codeInput}\` is not a valid active Version 5 card code.`,
+            content: `\`${codeInput}\` is not an inactive valid cardcode.`,
             ephemeral: true
           });
         }
