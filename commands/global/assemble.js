@@ -17,6 +17,8 @@ const Series = require('../../models/Series');
 const generateVersion = require('../../utils/generateVersion');
 const cooldowns = require('../../utils/cooldownManager');
 const handleReminders = require('../../utils/reminderHandler');
+const { weightedPick } = require('../../utils/weightedPick');
+const { getGlobalPullConfig } = require('../../utils/globalPullConfig');
 
 const CARDS_TO_GIVE = 5;
 const SERIES_OPTIONS = 3;
@@ -37,6 +39,42 @@ function randomUnique(arr, count) {
     const idx = Math.floor(Math.random() * copy.length);
     picked.push(copy[idx]);
     copy.splice(idx, 1);
+  }
+
+  return picked;
+}
+
+function buildWeights(cards) {
+  const cfg = getGlobalPullConfig();
+  const { eraMultipliers, codeMultipliers, minWeight, maxWeight } = cfg;
+
+  return cards.map(card => {
+    const eraKey = card.era ? String(card.era).toLowerCase() : '';
+    const codeKey = card.cardCode ? String(card.cardCode).toLowerCase() : '';
+
+    const mEra =
+      eraKey && eraMultipliers[eraKey] !== undefined
+        ? eraMultipliers[eraKey]
+        : 1;
+
+    const mCode =
+      codeKey && codeMultipliers[codeKey] !== undefined
+        ? codeMultipliers[codeKey]
+        : 1;
+
+    return Math.min(maxWeight, Math.max(minWeight, 1 * mEra * mCode));
+  });
+}
+
+function weightedPickWithDuplicates(cards, count) {
+  if (!cards.length || count <= 0) return [];
+
+  const weights = buildWeights(cards);
+  const picked = [];
+
+  for (let i = 0; i < count; i++) {
+    const chosen = weightedPick(cards, weights);
+    if (chosen) picked.push(chosen);
   }
 
   return picked;
@@ -296,7 +334,7 @@ module.exports = {
         });
       }
 
-      const chosenCards = randomWithDuplicates(pool, CARDS_TO_GIVE);
+      const chosenCards = weightedPickWithDuplicates(pool, CARDS_TO_GIVE);
 
       const qtyMap = new Map();
 

@@ -18,8 +18,8 @@ const PACK_CONFIG = {
 };
 
 const eraByPack = {
-  events: ['Pola Pairs', 'Mukazo Style'],
-  monthlies: ['February 2026', 'March 2026', 'April 2026', 'May 2026']
+  events: ['Pola Pairs', 'Mukazo Style', 'The Corrupted City'],
+  monthlies: ['April 2026', 'May 2026', 'June 2026', 'July 2026']
 };
 
 function parseCsv(input) {
@@ -42,10 +42,12 @@ module.exports = {
 
     let groups = [];
     let names = [];
+    let eras = [];
 
     if (pack === 'selective') {
       groups = parseCsv(interaction.options.getString('groups'));
       names = parseCsv(interaction.options.getString('names'));
+      eras = parseCsv(interaction.options.getString('eras'));
     }
 
     const user = await User.findOne({ userId });
@@ -105,8 +107,8 @@ module.exports = {
       for (let j = 0; j < cardsPerPack; j++) {
         let pool = [];
 
-        if (pack === 'selective' && (groups.length || names.length)) {
-          const isInputPick = Math.random() < 0.70;
+        if (pack === 'selective' && (groups.length || names.length || eras.length)) {
+          const isInputPick = Math.random() < 0.65;
 
           if (isInputPick) {
             if (groups.length && names.length) {
@@ -144,6 +146,15 @@ module.exports = {
             } else if (groups.length) {
               pool = await Card.find({
                 group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
+                version: { $in: [1, 2, 3, 4] },
+                active: true,
+                batch: null
+              })
+                .select('cardCode group name era emoji version localImagePath')
+                .lean();
+            } else if (eras.length) {
+              pool = await Card.find({
+                era: { $in: eras.map(g => new RegExp(`^${g}$`, 'i')) },
                 version: { $in: [1, 2, 3, 4] },
                 active: true,
                 batch: null

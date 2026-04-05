@@ -40,6 +40,11 @@ module.exports = {
             .setDescription('Card names')
             .setRequired(false)
         )
+        .addStringOption(o =>
+          o.setName('eras')
+            .setDescription('Card eras')
+            .setRequired(false)
+        )
     )
     .addSubcommand(sub =>
   sub

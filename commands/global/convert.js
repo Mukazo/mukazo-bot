@@ -13,7 +13,7 @@ module.exports = {
       opt.setName('keys')
         .setDescription('amount of keys - 2000 wirlies per key')
         .setMinValue(1)
-        .setMaxValue(50)
+        .setMaxValue(75)
         .setRequired(true)
     ),
 
