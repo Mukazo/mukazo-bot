@@ -37,7 +37,7 @@ function pickRandom(arr, count) {
 }
 
 function calculateWeeklyReward(streak) {
-  const wirlies = 5000 + Math.min(7500, Math.floor(streak / 2) * 750);
+  const wirlies = 5250 + Math.min(7500, Math.floor(streak / 2) * 750);
   const keys = 8 + Math.min(7, Math.floor(streak / 4));
   return { wirlies, keys };
 }

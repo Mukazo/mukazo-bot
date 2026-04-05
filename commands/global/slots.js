@@ -11,11 +11,11 @@ const COST = 50;
 const COMMAND_NAME = 'Slots';
 
 const SYMBOLS = [
-  { icon: '🪹', weight: 39 },
+  { icon: '🪹', weight: 36 },
   { icon: '🍂', weight: 29 },
   { icon: '🌿', weight: 18 },
-  { icon: '🪷', weight: 9 },
-  { icon: '🍀', weight: 5 }
+  { icon: '🪷', weight: 11 },
+  { icon: '🍀', weight: 6 }
 ];
 
 function weightedRoll(multiplier = 1) {
@@ -116,7 +116,7 @@ if (currentLossStreak >= 10) luckMultiplier = 1.25;
     if (allMatch) {
       if (final1 === '🍀') {
         rewardW = 2250;
-        rewardK = 5;
+        rewardK = 4;
         if (Math.random() < 0.9) {
           rewardCard = await randomCardFromVersion(5, userId);
         }
