@@ -44,48 +44,28 @@ function randomUnique(arr, count) {
   return picked;
 }
 
-function buildWeights(cards) {
-  const cfg = getGlobalPullConfig();
-  const { eraMultipliers, codeMultipliers, minWeight, maxWeight } = cfg;
+function getVersionKey(version) {
+  return `V${Number(version) || 0}`;
+}
+
+function buildVersionWeights(cards) {
+  const { versionWeights, minWeight, maxWeight } = getGlobalPullConfig();
 
   return cards.map(card => {
-    const eraKey = card.era ? String(card.era).toLowerCase() : '';
-    const codeKey = card.cardCode ? String(card.cardCode).toLowerCase() : '';
-
-    const mEra =
-      eraKey && eraMultipliers[eraKey] !== undefined
-        ? eraMultipliers[eraKey]
-        : 1;
-
-    const mCode =
-      codeKey && codeMultipliers[codeKey] !== undefined
-        ? codeMultipliers[codeKey]
-        : 1;
-
-    return Math.min(maxWeight, Math.max(minWeight, 1 * mEra * mCode));
+    const versionKey = getVersionKey(card.version);
+    const weight = versionWeights[versionKey] ?? 1;
+    return Math.min(maxWeight, Math.max(minWeight, weight));
   });
 }
 
-function weightedPickWithDuplicates(cards, count) {
+function weightedPickByVersionWithDuplicates(cards, count) {
   if (!cards.length || count <= 0) return [];
 
-  const weights = buildWeights(cards);
+  const weights = buildVersionWeights(cards);
   const picked = [];
 
   for (let i = 0; i < count; i++) {
     const chosen = weightedPick(cards, weights);
-    if (chosen) picked.push(chosen);
-  }
-
-  return picked;
-}
-
-function randomWithDuplicates(arr, count) {
-  const picked = [];
-  const max = Math.max(0, count);
-
-  for (let i = 0; i < max; i++) {
-    const chosen = arr[Math.floor(Math.random() * arr.length)];
     if (chosen) picked.push(chosen);
   }
 
@@ -334,8 +314,7 @@ module.exports = {
         });
       }
 
-      const chosenCards = weightedPickWithDuplicates(pool, CARDS_TO_GIVE);
-
+      const chosenCards = weightedPickByVersionWithDuplicates(pool, CARDS_TO_GIVE);
       const qtyMap = new Map();
 
 for (const card of chosenCards) {
