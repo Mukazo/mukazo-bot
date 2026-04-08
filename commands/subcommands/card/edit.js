@@ -64,10 +64,10 @@ const batchFilter = multiStr('batch', { exact: true });
 if (batchFilter) filters.batch = batchFilter;
 
 // FUZZY / text matches
-const nameFilter = multiStr('name');
+const nameFilter = multiStr('name', {exact: true});
 if (nameFilter) filters.name = nameFilter;
 
-const groupFilter = multiStr('group');
+const groupFilter = multiStr('group', {exact: true});
 if (groupFilter) filters.group = groupFilter;
 
 // Card code – your choice (usually exact)
