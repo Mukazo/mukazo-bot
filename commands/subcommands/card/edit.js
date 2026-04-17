@@ -79,12 +79,12 @@ if (cardCodeFilter) filters.cardCode = cardCodeFilter;
       filters.version = interaction.options.getString('version');
     }
 
-    if (!groupFilter.length && !nameFilter.length && !eraFilter.length && !cardCodeFilter.length && !categoryFilter.length) {
-      return interaction.editReply({
-        content: 'You must provide at least one filter to edit cards',
-        ephemeral: true
-      });
-    }
+    if (Object.keys(filters).length === 0) {
+  return interaction.editReply({
+    content: 'You must provide at least one filter to edit cards',
+    ephemeral: true
+  });
+}
 
     /* ===========================
        FETCH MATCHING CARDS
