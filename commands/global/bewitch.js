@@ -55,13 +55,13 @@ let amount = 0;
 let keyAmount = 0;
 
 if (rewards.includes('wirlies')) {
-  amount = Math.floor(Math.random() * 100) + 225;
+  amount = Math.floor(Math.random() * 200) + 225;
   user.wirlies += amount;
   rewardMessages.push(`<:Wirlies:1455924065972785375> **${amount}**`);
 }
 
 if (rewards.includes('keys')) {
-  keyAmount = Math.random() < 0.35 ? 2 : 1;
+  keyAmount = Math.random() < 0.43 ? 2 : 1;
   user.keys += keyAmount;
   rewardMessages.push(`<:Key:1456059698582392852> **${keyAmount}**`);
 }

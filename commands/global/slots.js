@@ -115,26 +115,26 @@ if (currentLossStreak >= 10) luckMultiplier = 1.25;
 
     if (allMatch) {
       if (final1 === '🍀') {
-        rewardW = 2250;
+        rewardW = 3000;
         rewardK = 4;
         if (Math.random() < 0.9) {
           rewardCard = await randomCardFromVersion(5, userId);
         }
       } else if (final1 === '🪷') {
-        rewardW = 1500;
+        rewardW = 1750;
         rewardK = 3;
         if (Math.random() < 0.8) {
           const version = Math.random() < 0.5 ? 5 : pickVersion();
           rewardCard = await randomCardFromVersion(version, userId);
         }
       } else if (final1 === '🌿') {
-        rewardW = 1000;
+        rewardW = 1250;
         if (Math.random() < 0.7) {
             const version = Math.random() < 0.35 ? 5 : pickVersion();
           rewardCard = await randomCardFromVersion(version, userId);
         }
       } else {
-  rewardW = 500;
+  rewardW = 600;
 
   if (Math.random() < 0.55) {
     const version = pickVersion();
@@ -146,7 +146,7 @@ if (currentLossStreak >= 10) luckMultiplier = 1.25;
   }
       }
     } else if (twoMatch) {
-      rewardW = 325;
+      rewardW = 425;
       if (Math.random() < 0.4) {
             rewardCard = await randomCardFromVersion(pickVersion(), userId);
         }
