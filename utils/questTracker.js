@@ -4,7 +4,7 @@ const UserQuest = require('../models/UserQuest');
 const { giveCurrency } = require('./giveCurrency');
 const CardInventory = require('../models/CardInventory');
 
-async function emitQuestEvent(userId, event) {
+async function emitQuestEvent(userId, event, interaction) {
   /*
     event = {
       type: 'summon',
@@ -32,7 +32,7 @@ async function emitQuestEvent(userId, event) {
     );
 
     if (uq.progress >= quest.conditions.count) {
-      await completeQuest(userId, quest, uq);
+      await completeQuest(userId, quest, uq, interaction);
     }
   }
 }
@@ -44,14 +44,23 @@ function matchesConditions(conditions, card) {
   return true;
 }
 
-async function completeQuest(userId, quest, uq) {
+const dmFailedCache = new Set();
+
+async function completeQuest(userId, quest, uq, interaction) {
   uq.completed = true;
   await uq.save();
 
+  let wirlies = 0;
+  let keys = 0;
+
+  // 💰 Currency rewards
   if (quest.rewards.wirlies || quest.rewards.keys) {
-    await giveCurrency(userId, quest.rewards);
+    const result = await giveCurrency(userId, quest.rewards);
+    wirlies = quest.rewards.wirlies || 0;
+    keys = quest.rewards.keys || 0;
   }
 
+  // 🃏 Card rewards
   if (quest.rewards.cards?.length) {
     for (const reward of quest.rewards.cards) {
       await CardInventory.updateOne(
@@ -62,7 +71,35 @@ async function completeQuest(userId, quest, uq) {
     }
   }
 
-  // Optional: emit notification / DM / log
+  // 🚨 MESSAGE SYSTEM
+  const parts = [];
+  if (wirlies) parts.push(`<:Wirlies:1455924065972785375> ${wirlies}`);
+  if (keys) parts.push(`<:Key:1456059698582392852> ${keys}`);
+  if (quest.rewards.cards?.length) {
+    parts.push(`${quest.rewards.cards.length} Card(s)`);
+  }
+
+  const msg = [
+    `ʚ <@${userId}> completed a quest ɞ`,
+    `> ⊹ **${quest.name}**`,
+    `> ${parts.join(' • ') || 'Rewards'}`
+  ].join('\n');
+
+  // 🔹 Try DM first
+  if (!dmFailedCache.has(userId)) {
+    try {
+      const user = await interaction.client.users.fetch(userId);
+      await user.send({ content: msg });
+      return;
+    } catch {
+      dmFailedCache.add(userId);
+    }
+  }
+
+  // 🔹 Fallback to channel
+  if (interaction?.channel) {
+    await interaction.channel.send({ content: msg }).catch(() => {});
+  }
 }
 
 module.exports = { emitQuestEvent };
