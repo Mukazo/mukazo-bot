@@ -5,6 +5,7 @@ const { emitQuestEvent } = require('../../utils/quest/tracker');
 const { giveCurrency } = require('../../utils/giveCurrency');
 const handleReminders = require('../../utils/reminderHandler');
 const User = require('../../models/User'); // Adjust path if needed
+const { ensureAssigned } = require('../../utils/quest/assign');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,6 +22,10 @@ module.exports = {
   const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
   return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
 }
+
+// ✅ Assign BOTH daily + weekly quests
+await ensureAssigned(userId, 'daily', 3);
+await ensureAssigned(userId, 'weekly', 3);
 
     // Calculate streak logic
     const now = new Date();

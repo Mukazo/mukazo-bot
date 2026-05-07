@@ -74,15 +74,52 @@ else {
     uq.progress += 1;
 
     if (uq.progress >= uq.goal) {
-      uq.completed = true;
-      uq.completedAt = new Date();
-      await uq.save();
+  uq.completed = true;
+  uq.completedAt = new Date();
+  await uq.save();
 
-      // Auto reward
-      await rewards.completeQuest(userId, quest);
-    } else {
+  const rewardResult = await rewards.completeQuest(userId, quest);
+
+  await sendQuestCompletion(userId, quest, rewardResult, payload);
+} else {
       await uq.save();
     }
+  }
+}
+
+const dmFailedCache = new Set();
+
+async function sendQuestCompletion(userId, quest, rewardResult, payload) {
+  if (!rewardResult?.ok || rewardResult?.already) return;
+
+  const parts = [];
+  if (rewardResult.wirlies) parts.push(`<:Wirlies:1455924065972785375> ${rewardResult.wirlies}`);
+  if (rewardResult.keys) parts.push(`<:Key:1456059698582392852> ${rewardResult.keys}`);
+
+  const msg = [
+    `<@${userId}> completed a quest!`,
+    `> **${quest.name}**`,
+    `> ${parts.join(' • ') || 'Rewards'}`
+  ].join('\n');
+
+  // 🔹 Try DM first
+  if (!dmFailedCache.has(userId)) {
+    try {
+      const user = await require('discord.js').Client.prototype.users.fetch.call(
+        payload?.client ?? global.client,
+        userId
+      );
+
+      await user.send({ content: msg });
+      return;
+    } catch {
+      dmFailedCache.add(userId);
+    }
+  }
+
+  // 🔹 Fallback to channel (if available)
+  if (payload?.interaction?.channel) {
+    await payload.interaction.channel.send({ content: msg }).catch(() => {});
   }
 }
 
