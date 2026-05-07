@@ -14,6 +14,23 @@ const CardInventory = require('../../models/CardInventory');
 
 const PAGE_SIZE = 20;
 
+function parseMulti(input) {
+  if (!input) return [];
+
+  const trimmed = input.trim();
+
+  const match = trimmed.match(/^\((.+)\)$/);
+
+  if (match) {
+    return match[1]
+      .split(',')
+      .map(v => v.trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  return [trimmed.toLowerCase()];
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('collection')
@@ -30,9 +47,9 @@ module.exports = {
     const eraInput = interaction.options.getString('era') || '';
     const versionInput = interaction.options.getString('version') || '';
 
-    const groupFilter = groupInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-    const nameFilter = nameInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-    const eraFilter = eraInput.split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+    const groupFilter = parseMulti(groupInput);
+const nameFilter = parseMulti(nameInput);
+const eraFilter = parseMulti(eraInput);
 
     if (!groupFilter.length && !nameFilter.length && !eraFilter.length) {
       return interaction.editReply({
@@ -50,23 +67,36 @@ module.exports = {
     };
 
     if (groupFilter.length) {
-      cardQuery.group = {
-        $in: groupFilter.map(v => new RegExp(`^${v}$`, 'i'))
-      };
-    }
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: groupFilter.flatMap(v => ([
+      { group: new RegExp(`^${v}$`, 'i') },
+      { groupalias: new RegExp(`^${v}$`, 'i') },
+    ]))
+  });
+}
 
     if (nameFilter.length) {
-      cardQuery.$or = [
-        { name: { $in: nameFilter.map(v => new RegExp(`^${v}$`, 'i')) } },
-        { namealias: { $in: nameFilter.map(v => new RegExp(`^${v}$`, 'i')) } },
-      ];
-    }
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: nameFilter.flatMap(v => ([
+      { name: new RegExp(`^${v}$`, 'i') },
+      { namealias: new RegExp(`^${v}$`, 'i') },
+    ]))
+  });
+}
 
     if (eraFilter.length) {
-      cardQuery.era = {
-        $in: eraFilter.map(v => new RegExp(`^${v}$`, 'i'))
-      };
-    }
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: eraFilter.map(v => ({
+      era: new RegExp(`^${v}$`, 'i')
+    }))
+  });
+}
 
     const [filtered, ownedCards] = await Promise.all([
       Card.find(cardQuery).lean(),

@@ -6,6 +6,7 @@ const cardSchema = new mongoose.Schema({
   namealias: { type: String},
   categoryalias: { type: String},
   category: { type: String, required: true},
+  groupalias: { type: String},
   group: { type: String },                                  // Card group or series
   version: { type: Number, min: 0, max: 5, required:true },
   active: { type: Boolean, default: true},
@@ -34,6 +35,7 @@ cardSchema.index({ category: 1 });
 cardSchema.index({ categoryalias: 1 });
 
 cardSchema.index({ group: 1 });
+cardSchema.index({ groupalias: 1 });
 cardSchema.index({ name: 1 });
 cardSchema.index({ namealias: 1 });
 cardSchema.index({ era: 1 });

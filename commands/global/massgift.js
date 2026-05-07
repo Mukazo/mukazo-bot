@@ -82,6 +82,12 @@ module.exports = {
       o.setName('era')
         .setDescription('Filter by era(s), comma-separated')
     )
+    .addIntegerOption(o =>
+  o.setName('limit')
+    .setDescription('Total accumulated version limit')
+    .setMinValue(1)
+    .setMaxValue(1000) // safety cap (adjust if needed)
+)
     .addStringOption(o =>
       o.setName('exclude_group')
         .setDescription('Exclude group(s), comma-separated')
@@ -174,42 +180,74 @@ module.exports = {
       });
     }
 
-    let totalVersionValue = 0;
-    let totalCopies = 0;
-    let hitCap = false;
+    const HARD_CAP = 1000;
 
-    const gifts = [];
+const userLimit = interaction.options.getInteger('limit');
+const versionLimit = userLimit
+  ? Math.min(userLimit, HARD_CAP)
+  : HARD_CAP;
 
-    for (const entry of matches) {
-      const maxQty = mode === 'duplicates'
-        ? Math.max(0, entry.qty - 1)
-        : entry.qty;
+let totalVersionValue = 0;
+let totalCopies = 0;
+let hitCap = false;
 
-      if (maxQty <= 0) continue;
+const giftsMap = new Map();
 
-      let giveQty = 0;
-      const versionValue = Number(entry.card.version) || 0;
+// Prepare working pool
+let working = matches.map(entry => {
+  const maxQty = mode === 'duplicates'
+    ? Math.max(0, entry.qty - 1)
+    : entry.qty;
 
-      for (let i = 0; i < maxQty; i++) {
-        if (totalVersionValue + versionValue > MAX_VERSION_TOTAL) {
-          hitCap = true;
-          break;
-        }
+  return {
+    cardCode: entry.card.cardCode,
+    version: Number(entry.card.version) || 0,
+    remaining: maxQty,
+  };
+}).filter(x => x.remaining > 0);
 
-        totalVersionValue += versionValue;
-        totalCopies += 1;
-        giveQty += 1;
-      }
+// 🔀 Fisher-Yates shuffle (true randomness)
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
-      if (giveQty > 0) {
-        gifts.push({
-          cardCode: entry.card.cardCode,
-          qty: giveQty,
-        });
-      }
+// 🔁 RANDOM ROUND-ROBIN LOOP
+let addedSomething = true;
 
-      if (hitCap) break;
+while (addedSomething && !hitCap) {
+  addedSomething = false;
+
+  shuffle(working); // 🔥 randomize order EVERY cycle
+
+  for (const item of working) {
+    if (item.remaining <= 0) continue;
+
+    if (totalVersionValue + item.version > versionLimit) {
+      hitCap = true;
+      break;
     }
+
+    // give 1 copy
+    totalVersionValue += item.version;
+    totalCopies += 1;
+    item.remaining -= 1;
+    addedSomething = true;
+
+    giftsMap.set(
+      item.cardCode,
+      (giftsMap.get(item.cardCode) || 0) + 1
+    );
+  }
+}
+
+// Convert to final array
+const gifts = [...giftsMap.entries()].map(([cardCode, qty]) => ({
+  cardCode,
+  qty,
+}));
 
     if (!gifts.length) {
       return interaction.editReply({
@@ -256,7 +294,7 @@ function buildPreviewEmbed(pageIndex) {
       '',
       `**Unique:** ${totalCodesMoved}`,
       `**Copies:** ${totalCopies}`,
-      `**Total:** ${totalVersionValue} / ${MAX_VERSION_TOTAL}`,
+      `**Total:** ${totalVersionValue} / ${versionLimit}`,
       hitCap ? '**Note:** The automatic version-total cap was reached.' : null,
       '',
       '### Cards to Gift',

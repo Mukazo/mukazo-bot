@@ -13,8 +13,8 @@ const { getPullPool } = require('../../../utils/pullPoolCache');
 
 const PACK_CONFIG = {
   selective: { cost: 750, keys: 0, cards: 5 },
-  events: { cost: 500, keys: 4, cards: 4 },
-  monthlies: { cost: 500, keys: 4, cards: 4 }
+  events: { cost: 675, keys: 4, cards: 4 },
+  monthlies: { cost: 675, keys: 4, cards: 4 }
 };
 
 const eraByPack = {
@@ -27,6 +27,23 @@ function parseCsv(input) {
     .split(',')
     .map(s => s.trim())
     .filter(Boolean);
+}
+
+function parseMulti(input) {
+  if (!input) return [];
+
+  const trimmed = input.trim();
+
+  const match = trimmed.match(/^\((.+)\)$/);
+
+  if (match) {
+    return match[1]
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  return [trimmed];
 }
 
 function randomFrom(arr) {
@@ -45,9 +62,9 @@ module.exports = {
     let eras = [];
 
     if (pack === 'selective') {
-      groups = parseCsv(interaction.options.getString('groups'));
-      names = parseCsv(interaction.options.getString('names'));
-      eras = parseCsv(interaction.options.getString('eras'));
+      groups = parseMulti(interaction.options.getString('groups'));
+names = parseMulti(interaction.options.getString('names'));
+eras = parseMulti(interaction.options.getString('eras'));
     }
 
     const user = await User.findOne({ userId });
@@ -103,6 +120,8 @@ module.exports = {
 
     for (let i = 0; i < quantity; i++) {
       const packCards = [];
+
+      let pityTriggered = false;
 
       for (let j = 0; j < cardsPerPack; j++) {
         let pool = [];
@@ -177,21 +196,44 @@ module.exports = {
           }
         }
 
-        if ((pack === 'events' || pack === 'monthlies') && pity.count >= 4 && Math.random() < 0.75 && pity.codes?.length) {
-          pool = await Card.find({
-            cardCode: { $in: pity.codes },
-            active: true,
-            batch: null
-          })
-            .select('cardCode group name era emoji version localImagePath')
-            .lean();
+        let pityTriggered = false;
 
-          if (pool.length) {
-            pity.count = 0;
-            pity.lastUsed = new Date();
-            pityUsedThisSession = true;
-          }
-        }
+if (
+  (pack === 'events' || pack === 'monthlies') &&
+  pity.count >= 3 &&
+  pity.codes?.length
+) {
+  const roll = Math.random();
+
+  // 🎯 80% chance for FIRST pity card
+  if (!pityTriggered && roll < 0.80) {
+    pool = await Card.find({
+      cardCode: { $in: pity.codes },
+      active: true,
+      batch: null
+    })
+      .select('cardCode group name era emoji version localImagePath')
+      .lean();
+
+    if (pool.length) {
+      pityTriggered = true;
+      pity.count = 0;
+      pity.lastUsed = new Date();
+      pityUsedThisSession = true;
+    }
+  }
+
+  // 🎯 60% chance for ADDITIONAL cards
+  else if (pityTriggered && Math.random() < 0.60) {
+    pool = await Card.find({
+      cardCode: { $in: pity.codes },
+      active: true,
+      batch: null
+    })
+      .select('cardCode group name era emoji version localImagePath')
+      .lean();
+  }
+}
 
         // Shared cached selective fallback
         if (!pool.length && pack === 'selective' && selectiveFallbackPool.length) {

@@ -44,6 +44,11 @@ module.exports = {
       .addAttachmentOption(opt =>
       opt.setName('image').setDescription('upload the card image').setRequired(true))
       .addStringOption(opt =>
+          opt.setName('batch')
+            .setDescription('batch code')
+            .setRequired(false)
+            .setAutocomplete(true))
+      .addStringOption(opt =>
       opt.setName('era').setDescription('era of card').setRequired(false))
       .addStringOption(opt =>
       opt.setName('emoji').setDescription('optional emoji').setRequired(false))
@@ -65,6 +70,10 @@ module.exports = {
           { name: 'Other Music', value: 'other music' },
           { name: 'Asia Media', value: 'asia media' },
         ))
+      .addStringOption(opt =>
+      opt.setName('groupalias')
+        .setDescription('alternate group of card')
+        .setRequired(false))
 
     )
     .addSubcommand(sub =>
@@ -84,6 +93,7 @@ module.exports = {
         .addStringOption(opt => opt.setName('setemoji').setDescription('New emoji override'))
         .addStringOption(opt => opt.setName('setnamealias').setDescription('new alternate name of card'))
         .addStringOption(opt => opt.setName('setcategoryalias').setDescription('new alternate category of card'))
+        .addStringOption(opt => opt.setName('setgroupalias').setDescription('new alternate group of card'))
         .addStringOption(opt => opt.setName('setgroup').setDescription('New group'))
         .addStringOption(opt => opt.setName('setera').setDescription('New era'))
         .addStringOption(opt => opt.setName('setbatch').setDescription('New batch or "null" to remove'))
@@ -93,6 +103,16 @@ module.exports = {
         .addAttachmentOption(opt => opt.setName('image').setDescription('Replace image')),
 
     ),
+
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+
+    if (!['batch', 'setbatch'].includes(focused.name)) {
+      return interaction.respond([]);
+    }
+
+    return createCard.autocompleteBatch(interaction);
+  },
 
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();

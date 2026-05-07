@@ -9,12 +9,59 @@ const {
 } = require('discord.js');
 
 const { enqueueInteraction, listenForResults } = require('../../../queue');
+const generateVersion = require('../../../utils/generateVersion');
+
+async function requestBatchChoices(interaction) {
+  const focused = interaction.options.getFocused() ?? '';
+  const jobId = `batch-autocomplete:${interaction.id}:${Date.now()}`;
+
+  await enqueueInteraction('batch-autocomplete', {
+    jobId,
+    guildId: interaction.guildId,
+    query: focused
+  });
+
+  return new Promise(resolve => {
+    let unlisten = () => {};
+
+    const timeout = setTimeout(() => {
+      unlisten();
+      resolve([]);
+    }, 2500);
+
+    unlisten = listenForResults(result => {
+      if (!result || result.jobId !== jobId) return;
+
+      clearTimeout(timeout);
+      unlisten();
+
+      const choices = [
+        { name: 'No Batch', value: 'null' },
+        ...(result.batches ?? [])
+      ]
+        .filter(choice => choice?.name && choice?.value)
+        .slice(0, 25);
+
+      resolve(choices);
+    });
+  });
+}
 
 module.exports = {
+  async autocompleteBatch(interaction) {
+    try {
+      const choices = await requestBatchChoices(interaction);
+      return interaction.respond(choices);
+    } catch {
+      return interaction.respond([{ name: 'No Batch', value: 'null' }]);
+    }
+  },
+
   async execute(interaction) {
     await interaction.editReply({ content: 'Loading…' });
 
     const opts = interaction.options;
+    const selectedBatch = opts.getString('batch');
 
     const payload = {
       cardCode: opts.getString('cardcode'),
@@ -23,6 +70,8 @@ module.exports = {
       version: opts.getString('version'),
       group: opts.getString('group'),
       namealias: opts.getString('namealias'),
+      groupalias: opts.getString('groupalias'),
+      batch: selectedBatch && selectedBatch !== 'null' ? selectedBatch : null,
       categoryalias: opts.getString('categoryalias'),
       era: opts.getString('era'),
       emoji: opts.getString('emoji'),
@@ -49,6 +98,10 @@ module.exports = {
     { name: 'Version', value: payload.emoji || payload.version, inline: true },
     { name: 'Group', value: payload.group ?? '—', inline: true },
     { name: 'Era', value: payload.era ?? '—', inline: true },
+    { name: 'Batch', value: payload.batch ?? 'No Batch', inline: true },
+    { name: 'Name Alias', value: payload.namealias ?? '—', inline: true },
+    { name: 'Category Alias', value: payload.categoryalias ?? '—', inline: true },
+    { name: 'Group Alias', value: payload.categoryalias ?? '—', inline: true },
     {
       name: 'Designers',
       value: payload.designerIds.length
@@ -132,17 +185,13 @@ module.exports = {
         }
 
         // show batch picker
-        const menu = new StringSelectMenuBuilder()
-          .setCustomId(`batch:${jobId}:${payload.cardCode}`)
-          .setPlaceholder('Select batch')
-          .addOptions(
-            { label: 'No Batch', value: 'null' },
-            ...(result.batches ?? [])
-          );
+        const versionDisplay = generateVersion({
+  version: payload.version,
+  overrideEmoji: payload.emoji ?? undefined
+});
 
         await interaction.followUp({
-          content: `Created \`${result.cardCode}\`. Select a batch:`,
-          components: [new ActionRowBuilder().addComponents(menu)]
+          content: `Created [ ${versionDisplay} ] - \`${result.cardCode}\`${payload.batch ? ` in batch \`${payload.batch}\`` : ''}`,
         });
       });
     });

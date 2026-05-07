@@ -41,9 +41,18 @@ function buildPullFilter(version, user) {
           ]),
       ...(version >= 1 && version <= 4 && blockedGroups.length
         ? [{
-            group: {
-              $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i'))
-            }
+            $and: [
+              {
+                group: {
+                  $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i'))
+                }
+              },
+              {
+                groupalias: {
+                  $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i'))
+                }
+              }
+            ]
           }]
         : []),
       ...(version >= 1 && version <= 4 && blockedNames.length

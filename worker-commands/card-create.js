@@ -32,6 +32,7 @@ module.exports = {
         version: data.version,
         emoji: data.emoji,
         group: data.group,
+        groupalias: data.groupalias,
         era: data.era,
         active: data.active,
         availableQuantity: data.availableQuantity,

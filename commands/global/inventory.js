@@ -41,6 +41,23 @@ function parseNumberList(str) {
     .filter(n => Number.isFinite(n));
 }
 
+function parseMulti(input) {
+  if (typeof input !== 'string') return [];
+
+  const trimmed = input.trim();
+
+  const match = trimmed.match(/^\((.+)\)$/);
+
+  if (match) {
+    return match[1]
+      .split(',')
+      .map(v => normalize(v.trim()))
+      .filter(Boolean);
+  }
+
+  return [normalize(trimmed)];
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('inventory')
@@ -70,11 +87,11 @@ module.exports = {
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
     const targetId = targetUser.id;
     const view = interaction.options.getString('view');
-    const groups = parseList(interaction.options.getString('group'));
-    const eras = parseList(interaction.options.getString('era'));
-    const categories = parseList(interaction.options.getString('category'));
-    const versions = parseNumberList(interaction.options.getString('version'));
-    const names = parseList(interaction.options.getString('name'));
+    const groups = parseMulti(interaction.options.getString('group'));
+const eras = parseMulti(interaction.options.getString('era'));
+const categories = parseMulti(interaction.options.getString('category'));
+const versions = parseNumberList(interaction.options.getString('version'));
+const names = parseMulti(interaction.options.getString('name'));
 
     const [viewerInv, targetInv] = await Promise.all([
       CardInventory.find({ userId: viewerId })
@@ -110,16 +127,25 @@ module.exports = {
     };
 
     if (groups.length) {
-      cardQuery.group = {
-        $in: groups.map(g => new RegExp(`^${g}$`, 'i'))
-      };
-    }
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: groups.flatMap(g => ([
+      { group: new RegExp(`^${g}$`, 'i') },
+      { groupalias: new RegExp(`^${g}$`, 'i') },
+    ]))
+  });
+}
 
     if (eras.length) {
-      cardQuery.era = {
-        $in: eras.map(e => new RegExp(`^${e}$`, 'i'))
-      };
-    }
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: eras.map(e => ({
+      era: new RegExp(`^${e}$`, 'i')
+    }))
+  });
+}
 
     if (versions.length) {
       cardQuery.version = { $in: versions };
@@ -138,15 +164,15 @@ module.exports = {
     }
 
     if (names.length) {
-      const nameCondition = {
-        $or: [
-          { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-          { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-        ]
-      };
-      if (cardQuery.$and) cardQuery.$and.push(nameCondition);
-      else cardQuery.$and = [nameCondition];
-    }
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: names.flatMap(n => ([
+      { name: new RegExp(`^${n}$`, 'i') },
+      { namealias: new RegExp(`^${n}$`, 'i') },
+    ]))
+  });
+}
 
     let cards = [];
 

@@ -13,6 +13,24 @@ const generateVersion = require('../../utils/generateVersion');
 
 const PAGE_SIZE = 1;
 
+function parseMulti(input) {
+  if (!input) return null;
+
+  const trimmed = input.trim();
+
+  // detect parentheses
+  const match = trimmed.match(/^\((.+)\)$/);
+
+  if (match) {
+    return match[1]
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  return [trimmed];
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('search')
@@ -48,6 +66,8 @@ module.exports = {
           { name: 'Version 1', value: 1 },
         )
     ),
+
+    
 
   /* ===========================
      AUTOCOMPLETE
@@ -101,10 +121,29 @@ module.exports = {
     }
   },
 
+
+
   /* ===========================
      EXECUTE
   =========================== */
   async execute(interaction) {
+    function parseMulti(input) {
+  if (!input) return null;
+
+  const trimmed = input.trim();
+
+  // detect parentheses
+  const match = trimmed.match(/^\((.+)\)$/);
+
+  if (match) {
+    return match[1]
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  return [trimmed];
+}
     const userId = interaction.user.id;
 
     const name = interaction.options.getString('name');
@@ -118,19 +157,42 @@ module.exports = {
     };
 
     if (name) {
-      cardQuery.$or = [
-        { name: new RegExp(`^${name}$`, 'i') },
-        { namealias: new RegExp(`^${name}$`, 'i') },
-      ];
-    }
+  const names = parseMulti(name);
 
-    if (group) {
-      cardQuery.group = new RegExp(`^${group}$`, 'i');
-    }
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: names.flatMap(n => ([
+      { name: new RegExp(`^${n}$`, 'i') },
+      { namealias: new RegExp(`^${n}$`, 'i') },
+    ]))
+  });
+}
+
+if (group) {
+  const groups = parseMulti(group);
+
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: groups.flatMap(g => ([
+      { group: new RegExp(`^${g}$`, 'i') },
+      { groupalias: new RegExp(`^${g}$`, 'i') },
+    ]))
+  });
+}
 
     if (era) {
-      cardQuery.era = new RegExp(`^${era}$`, 'i');
-    }
+  const eras = parseMulti(era);
+
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: eras.map(e => ({
+      era: new RegExp(`^${e}$`, 'i')
+    }))
+  });
+}
 
     if (category) {
       const categoryRegex = new RegExp(`^${category}$`, 'i');

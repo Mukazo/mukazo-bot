@@ -1,9 +1,8 @@
-// src/queue.js
 const { Queue, QueueEvents } = require('bullmq');
 
 const connection = {
-  host: process.env.REDIS_HOST,
-  port: Number(process.env.REDIS_PORT),
+  host: process.env.REDIS_HOST || '127.0.0.1',
+  port: Number(process.env.REDIS_PORT || 6379),
 };
 
 const QUEUE_NAME = 'discord-tasks';
@@ -15,24 +14,33 @@ const listeners = new Set();
 
 function listenForResults(cb) {
   listeners.add(cb);
-  return () => listeners.delete(cb); // 🔥 CRITICAL cleanup
+  return () => listeners.delete(cb);
 }
 
 queueEvents.on('completed', ({ returnvalue }) => {
-  for (const cb of listeners) cb(returnvalue);
-});
+  if (!returnvalue) return;
 
-queueEvents.on('failed', ({ jobId, failedReason }) => {
   for (const cb of listeners) {
-    cb({ ok: false, jobId, error: failedReason });
+    cb(returnvalue);
   }
 });
 
+queueEvents.on('failed', ({ failedReason }) => {
+  console.error('[QUEUE JOB FAILED]', failedReason);
+});
 
 async function enqueueInteraction(jobName, payload) {
+  console.log('[QUEUE] adding job:', jobName, payload.jobId);
+
   return queue.add(jobName, payload, {
-    removeOnComplete: true,
-    removeOnFail: true,
+    removeOnComplete: {
+      age: 3600,
+      count: 1000,
+    },
+    removeOnFail: {
+      age: 86400,
+      count: 1000,
+    },
   });
 }
 
