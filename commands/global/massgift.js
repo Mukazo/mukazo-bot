@@ -295,7 +295,7 @@ function buildPreviewEmbed(pageIndex) {
       `**Unique:** ${totalCodesMoved}`,
       `**Copies:** ${totalCopies}`,
       `**Total:** ${totalVersionValue} / ${versionLimit}`,
-      hitCap ? '**Note:** The automatic version-total cap was reached.' : null,
+      hitCap ? '**Note:** The total version cap was reached.' : null,
       '',
       '### Cards to Gift',
       lines.join('\n') || 'Nothing to show.',
@@ -472,7 +472,7 @@ const previewMsg = await interaction.editReply({
         { name: 'Total', value: `${totalVersionValue} / ${MAX_VERSION_TOTAL}`, inline: true }
       )
       .setFooter({
-        text: `Page ${pageIndex + 1} / ${totalPages}${hitCap ? ' • Hit automatic cap' : ''}`,
+        text: `Page ${pageIndex + 1} / ${totalPages}${hitCap ? ' • Version Limit Reached' : ''}`,
       });
   }
 
