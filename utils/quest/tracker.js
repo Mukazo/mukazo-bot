@@ -2,7 +2,7 @@ const Quest = require('../../models/Quest');
 const UserQuest = require('../../models/UserQuest');
 const rewards = require('./rewards');
 
-async function emitQuestEvent(userId, payload) {
+async function emitQuestEvent(userId, payload, interaction) {
   const now = new Date();
 
   // IMPORTANT: only count/progress quests live here
@@ -79,10 +79,44 @@ else {
       await uq.save();
 
       // Auto reward
-      await rewards.completeQuest(userId, quest);
+      const rewardResult = await rewards.completeQuest(userId, quest);
+
+await sendQuestCompletion(userId, quest, rewardResult, interaction);
     } else {
       await uq.save();
     }
+  }
+}
+
+const dmFailedCache = new Set();
+
+async function sendQuestCompletion(userId, quest, rewardResult, interaction) {
+  if (!rewardResult?.ok || rewardResult?.already) return;
+
+  const parts = [];
+  if (rewardResult.wirlies) parts.push(`<:Wirlies:1455924065972785375> ${rewardResult.wirlies}`);
+  if (rewardResult.keys) parts.push(`<:Key:1456059698582392852> ${rewardResult.keys}`);
+
+  const msg = [
+    `ʚ <@${userId}> completed a quest ɞ`,
+    `> ⊹ **${quest.name}**`,
+    `> ${parts.join(' • ') || 'Rewards'}`
+  ].join('\n');
+
+  // 🔹 Try DM first
+  if (!dmFailedCache.has(userId)) {
+    try {
+      const user = await interaction.client.users.fetch(userId);
+      await user.send({ content: msg });
+      return;
+    } catch (err) {
+      dmFailedCache.add(userId);
+    }
+  }
+
+  // 🔹 Fallback to channel
+  if (interaction?.channel) {
+    await interaction.channel.send({ content: msg }).catch(() => {});
   }
 }
 
