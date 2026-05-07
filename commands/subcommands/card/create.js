@@ -190,8 +190,8 @@ module.exports = {
   overrideEmoji: payload.emoji ?? undefined
 });
 
-        await interaction.followUp({
-          content: `Created [ ${versionDisplay} ] - \`${result.cardCode}\`${payload.batch ? ` in batch \`${payload.batch}\`` : ''}`,
+        await interaction.editReply({
+          content: `### Card Created \n${versionDisplay} 𝒢𑄺 \`${result.cardCode}\`${payload.batch ? ` in batch \`${payload.batch}\`` : ''}`,
         });
       });
     });
