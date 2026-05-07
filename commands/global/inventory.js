@@ -31,6 +31,10 @@ function parseList(str) {
     .filter(Boolean);
 }
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function parseNumberList(str) {
   if (typeof str !== 'string') return [];
   return str
@@ -131,8 +135,8 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: groups.flatMap(g => ([
-      { group: new RegExp(`^${g}$`, 'i') },
-      { groupalias: new RegExp(`^${g}$`, 'i') },
+      { group: new RegExp(`^${escapeRegex(g)}$`, 'i') },
+      { groupalias: new RegExp(`^${escapeRegex(g)}$`, 'i') },
     ]))
   });
 }
@@ -142,7 +146,7 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: eras.map(e => ({
-      era: new RegExp(`^${e}$`, 'i')
+      era: new RegExp(`^${escapeRegex(e)}$`, 'i')
     }))
   });
 }
@@ -168,8 +172,8 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: names.flatMap(n => ([
-      { name: new RegExp(`^${n}$`, 'i') },
-      { namealias: new RegExp(`^${n}$`, 'i') },
+      { name: new RegExp(`^${escapeRegex(n)}$`, 'i') },
+      { namealias: new RegExp(`^${escapeRegex(n)}$`, 'i') },
     ]))
   });
 }

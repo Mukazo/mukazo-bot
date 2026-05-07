@@ -46,6 +46,10 @@ function parseMulti(input) {
   return [trimmed];
 }
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function randomFrom(arr) {
   if (!arr.length) return null;
   return arr[Math.floor(Math.random() * arr.length)] || null;
@@ -132,13 +136,29 @@ eras = parseMulti(interaction.options.getString('eras'));
           if (isInputPick) {
             if (groups.length && names.length) {
               if (groups.length === names.length) {
-                const pairs = groups.map((g, idx) => ({
-                  group: new RegExp(`^${g}$`, 'i'),
-                  $or: [
-                    { name: new RegExp(`^${names[idx]}$`, 'i') },
-                    { namealias: new RegExp(`^${names[idx]}$`, 'i') }
-                  ]
-                }));
+                const pairs = groups.map((g, idx) => {
+  const safeGroup = escapeRegex(g);
+  const safeName = escapeRegex(names[idx]);
+
+  return {
+    $or: [
+      {
+        group: new RegExp(`^${safeGroup}$`, 'i'),
+        $or: [
+          { name: new RegExp(`^${safeName}$`, 'i') },
+          { namealias: new RegExp(`^${safeName}$`, 'i') }
+        ]
+      },
+      {
+        groupalias: new RegExp(`^${safeGroup}$`, 'i'),
+        $or: [
+          { name: new RegExp(`^${safeName}$`, 'i') },
+          { namealias: new RegExp(`^${safeName}$`, 'i') }
+        ]
+      }
+    ]
+  };
+});
 
                 pool = await Card.find({
                   $or: pairs,

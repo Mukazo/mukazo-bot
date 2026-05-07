@@ -41,45 +41,61 @@ function buildPullFilter(version, user) {
           ]),
       ...(version >= 1 && version <= 4 && blockedGroups.length
         ? [{
-            $and: [
-              {
-                group: {
-                  $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i'))
-                }
-              },
-              {
-                groupalias: {
-                  $nin: blockedGroups.map(v => new RegExp(`^${v}$`, 'i'))
-                }
-              }
-            ]
-          }]
+  $and: [
+    {
+      group: {
+        $nin: blockedGroups.map(v => new RegExp(`^${escapeRegex(v)}$`, 'i'))
+      }
+    },
+    {
+      groupalias: {
+        $nin: blockedGroups.map(v => new RegExp(`^${escapeRegex(v)}$`, 'i'))
+      }
+    }
+  ]
+}]
         : []),
       ...(version >= 1 && version <= 4 && blockedNames.length
         ? [{
-            $and: [
-              {
-                name: {
-                  $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i'))
-                }
-              },
-              {
-                namealias: {
-                  $nin: blockedNames.map(v => new RegExp(`^${v}$`, 'i'))
-                }
-              }
-            ]
-          }]
+  $and: [
+    {
+      name: {
+        $nin: blockedNames.map(v => new RegExp(`^${escapeRegex(v)}$`, 'i'))
+      }
+    },
+    {
+      namealias: {
+        $nin: blockedNames.map(v => new RegExp(`^${escapeRegex(v)}$`, 'i'))
+      }
+    }
+  ]
+}]
         : []),
       ...(version >= 1 && version <= 4 && blockedPairs.length
         ? [{
-            $nor: blockedPairs.map(p => ({
-              group: new RegExp(`^${p.group}$`, 'i'),
-              $or: [
-                { name: new RegExp(`^${p.name}$`, 'i') },
-                { namealias: new RegExp(`^${p.name}$`, 'i') }
-              ]
-            }))
+            $nor: blockedPairs.map(p => {
+  const safeGroup = escapeRegex(p.group);
+  const safeName = escapeRegex(p.name);
+
+  return {
+    $or: [
+      {
+        group: new RegExp(`^${safeGroup}$`, 'i'),
+        $or: [
+          { name: new RegExp(`^${safeName}$`, 'i') },
+          { namealias: new RegExp(`^${safeName}$`, 'i') }
+        ]
+      },
+      {
+        groupalias: new RegExp(`^${safeGroup}$`, 'i'),
+        $or: [
+          { name: new RegExp(`^${safeName}$`, 'i') },
+          { namealias: new RegExp(`^${safeName}$`, 'i') }
+        ]
+      }
+    ]
+  };
+})
           }]
         : [])
     ]

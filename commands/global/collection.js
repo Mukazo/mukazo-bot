@@ -31,6 +31,10 @@ function parseMulti(input) {
   return [trimmed.toLowerCase()];
 }
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('collection')
@@ -71,8 +75,8 @@ const eraFilter = parseMulti(eraInput);
 
   cardQuery.$and.push({
     $or: groupFilter.flatMap(v => ([
-      { group: new RegExp(`^${v}$`, 'i') },
-      { groupalias: new RegExp(`^${v}$`, 'i') },
+      { group: new RegExp(`^${escapeRegex(v)}$`, 'i') },
+      { groupalias: new RegExp(`^${escapeRegex(v)}$`, 'i') },
     ]))
   });
 }
@@ -82,8 +86,8 @@ const eraFilter = parseMulti(eraInput);
 
   cardQuery.$and.push({
     $or: nameFilter.flatMap(v => ([
-      { name: new RegExp(`^${v}$`, 'i') },
-      { namealias: new RegExp(`^${v}$`, 'i') },
+      { name: new RegExp(`^${escapeRegex(v)}$`, 'i') },
+      { namealias: new RegExp(`^${escapeRegex(v)}$`, 'i') },
     ]))
   });
 }
@@ -93,7 +97,7 @@ const eraFilter = parseMulti(eraInput);
 
   cardQuery.$and.push({
     $or: eraFilter.map(v => ({
-      era: new RegExp(`^${v}$`, 'i')
+      era: new RegExp(`^${escapeRegex(v)}$`, 'i')
     }))
   });
 }

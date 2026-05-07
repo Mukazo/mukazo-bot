@@ -31,6 +31,10 @@ function parseMulti(input) {
   return [trimmed];
 }
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('search')
@@ -163,8 +167,8 @@ module.exports = {
 
   cardQuery.$and.push({
     $or: names.flatMap(n => ([
-      { name: new RegExp(`^${n}$`, 'i') },
-      { namealias: new RegExp(`^${n}$`, 'i') },
+      { name: new RegExp(`^${escapeRegex(n)}$`, 'i') },
+      { namealias: new RegExp(`^${escapeRegex(n)}$`, 'i') },
     ]))
   });
 }
@@ -176,8 +180,8 @@ if (group) {
 
   cardQuery.$and.push({
     $or: groups.flatMap(g => ([
-      { group: new RegExp(`^${g}$`, 'i') },
-      { groupalias: new RegExp(`^${g}$`, 'i') },
+      { group: new RegExp(`^${escapeRegex(g)}$`, 'i') },
+      { groupalias: new RegExp(`^${escapeRegex(g)}$`, 'i') },
     ]))
   });
 }
@@ -189,7 +193,7 @@ if (group) {
 
   cardQuery.$and.push({
     $or: eras.map(e => ({
-      era: new RegExp(`^${e}$`, 'i')
+      era: new RegExp(`^${escapeRegex(e)}$`, 'i')
     }))
   });
 }
