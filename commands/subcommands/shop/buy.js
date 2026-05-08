@@ -225,7 +225,7 @@ eras = parseMulti(interaction.options.getString('eras'));
 const isPityEligible =
   (pack === 'events' || pack === 'monthlies') &&
   pity.codes?.length &&
-  (pity.count >= 4 || pityTriggered);
+  (pity.count >= 3 || pityTriggered);
   if (isPityEligible) {
   const isFirstCard = j === 0;
 
