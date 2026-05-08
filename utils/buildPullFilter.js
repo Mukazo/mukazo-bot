@@ -1,3 +1,7 @@
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function buildPullFilter(version, user) {
   const blockedGroups = (user?.blockedPulls?.groups || []).map(v => String(v).toLowerCase());
   const blockedNames = (user?.blockedPulls?.names || []).map(v => String(v).toLowerCase());
