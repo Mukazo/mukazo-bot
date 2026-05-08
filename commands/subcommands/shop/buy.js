@@ -247,9 +247,9 @@ const isPityEligible =
     }
   }
 
-  // 🎯 ADDITIONAL CARDS (60%)
+  // 🎯 ADDITIONAL CARDS (40%)
   if (!isFirstCard && pityTriggered) {
-    if (Math.random() < 0.45) {
+    if (Math.random() < 0.40) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
         active: true,
