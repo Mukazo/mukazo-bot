@@ -35,6 +35,29 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function parseAndEscape(input) {
+  if (typeof input !== 'string') return [];
+
+  const trimmed = input.trim();
+
+  const values = (() => {
+    const match = trimmed.match(/^\((.+)\)$/);
+    if (match) {
+      return match[1]
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean);
+    }
+    return [trimmed];
+  })();
+
+  return values.map(v => {
+    const normalized = normalize(v);
+    const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escaped;
+  });
+}
+
 function parseNumberList(str) {
   if (typeof str !== 'string') return [];
   return str
@@ -91,11 +114,11 @@ module.exports = {
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
     const targetId = targetUser.id;
     const view = interaction.options.getString('view');
-    const groups = parseMulti(interaction.options.getString('group'));
-const eras = parseMulti(interaction.options.getString('era'));
-const categories = parseMulti(interaction.options.getString('category'));
+    const groups = parseAndEscape(interaction.options.getString('group'));
+const eras = parseAndEscape(interaction.options.getString('era'));
+const categories = parseAndEscape(interaction.options.getString('category'));
 const versions = parseNumberList(interaction.options.getString('version'));
-const names = parseMulti(interaction.options.getString('name'));
+const names = parseAndEscape(interaction.options.getString('name'));
 
     const [viewerInv, targetInv] = await Promise.all([
       CardInventory.find({ userId: viewerId })
@@ -135,8 +158,8 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: groups.flatMap(g => ([
-      { group: new RegExp(`^${escapeRegex(g)}$`, 'i') },
-      { groupalias: new RegExp(`^${escapeRegex(g)}$`, 'i') },
+      { group: new RegExp(`^${g}$`, 'i') },
+      { groupalias: new RegExp(`^${g}$`, 'i') },
     ]))
   });
 }
@@ -146,7 +169,7 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: eras.map(e => ({
-      era: new RegExp(`^${escapeRegex(e)}$`, 'i')
+      era: new RegExp(`^${e}$`, 'i')
     }))
   });
 }
@@ -172,8 +195,8 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: names.flatMap(n => ([
-      { name: new RegExp(`^${escapeRegex(n)}$`, 'i') },
-      { namealias: new RegExp(`^${escapeRegex(n)}$`, 'i') },
+      { name: new RegExp(`^${n}$`, 'i') },
+      { namealias: new RegExp(`^${n}$`, 'i') },
     ]))
   });
 }

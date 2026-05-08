@@ -35,6 +35,29 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function parseAndEscape(input) {
+  if (typeof input !== 'string') return [];
+
+  const trimmed = input.trim();
+
+  const values = (() => {
+    const match = trimmed.match(/^\((.+)\)$/);
+    if (match) {
+      return match[1]
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean);
+    }
+    return [trimmed];
+  })();
+
+  return values.map(v => {
+    const normalized = normalize(v);
+    const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escaped;
+  });
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('search')
@@ -161,39 +184,39 @@ module.exports = {
     };
 
     if (name) {
-  const names = parseMulti(name);
+  const names = parseAndEscape(name);
 
   cardQuery.$and = cardQuery.$and || [];
 
   cardQuery.$and.push({
     $or: names.flatMap(n => ([
-      { name: new RegExp(`^${escapeRegex(n)}$`, 'i') },
-      { namealias: new RegExp(`^${escapeRegex(n)}$`, 'i') },
+      { name: new RegExp(`^${n}$`, 'i') },
+      { namealias: new RegExp(`^${n}$`, 'i') },
     ]))
   });
 }
 
 if (group) {
-  const groups = parseMulti(group);
+  const groups = parseAndEscape(group);
 
   cardQuery.$and = cardQuery.$and || [];
 
   cardQuery.$and.push({
     $or: groups.flatMap(g => ([
-      { group: new RegExp(`^${escapeRegex(g)}$`, 'i') },
-      { groupalias: new RegExp(`^${escapeRegex(g)}$`, 'i') },
+      { group: new RegExp(`^${g}$`, 'i') },
+      { groupalias: new RegExp(`^${g}$`, 'i') },
     ]))
   });
 }
 
     if (era) {
-  const eras = parseMulti(era);
+  const eras = parseAndEscape(era);
 
   cardQuery.$and = cardQuery.$and || [];
 
   cardQuery.$and.push({
     $or: eras.map(e => ({
-      era: new RegExp(`^${escapeRegex(e)}$`, 'i')
+      era: new RegExp(`^${e}$`, 'i')
     }))
   });
 }
