@@ -220,25 +220,23 @@ eras = parseMulti(interaction.options.getString('eras'));
           }
         }
 
-        let pityTriggered = false;
+        
 
-if (
+const isPityEligible =
   (pack === 'events' || pack === 'monthlies') &&
-  pity.count >= 3 &&
-  pity.codes?.length
-) {
+  pity.codes?.length &&
+  (pity.count >= 3 || pityTriggered);
+  if (isPityEligible) {
   const isFirstCard = j === 0;
 
   // 🎯 FIRST CARD (80%)
-  if (isFirstCard) {
+  if (isFirstCard && pity.count >= 3) {
     if (Math.random() < 0.80) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
         active: true,
         batch: null
-      })
-        .select('cardCode group name era emoji version localImagePath')
-        .lean();
+      }).lean();
 
       if (pool.length) {
         pityTriggered = true;
@@ -249,16 +247,14 @@ if (
     }
   }
 
-  // 🎯 ADDITIONAL CARDS (65%)
-  else if (pityTriggered) {
-    if (Math.random() < 0.99) {
+  // 🎯 ADDITIONAL CARDS (60%)
+  if (!isFirstCard && pityTriggered) {
+    if (Math.random() < 0.60) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
         active: true,
         batch: null
-      })
-        .select('cardCode group name era emoji version localImagePath')
-        .lean();
+      }).lean();
     }
   }
 }
