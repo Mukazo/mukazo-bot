@@ -18,7 +18,7 @@ const PACK_CONFIG = {
 };
 
 const eraByPack = {
-  events: ['Pola Pairs', 'Mukazo Style', 'The Corrupted City'],
+  events: ['Mukazo Style', 'The Corrupted City'],
   monthlies: ['April 2026', 'May 2026', 'June 2026', 'July 2026']
 };
 
