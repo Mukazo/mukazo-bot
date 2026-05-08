@@ -220,6 +220,7 @@ eras = parseMulti(interaction.options.getString('eras'));
           }
         }
 
+        let pityTriggered = false;
 
 if (
   (pack === 'events' || pack === 'monthlies') &&
@@ -250,7 +251,7 @@ if (
 
   // 🎯 ADDITIONAL CARDS (65%)
   else if (pityTriggered) {
-    if (Math.random() < 0.65) {
+    if (Math.random() < 0.99) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
         active: true,
