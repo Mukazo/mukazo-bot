@@ -261,8 +261,12 @@ if (isPityEligible) {
 
     // soft cap after first extra pity
     if (extraPityCount >= 1) {
-      adjustedChance *= 0.20;
-    }
+  adjustedChance *= 0.10;
+}
+
+if (extraPityCount >= 2) {
+  adjustedChance = 0;
+}
 
     if (Math.random() < adjustedChance) {
       pool = await Card.find({
