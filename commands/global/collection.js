@@ -38,6 +38,9 @@ function escapeRegex(str) {
 function parseAndEscape(input) {
   if (typeof input !== 'string') return [];
 
+  const normalize = (value) =>
+    typeof value === 'string' ? value.toLowerCase() : '';
+
   const trimmed = input.trim();
 
   const values = (() => {

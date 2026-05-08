@@ -18,11 +18,6 @@ const PAGE_SIZE = 6;
 const THEY_HAVE_EMOJI = '🌺';
 const YOU_HAVE_EMOJI = '🧚';
 
-function normalize(value) {
-  if (typeof value !== 'string') return '';
-  return value.toLowerCase();
-}
-
 function parseList(str) {
   if (typeof str !== 'string') return [];
   return str
@@ -37,6 +32,9 @@ function escapeRegex(str) {
 
 function parseAndEscape(input) {
   if (typeof input !== 'string') return [];
+
+  const normalize = (value) =>
+    typeof value === 'string' ? value.toLowerCase() : '';
 
   const trimmed = input.trim();
 
