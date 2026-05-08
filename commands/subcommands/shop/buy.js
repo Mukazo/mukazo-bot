@@ -50,9 +50,19 @@ function parseMulti(input) {
   return [trimmed];
 }
 
-function escapeRegex(str) {
+function parseList(input) {
+  return (input || '')
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean);
+}
+
+function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+const toRegexList = (arr) =>
+  arr.map(v => new RegExp(`^${escapeRegExp(v)}$`, 'i'));
 
 function randomFrom(arr) {
   if (!arr.length) return null;
@@ -70,9 +80,9 @@ module.exports = {
     let eras = [];
 
     if (pack === 'selective') {
-      groups = parseMulti(interaction.options.getString('groups'));
-names = parseMulti(interaction.options.getString('names'));
-eras = parseMulti(interaction.options.getString('eras'));
+      groups = parseList(interaction.options.getString('groups'));
+names = parseList(interaction.options.getString('names'));
+eras = parseList(interaction.options.getString('eras'));
     }
 
     const user = await User.findOne({ userId });
@@ -137,92 +147,47 @@ user.pityLuckScore = user.pityLuckScore || 0;
         let pool = [];
 
         if (pack === 'selective' && (groups.length || names.length || eras.length)) {
-          const isInputPick = Math.random() < 0.65;
+  const isInputPick = Math.random() < 0.65;
 
-          if (isInputPick) {
-            if (groups.length && names.length) {
-              if (groups.length === names.length) {
-                const pairs = groups.map((g, idx) => {
-  const safeGroup = escapeRegex(g);
-  const safeName = escapeRegex(names[idx]);
+  if (isInputPick) {
+    const and = [];
 
-  return {
-    $or: [
-      {
-        group: new RegExp(`^${safeGroup}$`, 'i'),
+    if (groups.length) {
+      and.push({
         $or: [
-          { name: new RegExp(`^${safeName}$`, 'i') },
-          { namealias: new RegExp(`^${safeName}$`, 'i') }
+          { group: { $in: toRegexList(groups) } },
+          { groupalias: { $in: toRegexList(groups) } }
         ]
-      },
-      {
-        groupalias: new RegExp(`^${safeGroup}$`, 'i'),
+      });
+    }
+
+    if (names.length) {
+      and.push({
         $or: [
-          { name: new RegExp(`^${safeName}$`, 'i') },
-          { namealias: new RegExp(`^${safeName}$`, 'i') }
+          { name: { $in: toRegexList(names) } },
+          { namealias: { $in: toRegexList(names) } }
         ]
-      }
-    ]
-  };
-});
+      });
+    }
 
-                pool = await Card.find({
-                  $or: pairs,
-                  version: { $in: [1, 2, 3, 4] },
-                  active: true,
-                  batch: null
-                })
-                  .select('cardCode group name era emoji version localImagePath')
-                  .lean();
-              } else {
-                pool = await Card.find({
-                  group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
-                  $or: [
-                    { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-                    { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
-                  ],
-                  version: { $in: [1, 2, 3, 4] },
-                  active: true,
-                  batch: null
-                })
-                  .select('cardCode group name era emoji version localImagePath')
-                  .lean();
-              }
-            } else if (groups.length) {
-              pool = await Card.find({
-                group: { $in: groups.map(g => new RegExp(`^${g}$`, 'i')) },
-                version: { $in: [1, 2, 3, 4] },
-                active: true,
-                batch: null
-              })
-                .select('cardCode group name era emoji version localImagePath')
-                .lean();
-            } else if (eras.length) {
-              pool = await Card.find({
-                era: { $in: eras.map(g => new RegExp(`^${g}$`, 'i')) },
-                version: { $in: [1, 2, 3, 4] },
-                active: true,
-                batch: null
-              })
-                .select('cardCode group name era emoji version localImagePath')
-                .lean();
-            } else if (names.length) {
-              pool = await Card.find({
-                $or: [
-                  { name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } },
-                  { namealias: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } }
-                ],
-                version: { $in: [1, 2, 3, 4] },
-                active: true,
-                batch: null
-              })
-                .select('cardCode group name era emoji version localImagePath')
-                .lean();
-            }
-          }
-        }
+    if (eras.length) {
+      and.push({
+        era: { $in: toRegexList(eras) }
+      });
+    }
 
-        
+    const query = {
+      ...(and.length && { $and: and }),
+      version: { $in: [1, 2, 3, 4] },
+      active: true,
+      batch: null
+    };
+
+    pool = await Card.find(query)
+      .select('cardCode group name era emoji version localImagePath')
+      .lean();
+  }
+}
 
 const isPityEligible =
   (pack === 'events' || pack === 'monthlies') &&
