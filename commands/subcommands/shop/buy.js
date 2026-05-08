@@ -253,7 +253,7 @@ if (isPityEligible) {
   // 🎯 ADDITIONAL CARDS (BALANCED)
   if (!isFirstCard && pityTriggered) {
 
-    const baseChance = 0.30;
+    const baseChance = 0.25;
 
     // reduce if player was lucky recently
     const penalty = user.pityLuckScore * 0.10;
@@ -261,7 +261,7 @@ if (isPityEligible) {
 
     // soft cap after first extra pity
     if (extraPityCount >= 1) {
-      adjustedChance *= 0.25;
+      adjustedChance *= 0.20;
     }
 
     if (Math.random() < adjustedChance) {
