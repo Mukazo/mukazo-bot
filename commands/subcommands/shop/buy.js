@@ -225,12 +225,12 @@ eras = parseMulti(interaction.options.getString('eras'));
 const isPityEligible =
   (pack === 'events' || pack === 'monthlies') &&
   pity.codes?.length &&
-  (pity.count >= 3 || pityTriggered);
+  (pity.count >= 4 || pityTriggered);
   if (isPityEligible) {
   const isFirstCard = j === 0;
 
   // 🎯 FIRST CARD (80%)
-  if (isFirstCard && pity.count >= 3) {
+  if (isFirstCard && pity.count >= 4) {
     if (Math.random() < 0.80) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
@@ -249,7 +249,7 @@ const isPityEligible =
 
   // 🎯 ADDITIONAL CARDS (60%)
   if (!isFirstCard && pityTriggered) {
-    if (Math.random() < 0.60) {
+    if (Math.random() < 0.45) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
         active: true,
