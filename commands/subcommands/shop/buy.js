@@ -227,35 +227,39 @@ if (
   pity.count >= 3 &&
   pity.codes?.length
 ) {
-  const roll = Math.random();
+  const isFirstCard = j === 0;
 
-  // 🎯 80% chance for FIRST pity card
-  if (!pityTriggered && roll < 0.80) {
-    pool = await Card.find({
-      cardCode: { $in: pity.codes },
-      active: true,
-      batch: null
-    })
-      .select('cardCode group name era emoji version localImagePath')
-      .lean();
+  // 🎯 FIRST CARD (80%)
+  if (isFirstCard) {
+    if (Math.random() < 0.80) {
+      pool = await Card.find({
+        cardCode: { $in: pity.codes },
+        active: true,
+        batch: null
+      })
+        .select('cardCode group name era emoji version localImagePath')
+        .lean();
 
-    if (pool.length) {
-      pityTriggered = true;
-      pity.count = 0;
-      pity.lastUsed = new Date();
-      pityUsedThisSession = true;
+      if (pool.length) {
+        pityTriggered = true;
+        pity.count = 0;
+        pity.lastUsed = new Date();
+        pityUsedThisSession = true;
+      }
     }
   }
 
-  // 🎯 60% chance for ADDITIONAL cards
-  else if (pityTriggered && Math.random() < 0.65) {
-    pool = await Card.find({
-      cardCode: { $in: pity.codes },
-      active: true,
-      batch: null
-    })
-      .select('cardCode group name era emoji version localImagePath')
-      .lean();
+  // 🎯 ADDITIONAL CARDS (65%)
+  else if (pityTriggered) {
+    if (Math.random() < 0.65) {
+      pool = await Card.find({
+        cardCode: { $in: pity.codes },
+        active: true,
+        batch: null
+      })
+        .select('cardCode group name era emoji version localImagePath')
+        .lean();
+    }
   }
 }
 
