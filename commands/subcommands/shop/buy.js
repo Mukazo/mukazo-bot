@@ -29,6 +29,10 @@ function parseCsv(input) {
     .filter(Boolean);
 }
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function parseMulti(input) {
   if (!input) return [];
 
