@@ -6,6 +6,8 @@ const { giveCurrency } = require('../../utils/giveCurrency');
 const handleReminders = require('../../utils/reminderHandler');
 const User = require('../../models/User'); // Adjust path if needed
 const { ensureAssigned } = require('../../utils/quest/assign');
+const Quest = require('../../models/Quest');
+const UserQuest = require('../../models/UserQuest');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -26,6 +28,48 @@ module.exports = {
 // ✅ Assign BOTH daily + weekly quests
 const dailyAssign = await ensureAssigned(userId, 'daily', 3);
 const weeklyAssign = await ensureAssigned(userId, 'weekly', 3);
+
+// 🔹 DAILY
+if (dailyAssign?.questKeys?.length) {
+  const quests = await Quest.find({ key: { $in: dailyAssign.questKeys } });
+
+  for (const q of quests) {
+    await UserQuest.findOneAndUpdate(
+      { userId, questKey: q.key },
+      {
+        $setOnInsert: {
+          category: q.category,
+          progress: 0,
+          goal: q.conditions?.count ?? 0,
+          completed: false,
+          rewardClaimed: false,
+        },
+      },
+      { upsert: true }
+    );
+  }
+}
+
+// 🔹 WEEKLY
+if (weeklyAssign?.questKeys?.length) {
+  const quests = await Quest.find({ key: { $in: weeklyAssign.questKeys } });
+
+  for (const q of quests) {
+    await UserQuest.findOneAndUpdate(
+      { userId, questKey: q.key },
+      {
+        $setOnInsert: {
+          category: q.category,
+          progress: 0,
+          goal: q.conditions?.count ?? 0,
+          completed: false,
+          rewardClaimed: false,
+        },
+      },
+      { upsert: true }
+    );
+  }
+}
 
     // Calculate streak logic
     const now = new Date();
