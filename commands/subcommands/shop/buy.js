@@ -230,7 +230,7 @@ const isPityEligible =
   const isFirstCard = j === 0;
 
   // 🎯 FIRST CARD (80%)
-  if (isFirstCard && pity.count >= 4) {
+  if (isFirstCard && pity.count >= 3) {
     if (Math.random() < 0.80) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
