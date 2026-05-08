@@ -31,6 +31,10 @@ function parseMulti(input) {
   return [trimmed.toLowerCase()];
 }
 
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+const toRegexList = (arr) => arr.map(v => new RegExp(`^${escapeRegExp(v)}$`, 'i'));
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -48,9 +52,14 @@ module.exports = {
     const eraInput = interaction.options.getString('era') || '';
     const versionInput = interaction.options.getString('version') || '';
 
-    const groupFilter = parseMulti(groupInput);
-const nameFilter = parseMulti(nameInput);
-const eraFilter = parseMulti(eraInput);
+    const parseList = (s) => (s || '')
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean);
+
+    const groupFilter = parseList(groupInput);
+const nameFilter = parseList(nameInput);
+const eraFilter = parseList(eraInput);
 
     if (!groupFilter.length && !nameFilter.length && !eraFilter.length) {
       return interaction.editReply({
@@ -72,8 +81,8 @@ const eraFilter = parseMulti(eraInput);
 
   cardQuery.$and.push({
     $or: groupFilter.flatMap(v => ([
-      { group: new RegExp(`^${v}$`, 'i') },
-      { groupalias: new RegExp(`^${v}$`, 'i') },
+      { group: { $in: toRegexList(groupFilter)} },
+      { groupalias: { $in: toRegexList(groupFilter)} },
     ]))
   });
 }
@@ -83,8 +92,8 @@ const eraFilter = parseMulti(eraInput);
 
   cardQuery.$and.push({
     $or: nameFilter.flatMap(v => ([
-      { name: new RegExp(`^${v}$`, 'i') },
-      { namealias: new RegExp(`^${v}$`, 'i') },
+      { name: { $in: toRegexList(nameFilter)} },
+      { namealias: { $in: toRegexList(nameFilter)} },
     ]))
   });
 }
@@ -94,7 +103,7 @@ const eraFilter = parseMulti(eraInput);
 
   cardQuery.$and.push({
     $or: eraFilter.map(v => ({
-      era: new RegExp(`^${v}$`, 'i')
+      era: { $in: toRegexList(eraFilter)}
     }))
   });
 }

@@ -31,7 +31,10 @@ function parseMulti(input) {
   return [trimmed];
 }
 
-
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+const toRegexList = (arr) => arr.map(v => new RegExp(`^${escapeRegExp(v)}$`, 'i'));
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -146,6 +149,13 @@ module.exports = {
 
   return [trimmed];
 }
+
+const parseList = (s) => (s || '')
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean);
+
+
     const userId = interaction.user.id;
 
     const name = interaction.options.getString('name');
@@ -159,39 +169,39 @@ module.exports = {
     };
 
     if (name) {
-  const names = parseMulti(name);
+  const names = parseList(name);
 
   cardQuery.$and = cardQuery.$and || [];
 
   cardQuery.$and.push({
     $or: names.flatMap(n => ([
-      { name: new RegExp(`^${n}$`, 'i') },
-      { namealias: new RegExp(`^${n}$`, 'i') },
+      { name: { $in: toRegexList(names)} },
+      { namealias: { $in: toRegexList(names)} },
     ]))
   });
 }
 
 if (group) {
-  const groups = parseMulti(group);
+  const groups = parseList(group);
 
   cardQuery.$and = cardQuery.$and || [];
 
   cardQuery.$and.push({
     $or: groups.flatMap(g => ([
-      { group: new RegExp(`^${g}$`, 'i') },
-      { groupalias: new RegExp(`^${g}$`, 'i') },
+      { group: { $in: toRegexList(groups)} },
+      { groupalias: { $in: toRegexList(groups)} },
     ]))
   });
 }
 
     if (era) {
-  const eras = parseMulti(era);
+  const eras = parseList(era);
 
   cardQuery.$and = cardQuery.$and || [];
 
   cardQuery.$and.push({
     $or: eras.map(e => ({
-      era: new RegExp(`^${e}$`, 'i')
+      era: { $in: toRegexList(eras)}
     }))
   });
 }

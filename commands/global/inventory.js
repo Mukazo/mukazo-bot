@@ -60,6 +60,11 @@ function parseMulti(input) {
   return [normalize(trimmed)];
 }
 
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+const toRegexList = (arr) => arr.map(v => new RegExp(`^${escapeRegExp(v)}$`, 'i'));
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('inventory')
@@ -89,11 +94,17 @@ module.exports = {
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
     const targetId = targetUser.id;
     const view = interaction.options.getString('view');
-    const groups = parseMulti(interaction.options.getString('group'));
-const eras = parseMulti(interaction.options.getString('era'));
-const categories = parseMulti(interaction.options.getString('category'));
+
+    const parseList = (s) => (s || '')
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean);
+
+    const groups = parseList(interaction.options.getString('group'));
+const eras = parseList(interaction.options.getString('era'));
+const categories = parseList(interaction.options.getString('category'));
 const versions = parseNumberList(interaction.options.getString('version'));
-const names = parseMulti(interaction.options.getString('name'));
+const names = parseList(interaction.options.getString('name'));
 
     const [viewerInv, targetInv] = await Promise.all([
       CardInventory.find({ userId: viewerId })
@@ -133,8 +144,8 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: groups.flatMap(g => ([
-      { group: new RegExp(`^${g}$`, 'i') },
-      { groupalias: new RegExp(`^${g}$`, 'i') },
+      { group: { $in: toRegexList(groups)} },
+      { groupalias: { $in: toRegexList(groups)} },
     ]))
   });
 }
@@ -144,7 +155,7 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: eras.map(e => ({
-      era: new RegExp(`^${e}$`, 'i')
+      era: { $in: toRegexList(eras)}
     }))
   });
 }
@@ -170,8 +181,8 @@ const names = parseMulti(interaction.options.getString('name'));
 
   cardQuery.$and.push({
     $or: names.flatMap(n => ([
-      { name: new RegExp(`^${n}$`, 'i') },
-      { namealias: new RegExp(`^${n}$`, 'i') },
+      { name: { $in: toRegexList(names)} },
+      { namealias: { $in: toRegexList(names)} },
     ]))
   });
 }
