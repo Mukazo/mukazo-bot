@@ -18,6 +18,11 @@ const PAGE_SIZE = 6;
 const THEY_HAVE_EMOJI = '🌺';
 const YOU_HAVE_EMOJI = '🧚';
 
+function normalize(value) {
+  if (typeof value !== 'string') return '';
+  return value.toLowerCase();
+}
+
 function parseList(str) {
   if (typeof str !== 'string') return [];
   return str
@@ -26,35 +31,7 @@ function parseList(str) {
     .filter(Boolean);
 }
 
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
-function parseAndEscape(input) {
-  if (typeof input !== 'string') return [];
-
-  const normalize = (value) =>
-    typeof value === 'string' ? value.toLowerCase() : '';
-
-  const trimmed = input.trim();
-
-  const values = (() => {
-    const match = trimmed.match(/^\((.+)\)$/);
-    if (match) {
-      return match[1]
-        .split(',')
-        .map(v => v.trim())
-        .filter(Boolean);
-    }
-    return [trimmed];
-  })();
-
-  return values.map(v => {
-    const normalized = normalize(v);
-    const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return escaped;
-  });
-}
 
 function parseNumberList(str) {
   if (typeof str !== 'string') return [];
@@ -112,11 +89,11 @@ module.exports = {
     const targetUser = interaction.options.getUser('user') ?? interaction.user;
     const targetId = targetUser.id;
     const view = interaction.options.getString('view');
-    const groups = parseAndEscape(interaction.options.getString('group'));
-const eras = parseAndEscape(interaction.options.getString('era'));
-const categories = parseAndEscape(interaction.options.getString('category'));
+    const groups = parseMulti(interaction.options.getString('group'));
+const eras = parseMulti(interaction.options.getString('era'));
+const categories = parseMulti(interaction.options.getString('category'));
 const versions = parseNumberList(interaction.options.getString('version'));
-const names = parseAndEscape(interaction.options.getString('name'));
+const names = parseMulti(interaction.options.getString('name'));
 
     const [viewerInv, targetInv] = await Promise.all([
       CardInventory.find({ userId: viewerId })

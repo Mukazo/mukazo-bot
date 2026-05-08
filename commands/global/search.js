@@ -31,35 +31,7 @@ function parseMulti(input) {
   return [trimmed];
 }
 
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
-function parseAndEscape(input) {
-  if (typeof input !== 'string') return [];
-
-  const normalize = (value) =>
-    typeof value === 'string' ? value.toLowerCase() : '';
-
-  const trimmed = input.trim();
-
-  const values = (() => {
-    const match = trimmed.match(/^\((.+)\)$/);
-    if (match) {
-      return match[1]
-        .split(',')
-        .map(v => v.trim())
-        .filter(Boolean);
-    }
-    return [trimmed];
-  })();
-
-  return values.map(v => {
-    const normalized = normalize(v);
-    const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return escaped;
-  });
-}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -187,7 +159,7 @@ module.exports = {
     };
 
     if (name) {
-  const names = parseAndEscape(name);
+  const names = parseMulti(name);
 
   cardQuery.$and = cardQuery.$and || [];
 
@@ -200,7 +172,7 @@ module.exports = {
 }
 
 if (group) {
-  const groups = parseAndEscape(group);
+  const groups = parseMulti(group);
 
   cardQuery.$and = cardQuery.$and || [];
 
@@ -213,7 +185,7 @@ if (group) {
 }
 
     if (era) {
-  const eras = parseAndEscape(era);
+  const eras = parseMulti(era);
 
   cardQuery.$and = cardQuery.$and || [];
 

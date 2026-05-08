@@ -31,35 +31,6 @@ function parseMulti(input) {
   return [trimmed.toLowerCase()];
 }
 
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function parseAndEscape(input) {
-  if (typeof input !== 'string') return [];
-
-  const normalize = (value) =>
-    typeof value === 'string' ? value.toLowerCase() : '';
-
-  const trimmed = input.trim();
-
-  const values = (() => {
-    const match = trimmed.match(/^\((.+)\)$/);
-    if (match) {
-      return match[1]
-        .split(',')
-        .map(v => v.trim())
-        .filter(Boolean);
-    }
-    return [trimmed];
-  })();
-
-  return values.map(v => {
-    const normalized = normalize(v);
-    const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return escaped;
-  });
-}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -77,9 +48,9 @@ module.exports = {
     const eraInput = interaction.options.getString('era') || '';
     const versionInput = interaction.options.getString('version') || '';
 
-    const groupFilter = parseAndEscape(groupInput);
-const nameFilter = parseAndEscape(nameInput);
-const eraFilter = parseAndEscape(eraInput);
+    const groupFilter = parseMulti(groupInput);
+const nameFilter = parseMulti(nameInput);
+const eraFilter = parseMulti(eraInput);
 
     if (!groupFilter.length && !nameFilter.length && !eraFilter.length) {
       return interaction.editReply({
