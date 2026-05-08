@@ -191,7 +191,7 @@ module.exports = {
 });
 
         await interaction.editReply({
-          content: `### Card Created \n${versionDisplay} 𝒢𑄺 \`${result.cardCode}\`${payload.batch ? ` in batch \`${payload.batch}\`` : ''}`,
+          content: `## Card Created . . \n⚞ ${versionDisplay} • \`${result.cardCode}\`${payload.batch ? ` in batch \`${payload.batch}\`` : ''}`,
         });
       });
     });

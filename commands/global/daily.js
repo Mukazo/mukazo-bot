@@ -24,8 +24,8 @@ module.exports = {
 }
 
 // ✅ Assign BOTH daily + weekly quests
-await ensureAssigned(userId, 'daily', 3);
-await ensureAssigned(userId, 'weekly', 3);
+const dailyAssign = await ensureAssigned(userId, 'daily', 3);
+const weeklyAssign = await ensureAssigned(userId, 'weekly', 3);
 
     // Calculate streak logic
     const now = new Date();
