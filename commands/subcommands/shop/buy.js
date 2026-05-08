@@ -248,7 +248,7 @@ if (
   }
 
   // 🎯 60% chance for ADDITIONAL cards
-  else if (pityTriggered && Math.random() < 0.60) {
+  else if (pityTriggered && Math.random() < 0.65) {
     pool = await Card.find({
       cardCode: { $in: pity.codes },
       active: true,
