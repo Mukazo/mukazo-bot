@@ -151,6 +151,7 @@ client.on(Events.InteractionCreate, async interaction => {
 =========================== */
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isStringSelectMenu()) return;
+  if (!interaction.customId.startsWith('batch:')) return;
 
   const parts = interaction.customId.split(':');
 
@@ -159,6 +160,38 @@ client.on(Events.InteractionCreate, async interaction => {
   const selected = interaction.values[0];
 
   await interaction.deferUpdate();
+
+  try {
+    const Card = require('./models/Card');
+    const Batch = require('./models/Batch');
+
+    let deactivateAt = null;
+
+    if (selected !== 'null') {
+      const batch = await Batch.findOne({ code: selected }).lean();
+      if (!batch) throw new Error('Batch not found');
+      deactivateAt = batch.deactivateCardsAt ?? null;
+    }
+
+    await Card.updateOne(
+      { cardCode },
+      {
+        batch: selected === 'null' ? null : selected,
+        deactivateAt,
+      }
+    );
+
+    await interaction.editReply({
+      content: `\`${cardCode}\` assigned to batch: \`${selected}\``,
+      components: [],
+    });
+  } catch (err) {
+    console.error(err);
+    await interaction.editReply({
+      content: `Failed to assign batch: ${err.message}`,
+      components: [],
+    }).catch(() => {});
+  }
 });
 
 // MongoDB
