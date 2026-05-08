@@ -220,7 +220,6 @@ eras = parseMulti(interaction.options.getString('eras'));
           }
         }
 
-        let pityTriggered = false;
 
 if (
   (pack === 'events' || pack === 'monthlies') &&
