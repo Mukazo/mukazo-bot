@@ -130,6 +130,8 @@ eras = parseMulti(interaction.options.getString('eras'));
       const packCards = [];
 
       let pityTriggered = false;
+let extraPityCount = 0;
+user.pityLuckScore = user.pityLuckScore || 0;
 
       for (let j = 0; j < cardsPerPack; j++) {
         let pool = [];
@@ -226,7 +228,8 @@ const isPityEligible =
   (pack === 'events' || pack === 'monthlies') &&
   pity.codes?.length &&
   (pity.count >= 3 || pityTriggered);
-  if (isPityEligible) {
+
+if (isPityEligible) {
   const isFirstCard = j === 0;
 
   // 🎯 FIRST CARD (80%)
@@ -247,14 +250,30 @@ const isPityEligible =
     }
   }
 
-  // 🎯 ADDITIONAL CARDS (30%)
+  // 🎯 ADDITIONAL CARDS (BALANCED)
   if (!isFirstCard && pityTriggered) {
-    if (Math.random() < 0.30) {
+
+    const baseChance = 0.30;
+
+    // reduce if player was lucky recently
+    const penalty = user.pityLuckScore * 0.10;
+    let adjustedChance = Math.max(0.05, baseChance - penalty);
+
+    // soft cap after first extra pity
+    if (extraPityCount >= 1) {
+      adjustedChance *= 0.25;
+    }
+
+    if (Math.random() < adjustedChance) {
       pool = await Card.find({
         cardCode: { $in: pity.codes },
         active: true,
         batch: null
       }).lean();
+
+      if (pool.length) {
+        extraPityCount++;
+      }
     }
   }
 }
@@ -275,6 +294,15 @@ const isPityEligible =
       }
 
       allPulled.push(packCards);
+
+      // 🎯 UPDATE PLAYER LUCK
+if (pityTriggered) {
+  if (extraPityCount >= 2) {
+    user.pityLuckScore += 1; // too lucky → reduce future luck
+  } else if (extraPityCount === 0) {
+    user.pityLuckScore = Math.max(0, user.pityLuckScore - 1); // unlucky → boost
+  }
+}
 
       if (pack === 'events' || pack === 'monthlies') {
         if (!pityUsedThisSession) pity.count++;
