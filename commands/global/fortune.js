@@ -45,19 +45,19 @@ module.exports = {
     } 
     else if (rng < 0.60) {
       // 40% — Small Wirlies
-      wirlies = getRandomInt(225, 375);
+      wirlies = getRandomInt(225, 280);
       outcomeText = 'Gentle blessings fall upon you.';
     } 
     else if (rng < 0.90) {
       // 30% — Bigger Wirlies + chance key
-      wirlies = getRandomInt(250, 400);
-      if (Math.random() < 0.4) keys = 1;
+      wirlies = getRandomInt(250, 315);
+      if (Math.random() < 0.35) keys = 1;
       outcomeText = 'The beings favor you greatly.';
     } 
     else {
       // 10% — Big reward
-      wirlies = getRandomInt(275, 450);
-      keys = Math.random() < 0.55 ? 2 : 1;
+      wirlies = getRandomInt(275, 335);
+      keys = Math.random() < 0.50 ? 2 : 1;
       outcomeText = 'A graceful omen manifests!';
     }
 
