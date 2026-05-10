@@ -147,7 +147,7 @@ eras = parseList(interaction.options.getString('eras'));
 
   if (!exists) {
     return interaction.editReply({
-      content: 'Inputed group(s) do not exist',
+      content: 'Inputted group(s) do not exist',
       ephemeral: true
     });
   }
@@ -163,7 +163,7 @@ if (names.length) {
 
   if (!exists) {
     return interaction.editReply({
-      content: 'Inputed name(s) do not exist.',
+      content: 'Inputted name(s) do not exist.',
       ephemeral: true
     });
   }
@@ -176,7 +176,7 @@ if (eras.length) {
 
   if (!exists) {
     return interaction.editReply({
-      content: 'Inputed era(s) do not exist.',
+      content: 'Inputted era(s) do not exist.',
       ephemeral: true
     });
   }
