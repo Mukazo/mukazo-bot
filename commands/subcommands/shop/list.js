@@ -107,6 +107,6 @@ collector.on('end', async () => {
   }
 });
 
-    return interaction.editReply({ embeds: [embed], ephemeral: true });
+    return interaction.editReply({ embeds: [pages], ephemeral: true });
   }
 };
