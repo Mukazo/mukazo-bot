@@ -106,7 +106,5 @@ collector.on('end', async () => {
     await msg.edit({ components: [] });
   }
 });
-
-    return interaction.editReply({ embeds: [pages], ephemeral: true });
   }
 };
