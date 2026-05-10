@@ -77,6 +77,8 @@ module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
     const pack = interaction.options.getString('pack');
+    const user = await User.findOne({ userId });
+    if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
 
     const customType = interaction.options.getString('type');
 
@@ -179,9 +181,6 @@ if (eras.length) {
     });
   }
 }
-
-    const user = await User.findOne({ userId });
-    if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
 
     const { cost, keys, cards: cardsPerPack } = PACK_CONFIG[pack];
     if (!cost && cost !== 0) {
