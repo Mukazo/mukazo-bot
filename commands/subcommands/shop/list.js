@@ -57,7 +57,7 @@ const page2 = new EmbedBuilder()
     `## <:cpack:1502737910472904705> Customs Pack`,
     `↪︎ Pack Types: **Premade** & **Commission**`,
     `↪︎ Premade Price: <:Wirlies:1455924065972785375> 375,000`,
-    `↪︎ Commission Price: <:Wirlies:1455924065972785375> 500,000`
+    `↪︎ Commission Price: <:Wirlies:1455924065972785375> 500,000`,
     `↪︎ Premade customs must be created by you or someone else.`,
     `↪︎ Commission customs are created by Mukazo Designers.`,
     `↪︎ To claim a custom, create a ticket in Mukazo's Support Server.`
