@@ -91,6 +91,11 @@ module.exports = {
 
 const enabled = user.enabledCategories || [];
 
+const BLOCKED_ERAS = [
+  'Pola Pairs',
+  // add whatever you want here
+];
+
 const pool = await Card.find({
   active: true,
   version: 5,
@@ -101,6 +106,17 @@ const pool = await Card.find({
         { categoryalias: { $in: enabled } }
       ]
     },
+
+    // 🔥 HARD ERA BLOCK
+    {
+      era: {
+        $not: new RegExp(
+          `^(${BLOCKED_ERAS.map(e => e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})$`,
+          'i'
+        )
+      }
+    },
+
     ...(enabled.includes('other music') ? [] : [{ categoryalias: { $ne: 'other music' } }]),
     ...(enabled.includes('asia media') ? [] : [{ categoryalias: { $ne: 'asia media' } }]),
   ]

@@ -128,7 +128,16 @@ module.exports = {
       getPullPool(4, user),
     ]);
 
-    const v5Pool = v5Cached.cards;
+    const BLOCKED_WEEKLY_ERAS = [
+  'Pola Pairs',
+  // add more eras here whenever you want
+];
+
+    const v5Pool = v5Cached.cards.filter(card =>
+  !BLOCKED_WEEKLY_ERAS.some(e =>
+    new RegExp(`^${e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i').test(card.era)
+  )
+);
     const v1to4Pool = [
       ...v1Cached.cards,
       ...v2Cached.cards,

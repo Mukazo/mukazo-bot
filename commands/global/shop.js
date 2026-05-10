@@ -20,7 +20,9 @@ module.exports = {
             .addChoices(
               { name: 'Selective', value: 'selective' },
               { name: 'Events', value: 'events' },
-              { name: 'Monthlies', value: 'monthlies' }
+              { name: 'Monthlies', value: 'monthlies' },
+              { name: 'Snippets', value: 'snippets' },
+              { name: 'Customs', value: 'customs' }
             )
             .setRequired(true)
         )
@@ -43,6 +45,15 @@ module.exports = {
         .addStringOption(o =>
           o.setName('eras')
             .setDescription('Card eras')
+            .setRequired(false)
+        )
+        .addStringOption(o =>
+          o.setName('type')
+            .setDescription('Custom type')
+            .addChoices(
+              { name: 'Premade', value: 'premade' },
+              { name: 'Commission', value: 'commission' }
+            )
             .setRequired(false)
         )
     )

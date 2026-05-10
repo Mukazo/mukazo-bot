@@ -14,12 +14,16 @@ const { getPullPool } = require('../../../utils/pullPoolCache');
 const PACK_CONFIG = {
   selective: { cost: 750, keys: 0, cards: 5 },
   events: { cost: 675, keys: 4, cards: 4 },
-  monthlies: { cost: 675, keys: 4, cards: 4 }
+  monthlies: { cost: 675, keys: 4, cards: 4 },
+
+  snippets: { cost: 1250, keys: 2, cards: 3},
+  customs: {cost: 0, keys: 0, cards: 0}
 };
 
 const eraByPack = {
   events: ['Mukazo Style', 'The Corrupted City'],
-  monthlies: ['April 2026', 'May 2026', 'June 2026', 'July 2026']
+  monthlies: ['April 2026', 'May 2026', 'June 2026', 'July 2026'],
+  snippets: ['Pola Pairs']
 };
 
 function parseCsv(input) {
@@ -73,6 +77,52 @@ module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
     const pack = interaction.options.getString('pack');
+
+    const customType = interaction.options.getString('type');
+
+if (pack === 'customs') {
+  if (!customType) {
+    return interaction.editReply({
+      content: 'You must choose a type: **premade** or **commission**.',
+      ephemeral: true
+    });
+  }
+
+  const prices = {
+    premade: 375000,
+    commission: 500000
+  };
+
+  const cost = prices[customType];
+
+  if (user.wirlies < cost) {
+    return interaction.editReply({
+      content: `You need ${cost} Wirlies for a **${customType}** custom.`,
+      ephemeral: true
+    });
+  }
+
+  // take money
+  user.wirlies -= cost;
+  await user.save();
+
+  return interaction.editReply({
+    embeds: [
+      new EmbedBuilder()
+        .setColor('#2f3136')
+        .setDescription([
+          `# Custom Pack Purchased`,
+          `Type: **${customType}**`,
+          '',
+          `Please follow these steps to claim your custom:`,
+          `• Open a ticket or contact staff`,
+          `• Provide your request details`,
+          `• Wait for approval/creation`,
+        ].join('\n'))
+    ]
+  });
+}
+
     const quantity = interaction.options.getInteger('quantity') || 1;
 
     let groups = [];
@@ -84,6 +134,51 @@ module.exports = {
 names = parseList(interaction.options.getString('names'));
 eras = parseList(interaction.options.getString('eras'));
     }
+
+    if (groups.length) {
+  const exists = await Card.exists({
+    $or: [
+      { group: { $in: toRegexList(groups) } },
+      { groupalias: { $in: toRegexList(groups) } }
+    ]
+  });
+
+  if (!exists) {
+    return interaction.editReply({
+      content: 'One or more **groups** do not exist.',
+      ephemeral: true
+    });
+  }
+}
+
+if (names.length) {
+  const exists = await Card.exists({
+    $or: [
+      { name: { $in: toRegexList(names) } },
+      { namealias: { $in: toRegexList(names) } }
+    ]
+  });
+
+  if (!exists) {
+    return interaction.editReply({
+      content: 'One or more **names** do not exist.',
+      ephemeral: true
+    });
+  }
+}
+
+if (eras.length) {
+  const exists = await Card.exists({
+    era: { $in: toRegexList(eras) }
+  });
+
+  if (!exists) {
+    return interaction.editReply({
+      content: 'One or more **eras** do not exist.',
+      ephemeral: true
+    });
+  }
+}
 
     const user = await User.findOne({ userId });
     if (!user) return interaction.reply({ content: 'User not found.', ephemeral: true });
@@ -131,7 +226,7 @@ eras = parseList(interaction.options.getString('eras'));
         ...v4.cards,
       ];
     }
-    if (pack === 'events' || pack === 'monthlies') {
+    if (pack === 'events' || pack === 'monthlies' || pack === 'snippets') {
       const v5 = await getPullPool(5, user);
       eventMonthlyV5Pool = v5.cards.filter(card => eraByPack[pack].includes(card.era));
     }
@@ -252,7 +347,7 @@ if (extraPityCount >= 2) {
           pool = selectiveFallbackPool;
         }
         // Shared cached events/monthlies fallback
-        if (!pool.length && (pack === 'events' || pack === 'monthlies')) {
+        if (!pool.length && (pack === 'events' || pack === 'monthlies' || pack === 'snippets')) {
           pool = eventMonthlyV5Pool;
         }
 
@@ -278,7 +373,7 @@ if (pityTriggered) {
         pityUsedThisSession = false;
       }
 
-      if ((pack === 'events' || pack === 'monthlies') && allPulled.every(packCards => packCards.length === 0)) {
+      if ((pack === 'events' || pack === 'monthlies' || pack === 'snippets') && allPulled.every(packCards => packCards.length === 0)) {
         return interaction.editReply({
           content: `Currently no available cards for the **${pack}** pack.`,
           ephemeral: true
