@@ -112,12 +112,12 @@ if (pack === 'customs') {
         .setColor('#2f3136')
         .setDescription([
           `# Custom Pack Purchased`,
-          `Type: **${customType}**`,
+          `⊹ Type: **${customType}**`,
           '',
           `Please follow these steps to claim your custom:`,
-          `• Open a ticket or contact staff`,
-          `• Provide your request details`,
-          `• Wait for approval/creation`,
+          `• Open a ticket in Mukazo's Support Server`,
+          `• Afterwards fill out the template with details`,
+          `• Eventually wait for approval & a Designer will commence`,
         ].join('\n'))
     ]
   });
@@ -145,7 +145,7 @@ eras = parseList(interaction.options.getString('eras'));
 
   if (!exists) {
     return interaction.editReply({
-      content: 'One or more **groups** do not exist.',
+      content: 'Inputed group(s) do not exist',
       ephemeral: true
     });
   }
@@ -161,7 +161,7 @@ if (names.length) {
 
   if (!exists) {
     return interaction.editReply({
-      content: 'One or more **names** do not exist.',
+      content: 'Inputed name(s) do not exist.',
       ephemeral: true
     });
   }
@@ -174,7 +174,7 @@ if (eras.length) {
 
   if (!exists) {
     return interaction.editReply({
-      content: 'One or more **eras** do not exist.',
+      content: 'Inputed era(s) do not exist.',
       ephemeral: true
     });
   }
