@@ -100,6 +100,7 @@ if (cardCodeFilter) filters.cardCode = cardCodeFilter;
     /* ===========================
        BUILD UPDATES
     =========================== */
+    const opts = interaction.options;
     const updates = {};
 
     if (interaction.options.getString('setname')) updates.name = interaction.options.getString('setname');
