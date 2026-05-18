@@ -46,7 +46,7 @@ module.exports = {
       .addStringOption(opt =>
           opt.setName('batch')
             .setDescription('batch code')
-            .setRequired(false)
+            .setRequired(true)
             .setAutocomplete(true))
       .addStringOption(opt =>
       opt.setName('era').setDescription('era of card').setRequired(false))
@@ -98,6 +98,9 @@ module.exports = {
         .addStringOption(opt => opt.setName('setera').setDescription('New era'))
         .addStringOption(opt => opt.setName('setbatch').setDescription('New batch or "null" to remove'))
         .addIntegerOption(opt => opt.setName('availablequantity').setDescription('Set card pull limit (or null)'))
+        .addUserOption(opt => opt.setName('designer').setDescription('Set new designer'))
+        .addUserOption(opt => opt.setName('designer2').setDescription('Set optional second designer'))
+        .addUserOption(opt => opt.setName('designer3').setDescription('Set optional third designer'))
         .addBooleanOption(opt => opt.setName('active').setDescription('Set active?'))
         .addStringOption(opt => opt.setName('until').setDescription('Deactivate date (YYYY-MM-DD)'))
         .addAttachmentOption(opt => opt.setName('image').setDescription('Replace image')),

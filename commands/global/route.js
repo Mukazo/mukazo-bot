@@ -124,7 +124,7 @@ const ROUTES = [
     },
   },
   {
-    id: 'Pinic',
+    id: 'Mukazo Pinic',
     label: 'Relaxing Pinic',
     description: 'Mukazians are hosting a pinic gathering',
     emoji: '🧺',
@@ -132,7 +132,7 @@ const ROUTES = [
     max: 321,
     keyChance: 0.42,
     embed: {
-      title: 'Pinic',
+      title: 'Mukazo Pinic',
       description: 'You were invited to the pinic & had a splendid time!',
       color: 0x51735b,
     },

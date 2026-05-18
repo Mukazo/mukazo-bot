@@ -112,6 +112,15 @@ if (cardCodeFilter) filters.cardCode = cardCodeFilter;
     if (interaction.options.getString('setgroup')) updates.group = interaction.options.getString('setgroup');
     if (interaction.options.getString('setera')) updates.era = interaction.options.getString('setera');
 
+    const d1 = opts.getUser('designer');
+const d2 = opts.getUser('designer2');
+const d3 = opts.getUser('designer3');
+
+const designerIds = [d1, d2, d3].filter(Boolean).map(d => d.id);
+if (designerIds.length > 0) {
+  updates.designerIds = designerIds;
+}
+
     const newCode = interaction.options.getString('setcardcode');
     if (typeof newCode === 'string' && newCode.length > 0) {
       updates.cardCode = newCode;
