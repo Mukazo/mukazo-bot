@@ -16,6 +16,7 @@ function buildPullFilter(version, user) {
   return {
     version,
     active: true,
+    batch: null,
     $and: [
       {
         $or: [
