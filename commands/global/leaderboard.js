@@ -57,6 +57,7 @@ module.exports = {
       .setDescription([
         `## ┈ Mukazo Leaderboard *!*`,
         `-# __Type:__ Version-Weighted Copies`,
+        '\n',
         group ? `**Group:** ${group}` : null,
         name ? `**Name:** ${name}` : null,
         era ? `**Era:** ${era}` : null,
