@@ -234,7 +234,7 @@ if (group) {
 
     const [results, inventory] = await Promise.all([
       Card.find(cardQuery)
-        .select('cardCode group name era emoji version localImagePath designerIds discordPermalinkImage imgurImageLink category categoryalias namealias')
+        .select('cardCode group name era emoji price version localImagePath designerIds discordPermalinkImage imgurImageLink category categoryalias namealias')
         .lean(),
       CardInventory.find({ userId })
         .select('cardCode quantity')
