@@ -9,14 +9,14 @@ const { makeScopeKey, updateCardLeaderboard } = require('../../updateCardLeaderb
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('leaderboard')
-    .setDescription('View card inventory leaderboards')
+    .setDescription('View Mukazo card leaderboards!')
     .addStringOption(o =>
       o.setName('type')
         .setDescription('Type')
         .setRequired(true)
         .addChoices(
-          { name: 'Distinct', value: 'distinct' },
-          { name: 'Version-weighted', value: 'copies' },
+          { name: 'Distinct Quantity', value: 'distinct' },
+          { name: 'Version-Weighted', value: 'copies' },
         )
     )
     .addStringOption(o =>
@@ -65,14 +65,17 @@ module.exports = {
     }).join('\n');
 
     const embed = new EmbedBuilder()
-      .setColor('#2f3136')
+      .setAuthor({
+    name: interaction.user.username,
+    iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+  })
       .setDescription([
-        `# Card Leaderboard`,
-        `**Type:** ${type === 'distinct' ? 'Distinct Cards' : 'Version-Weighted Copies'}`,
+        `## ┈ Mukazo Leaderboard *!*`,
+        `-# __Type:__ ${type === 'distinct' ? 'Distinct Quantity' : 'Version-Weighted'}`,
         group ? `**Group:** ${group}` : null,
         name ? `**Name:** ${name}` : null,
         era ? `**Era:** ${era}` : null,
-        '',
+        '\n',
         desc,
       ].filter(Boolean).join('\n'));
 

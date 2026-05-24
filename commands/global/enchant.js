@@ -182,10 +182,10 @@ const pulls = shuffled.slice(0, 3);
        SINGLE EMBED (match summon layout)
     =========================== */
     const fields = pulls.map(card => ({
-      name: `Version — ${card.emoji || generateVersion(card)}`,
+      name: `⊹ Version — ${card.emoji || generateVersion(card)}`,
       value: [
-        `**Group:** ${card.group}`,
-        card.era ? `**Era:** ${card.era}` : null,
+        `-# **Group:** ${card.group}`,
+        card.era ? `-# **Era:** ${card.era}` : null,
         `> **Code:** \`${card.cardCode}\``,
       ].filter(Boolean).join('\n'),
       inline: true,
