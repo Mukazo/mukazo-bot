@@ -226,9 +226,15 @@ if (eras.length) {
       ];
     }
     if (pack === 'events' || pack === 'monthlies' || pack === 'snippets') {
-      const v5 = await getPullPool(5, null);
-      eventMonthlyV5Pool = v5.cards.filter(card => eraByPack[pack].includes(card.era));
-    }
+  eventMonthlyV5Pool = await Card.find({
+    version: 5,
+    active: true,
+    batch: null,
+    era: { $in: eraByPack[pack] }
+  })
+    .select('cardCode era group name emoji version localImagePath designerIds discordPermalinkImage imgurImageLink')
+    .lean();
+}
 
     for (let i = 0; i < quantity; i++) {
       const packCards = [];

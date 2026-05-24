@@ -246,7 +246,7 @@ const allowedCategories = enabled.filter(category => !blocked.includes(category)
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
-        '## ﹕Assemble a series collection . . .ᐟ',
+        '## ﹕Assemble a series collection . .',
         '',
         ' ˗ˏˋChoose **1** of the 3 options below.',
         `> You will receive **${CARDS_TO_GIVE}** cards from the chosen series.`,

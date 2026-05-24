@@ -182,7 +182,7 @@ module.exports = {
     }));
 
     const embed = new EmbedBuilder()
-      .setDescription('## Summoning 3 Cards\n> Choose one of the cards below to claim, pick wisely!')
+      .setDescription('## ‧˚ Summoning 3 Cards\n> Choose one of the cards below to claim, pick wisely!')
       .addFields(fields)
       .setImage('attachment://summon.png');
 
