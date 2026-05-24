@@ -1,16 +1,10 @@
 const {
   SlashCommandBuilder,
+  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   AttachmentBuilder,
-  ContainerBuilder,
-  TextDisplayBuilder,
-  MediaGalleryBuilder,
-  MediaGalleryItemBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  MessageFlags,
 } = require('discord.js');
 
 const Canvas = require('canvas');
@@ -177,67 +171,37 @@ module.exports = {
     /* ===========================
        EMBED
     =========================== */
-    function pad(text, size) {
-  return String(text ?? '—').length > size
-    ? String(text).slice(0, size - 1) + '…'
-    : String(text ?? '—').padEnd(size, ' ');
-}
+    const fields = pulls.map(card => ({
+      name: `⊹ Version — ${card.emoji || generateVersion(card)}`,
+      value: [
+        `-# **Group:** ${card.group}`,
+        card.era ? `-# **Era:** ${card.era}` : null,
+        `> **Code:** \`${card.cardCode}\``,
+      ].filter(Boolean).join('\n'),
+      inline: true,
+    }));
 
-const cardInfo = [
-  '',
-  `#  ${pad('Version', 10)} ${pad('Group', 18)} ${pad('Name', 22)} Code`,
-  pulls.map((card, i) =>
-    `${i + 1}. ${pad(card.emoji || generateVersion(card), 10)} ${pad(card.group, 18)} ${pad(card.name, 22)} ${card.cardCode}`
-  ).join('\n'),
-  ''
-].join('\n');
+    const embed = new EmbedBuilder()
+      .setDescription('## ‧˚ Summoning 3 Cards\n> Choose one of the cards below to claim, pick wisely!')
+      .addFields(fields)
+      .setImage('attachment://summon.png');
 
-const row = new ActionRowBuilder().addComponents(
-  pulls.map((card, i) =>
-    new ButtonBuilder()
-      .setCustomId(`summon:${i}`) // use `enchant:${i}` inside enchant.js
-      .setLabel(buttonLabelForCard(card))
-      .setStyle(ButtonStyle.Secondary)
-  )
-);
+    const row = new ActionRowBuilder().addComponents(
+      pulls.map((card, i) =>
+        new ButtonBuilder()
+          .setCustomId(`summon:${i}`)
+          .setLabel(buttonLabelForCard(card))
+          .setStyle(ButtonStyle.Secondary)
+      )
+    );
 
-const container = new ContainerBuilder()
-  .setAccentColor(0x2f3136)
-  .addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(
-      [
-        `## ‧˚ Summoning 3 Cards`,
-        `> Choose one of the cards below to claim, pick wisely!`,
-      ].join('\n')
-    )
-  )
-  .addSeparatorComponents(
-    new SeparatorBuilder()
-      .setDivider(true)
-      .setSpacing(SeparatorSpacingSize.Small)
-  )
-  .addMediaGalleryComponents(
-    new MediaGalleryBuilder().addItems(
-      new MediaGalleryItemBuilder().setURL('attachment://summon.png')
-    )
-  )
-  .addSeparatorComponents(
-    new SeparatorBuilder()
-      .setDivider(true)
-      .setSpacing(SeparatorSpacingSize.Small)
-  )
-  .addTextDisplayComponents(
-  new TextDisplayBuilder().setContent(cardInfo)
-)
-  .addActionRowComponents(row);
+    console.time(`[summon] reply ${interaction.user.id}`);
 
-const reply = await interaction.editReply({
-  components: [container],
-  files: [attachment],
-  flags: MessageFlags.IsComponentsV2,
-  embeds: [],
-  content: null,
-});
+    const reply = await interaction.editReply({
+      embeds: [embed],
+      files: [attachment],
+      components: [row],
+    });
 
     console.timeEnd(`[summon] reply ${interaction.user.id}`);
     console.timeEnd(`[summon] total ${interaction.user.id}`);
@@ -270,30 +234,22 @@ const reply = await interaction.editReply({
     });
 
     setTimeout(async () => {
-  try {
-    const channel = await interaction.client.channels.fetch(reply.channel.id);
-    const message = await channel.messages.fetch(reply.id);
+      try {
+        const channel = await interaction.client.channels.fetch(reply.channel.id);
+        const message = await channel.messages.fetch(reply.id);
 
-    if (!message.editable) return;
+        if (!message.editable) return;
 
-    const updatedComponents = message.components.map(component => {
-      // Only modify action rows
-      if (component.type !== 1) return component;
+        const disabledRow = new ActionRowBuilder().addComponents(
+          message.components[0].components.map(btn =>
+            ButtonBuilder.from(btn).setDisabled(true)
+          )
+        );
 
-      return ActionRowBuilder.from(component).setComponents(
-        component.components.map(button =>
-          ButtonBuilder.from(button).setDisabled(true)
-        )
-      );
-    });
-
-    await message.edit({
-      components: updatedComponents,
-    });
-
-  } catch {
-    // safe ignore
-  }
-}, 180_000);
+        await message.edit({ components: [disabledRow] });
+      } catch {
+        // message deleted, channel gone, bot restarted — safe to ignore
+      }
+    }, 180_000);
   },
 };

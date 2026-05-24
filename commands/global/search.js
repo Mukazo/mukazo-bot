@@ -106,7 +106,7 @@ module.exports = {
         const eras = await Card.distinct('era', { batch: null });
         choices = eras.filter(Boolean);
       } else if (focused.name === 'cardcode') {
-        const cardCode = await Card.distinct('cardcode', { batch: null });
+        const cardCode = await Card.distinct('cardCode', { batch: null });
         choices = cardCode.filter(Boolean);
       } else if (focused.name === 'name') {
         const [names, aliases] = await Promise.all([

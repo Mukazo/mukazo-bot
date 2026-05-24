@@ -176,4 +176,33 @@ await emitQuestEvent(
   content: `You claimed **${card.cardCode}**. You now have **${quantity}** copies.`,
   ephemeral: true,
 });
+
+  if (!interaction.message?.components?.length) return;
+
+const oldRow = interaction.message.components[0];
+
+const newRow = new ActionRowBuilder().addComponents(
+  session.cards.map((c, i) =>
+    new ButtonBuilder()
+      .setCustomId(`summon:${i}`)
+      .setLabel(oldRow.components[i]?.label || `Card ${i + 1}`)
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(Boolean(c.claimedBy))
+  )
+);
+
+// Fetch fresh channel + message (restart safe)
+const channel = await interaction.client.channels
+  .fetch(interaction.channelId)
+  .catch(() => null);
+
+if (!channel) return;
+
+const message = await channel.messages
+  .fetch(interaction.message.id)
+  .catch(() => null);
+
+if (!message) return;
+
+await message.edit({ components: [newRow] });
 };
