@@ -286,12 +286,12 @@ if (group) {
           value: [
             `**Group:** ${card.group}`,
             card.era ? `**Era:** ${card.era}` : null,
+            `**Price:** <:Wirlies:1455924065972785375> ${card.price}`,
             card.designerIds?.length
               ? `> **Designers:** ${card.designerIds.map(id => `<@${id}>`).join(', ')}`
               : null,
             `> **Code:** \`${card.cardCode}\``,
             `> **Copies:** ${copies}`,
-            `> **Price:** <:Wirlies:1455924065972785375> ${card.price}`,
           ].filter(Boolean).join('\n'),
           inline: false,
         });
