@@ -174,8 +174,8 @@ module.exports = {
     const fields = pulls.map(card => ({
       name: `⊹ Version — ${card.emoji || generateVersion(card)}`,
       value: [
-        `-# ⊹ **Group:** ${card.group}`,
-        card.era ? `-# ⊹ **Era:** ${card.era}` : null,
+        `-# **Group:** ${card.group}`,
+        card.era ? `-# **Era:** ${card.era}` : null,
         `> **Code:** \`${card.cardCode}\``,
       ].filter(Boolean).join('\n'),
       inline: true,
