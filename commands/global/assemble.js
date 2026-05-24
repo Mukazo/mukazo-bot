@@ -153,14 +153,14 @@ async function buildSeriesCanvas(seriesOptions) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('assemble')
-    .setDescription('Choose a series and receive cards'),
+    .setDescription('Select from series options and receive cards!'),
 
   async execute(interaction) {
     const userId = interaction.user.id;
     const ownerId = interaction.user.id;
 
     const user = await User.findOne({ userId })
-      .select('enabledCategories')
+      .select('enabledCategories blockedCategories')
       .lean();
 
     if (!user) {
@@ -173,13 +173,16 @@ module.exports = {
             const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
                 if (await cooldowns.isOnCooldown(ownerId, commandName)) {
                   const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
-                  return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+                  return interaction.editReply({ content: `⨯ **Assemble** is on cooldown! Feel free to try again ${nextTime}.` });
                 }
             
                 // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
                 await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
 
     const enabled = (user.enabledCategories || []).map(normalize);
+const blocked = (user.blockedCategories || []).map(normalize);
+
+const allowedCategories = enabled.filter(category => !blocked.includes(category));
 
     if (!enabled.length) {
       return interaction.editReply({
@@ -187,12 +190,12 @@ module.exports = {
       });
     }
     const seriesDocs = await Series.find({
-  category: { $in: enabled },
+  category: { $in: allowedCategories },
 })
   .select('code name category localImagePath description')
   .lean();
 
-    if (!seriesDocs.length) {
+    if (!allowedCategories.length) {
       return interaction.editReply({
         content: 'No eligible series were found for your enabled categories.',
       });
@@ -243,9 +246,9 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
-        '## Assemble a Series collection . . .ᐟ',
+        '## ﹕Assemble a series collection . . .ᐟ',
         '',
-        ' ˗ˏˋChoose **1** of the 3 series below.',
+        ' ˗ˏˋChoose **1** of the 3 options below.',
         `> You will receive **${CARDS_TO_GIVE}** cards from the chosen series.`,
       ].join('\n'))
       .setImage('attachment://assemble_series.png');
@@ -332,7 +335,7 @@ await CardInventory.bulkWrite(
 );
 
       const resultEmbed = new EmbedBuilder()
-        .setTitle(`You Selected . . *${selectedSeries.name}*`)
+        .setTitle(`⺡You Selected . . *${selectedSeries.name}*`)
         .setDescription(
           chosenCards.map(card => {
             const emoji = card.emoji || generateVersion(card);

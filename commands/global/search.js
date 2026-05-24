@@ -291,6 +291,7 @@ if (group) {
               : null,
             `> **Code:** \`${card.cardCode}\``,
             `> **Copies:** ${copies}`,
+            `> **Price:** <:Wirlies:1455924065972785375> ${card.price}`,
           ].filter(Boolean).join('\n'),
           inline: false,
         });

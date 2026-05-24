@@ -63,7 +63,7 @@ function grayscaleRegion(ctx, x, y, w, h) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('weekly')
-    .setDescription('Claim your weekly rewards'),
+    .setDescription('A weekly routine stumbling into a treasure filled cavern!'),
 
   async execute(interaction) {
     console.time(`[weekly] total ${interaction.user.id}`);
@@ -94,7 +94,7 @@ module.exports = {
       const next = await cooldowns.getCooldownTimestamp(userId, commandName);
       console.timeEnd(`[weekly] total ${interaction.user.id}`);
       return interaction.editReply({
-        content: `Command on cooldown! Try again ${next}.`,
+        content: `⨯ **Weekly** is on cooldown! Feel free to try again ${next}.`,
       });
     }
 
@@ -252,8 +252,8 @@ module.exports = {
       .setImage('attachment://weekly.png')
       .setDescription(
         [
-          '## A Soothing Tune',
-          'You start to hear humming echoes from a nearby cavern. As you approach slowly, you find an open chest with:',
+          '## A Soothing Tune﹔',
+          '⺡﹒You start to hear *humming echoes* from a nearby cavern. As you approach slowly, you find an open chest with:',
           '',
           `### • <:Wirlies:1455924065972785375> ${reward.wirlies} & <:Key:1456059698582392852> ${reward.keys}`,
           ...lines.map(l => `• ${l}`),

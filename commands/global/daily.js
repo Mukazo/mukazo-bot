@@ -12,7 +12,7 @@ const UserQuest = require('../../models/UserQuest');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('daily')
-    .setDescription('Earn rewards once a day'),
+    .setDescription('Travel through a forbidden forest and find treasures once a day!'),
 
   async execute(interaction) {
     const userId = interaction.user.id;
@@ -22,7 +22,7 @@ module.exports = {
     // Check cooldown
     if (await cooldowns.isOnCooldown(userId, commandName)) {
   const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
-  return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+  return interaction.editReply({ content: `⨯ **Daily** is on cooldown! Feel free to try again ${nextTime}.` });
 }
 
 // ✅ Assign BOTH daily + weekly quests
@@ -122,10 +122,10 @@ if (weeklyAssign?.questKeys?.length) {
     const embed = new EmbedBuilder()
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
-        '## The Expedition',
+        '## The Expedition ᵔᴗᵔ',
         'You wandered into an enchanted forest,',
         'sparkles and shimmer surrounds you.',
-        'Graced by their presence, the fairies',
+        '༶ Graced by their presence, the fairies',
         `give you <:Wirlies:1455924065972785375> **${reward.wirlies}** & <:Key:1456059698582392852> ${reward.keys}`,
         '',
         '',

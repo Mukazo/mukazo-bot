@@ -53,7 +53,7 @@ function buttonLabelForCard(card) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('summon')
-    .setDescription('Summon cards and choose one'),
+    .setDescription('Summon 3 card options and select one!'),
 
   async execute(interaction) {
     console.time(`[summon] total ${interaction.user.id}`);
@@ -68,7 +68,7 @@ module.exports = {
       const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
       console.timeEnd(`[summon] cooldown ${interaction.user.id}`);
       console.timeEnd(`[summon] total ${interaction.user.id}`);
-      return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+      return interaction.editReply({ content: `⨯ **Summon** is on cooldown! Feel free to try again ${nextTime}.` });
     }
     await cooldowns.setCooldown(ownerId, commandName, cooldownMs);
     console.timeEnd(`[summon] cooldown ${interaction.user.id}`);

@@ -8,12 +8,12 @@ module.exports = {
     .setName('shop')
     .setDescription('Shop system')
     .addSubcommand(sub =>
-      sub.setName('list').setDescription('View available packs')
+      sub.setName('list').setDescription('Display all Mukazo purchasable packs!')
     )
     .addSubcommand(sub =>
       sub
         .setName('buy')
-        .setDescription('Buy a pack')
+        .setDescription('Purchase a Mukazo pack!')
         .addStringOption(o =>
           o.setName('pack')
             .setDescription('Pack type')
@@ -60,7 +60,7 @@ module.exports = {
     .addSubcommand(sub =>
   sub
     .setName('pity')
-    .setDescription('Set your pity card codes')
+    .setDescription('Set your pity card codes!')
     .addStringOption(o =>
       o.setName('codes')
         .setDescription('Up to 3 card codes')

@@ -226,7 +226,7 @@ if (eras.length) {
       ];
     }
     if (pack === 'events' || pack === 'monthlies' || pack === 'snippets') {
-      const v5 = await getPullPool(5, user);
+      const v5 = await getPullPool(5, null);
       eventMonthlyV5Pool = v5.cards.filter(card => eraByPack[pack].includes(card.era));
     }
 

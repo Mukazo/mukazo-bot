@@ -106,6 +106,7 @@ if (cardCodeFilter) filters.cardCode = cardCodeFilter;
     if (interaction.options.getString('setname')) updates.name = interaction.options.getString('setname');
     if (interaction.options.getString('setnamealias')) updates.namealias = interaction.options.getString('setnamealias');
     if (interaction.options.getString('setcategoryalias')) updates.categoryalias = interaction.options.getString('setcategoryalias');
+    if (interaction.options.getString('setprice')) updates.price = interaction.options.getString('setprice');
     if (interaction.options.getString('setgroupalias')) updates.groupalias = interaction.options.getString('setgroupalias');
     if (interaction.options.getString('setcategory')) updates.category = interaction.options.getString('setcategory');
     if (interaction.options.getString('setversion')) updates.version = interaction.options.getString('setversion');
@@ -212,8 +213,8 @@ if (until) {
       new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('prev').setLabel('⬅').setStyle(ButtonStyle.Secondary).setDisabled(disabled || page === 0),
         new ButtonBuilder().setCustomId('next').setLabel('➡').setStyle(ButtonStyle.Secondary).setDisabled(disabled || page === totalPages - 1),
-        new ButtonBuilder().setCustomId('confirm').setLabel('✅ Confirm').setStyle(ButtonStyle.Success).setDisabled(disabled),
-        new ButtonBuilder().setCustomId('cancel').setLabel('❌ Cancel').setStyle(ButtonStyle.Danger).setDisabled(disabled)
+        new ButtonBuilder().setCustomId('confirm').setLabel('Confirm').setStyle(ButtonStyle.Success).setDisabled(disabled),
+        new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger).setDisabled(disabled)
       ),
     ];
 

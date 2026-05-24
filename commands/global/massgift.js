@@ -51,7 +51,7 @@ function parseVersionInput(str) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('massgift')
-    .setDescription('Gift many cards at once using filters.')
+    .setDescription('Gift many cards via filters & exclusions!')
     .addUserOption(o =>
       o.setName('user')
         .setDescription('Recipient')

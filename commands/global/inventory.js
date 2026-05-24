@@ -68,7 +68,7 @@ const toRegexList = (arr) => arr.map(v => new RegExp(`^${escapeRegExp(v)}$`, 'i'
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('inventory')
-    .setDescription('View inventories.')
+    .setDescription('View yours or another players card inventory!')
     .addStringOption(o =>
       o.setName('view')
         .setDescription('options')

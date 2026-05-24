@@ -24,7 +24,7 @@ module.exports = {
   ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('cooldowns')
-    .setDescription('View your current and available cooldowns'),
+    .setDescription('View all available command cooldowns!'),
 
   async execute(interaction) {
     const userId = interaction.user.id;

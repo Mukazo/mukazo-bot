@@ -11,7 +11,7 @@ module.exports = {
     .setDescription('Convert Wirlies into Keys')
     .addIntegerOption(opt =>
       opt.setName('keys')
-        .setDescription('amount of keys - 2000 wirlies per key')
+        .setDescription('amount of keys via 2000 wirlies per key')
         .setMinValue(1)
         .setMaxValue(75)
         .setRequired(true)

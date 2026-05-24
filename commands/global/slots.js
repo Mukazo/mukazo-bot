@@ -43,7 +43,7 @@ function weightedRoll(multiplier = 1) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('slots')
-    .setDescription('Spin the swampy slot machine'),
+    .setDescription('Endulge in trials of luck for a chance of rewards!'),
 
   async execute(interaction) {
     const userId = interaction.user.id;
@@ -51,7 +51,7 @@ module.exports = {
     const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, COMMAND_NAME);
     if (await cooldowns.isOnCooldown(userId, COMMAND_NAME)) {
       const nextTime = await cooldowns.getCooldownTimestamp(userId, COMMAND_NAME);
-      return interaction.editReply({ content: `Command on cooldown! Try again in ${nextTime}.` });
+      return interaction.editReply({ content: `⨯ **Slots** is on cooldown! Feel free to try again ${nextTime}.` });
     }
 
     await cooldowns.setCooldown(userId, COMMAND_NAME, cooldownMs);
@@ -221,8 +221,8 @@ if (rewardCard) {
         `> ${final1} │ ${final2} │ ${final3}`,
         '',
         rewardLines.length
-          ? `### You won:\n${rewardLines.join('\n')}`
-          : `Nothing this time…`
+          ? `### ⸝⸝ You won:\n${rewardLines.join('\n')}`
+          : `⤿ Nothing this time . . .`
       ].join('\n'));
 
     return interaction.editReply({ embeds: [finalEmbed] });

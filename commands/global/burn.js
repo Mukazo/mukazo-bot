@@ -4,7 +4,7 @@ const burnSession = require('../../utils/burnSession');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('burn')
-    .setDescription('Burn cards for Wirlies and Keys')
+    .setDescription('Burn cards in exchange for Wirlies and Keys!')
     .addBooleanOption(o =>
       o.setName('exclude_v5')
         .setDescription('Exclude all Version 5 cards')

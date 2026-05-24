@@ -23,6 +23,16 @@ module.exports = {
       const imagePath = path.join(imageDir, `${data.cardCode}.png`);
       fs.writeFileSync(imagePath, image.data);
 
+      const VERSION_PRICES = {
+  1: '40 - 80',
+  2: '80 - 120',
+  3: '120 - 160',
+  4: '160 - 200',
+};
+
+// fallback if version not found
+const price = VERSION_PRICES[data.version] || '50';
+
       await Card.create({
         cardCode: data.cardCode,
         name: data.name,
@@ -39,6 +49,8 @@ module.exports = {
         designerIds: data.designerIds,
         localImagePath: imagePath,
         createdBy: data.userId,
+
+        price,
       });
 
       const batches = await Batch.find().lean();

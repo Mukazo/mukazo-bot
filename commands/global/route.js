@@ -166,7 +166,7 @@ function randomInt(min, max) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('route')
-    .setDescription('Choose a route to earn wirlies'),
+    .setDescription('Explore adventurous routes and discover valuables!'),
 
   async execute(interaction) {
     const ownerId = interaction.user.id;
@@ -174,7 +174,7 @@ module.exports = {
         const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
             if (await cooldowns.isOnCooldown(ownerId, commandName)) {
               const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
-              return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+              return interaction.editReply({ content: `⨯ **Route** is on cooldown! Feel free to try again ${nextTime}.` });
             }
         
             // Now that the interaction is ACKed (by handler), it's safe to start the cooldown
@@ -185,9 +185,9 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setDescription([
         '## It\'s time to choose',
-        'You embark on an adventure. . .',
+        '⤹ You embark on an **adventure**. . .',
         '',
-        '> Each route offers different rewards',
+        '> ＋ Each one offers a variety of rewards',
         '> Choose a route to see what you will discover!',
     ].join('\n'))
       .setColor(0x5865f2);
@@ -256,16 +256,16 @@ await emitQuestEvent(
       const resultEmbed = new EmbedBuilder()
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
         .setDescription([
-  `## ${route.embed.title}`,
+  `## ┈ ${route.embed.title}`,
   route.embed.description,
   '\n',
-  `**Earned:**`,
+  `ˊˎ**Earned:**`,
   `+ <:Wirlies:1455924065972785375> ${earned}`,
   gotKey ? '+ <:Key:1456059698582392852> 1' : null,
   '\n',
   `__**Balance:**__`,
-  `> <:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
-  `> <:Key:1456059698582392852> ${user.keys ?? 0}`,
+  `> ．<:Wirlies:1455924065972785375> ${user.wirlies.toLocaleString()}`,
+  `> ．<:Key:1456059698582392852> ${user.keys ?? 0}`,
 ].filter(Boolean).join('\n'))
         .setColor(route.embed.color);
 

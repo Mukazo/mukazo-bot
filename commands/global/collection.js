@@ -39,7 +39,7 @@ const toRegexList = (arr) => arr.map(v => new RegExp(`^${escapeRegExp(v)}$`, 'i'
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('collection')
-    .setDescription('View your card collection with filters and visuals.')
+    .setDescription('View released card collections via filters!')
     .addStringOption(o => o.setName('group').setDescription('Filter by group(s)'))
     .addStringOption(o => o.setName('name').setDescription('Filter by name(s)'))
     .addStringOption(o => o.setName('era').setDescription('Filter by era(s)'))
@@ -63,7 +63,7 @@ const eraFilter = parseList(eraInput);
 
     if (!groupFilter.length && !nameFilter.length && !eraFilter.length) {
       return interaction.editReply({
-        content: 'You must provide at least one filter: **group**, **name**, or **era**.',
+        content: '。You must provide at least one filter : **Group**, **Name**, or **Era**.',
         ephemeral: true
       });
     }
@@ -185,10 +185,10 @@ const eraFilter = parseList(eraInput);
           ` **Ი︵𐑼** __Owned:__ ${owned} / __Available:__ ${total}`,
           `<:space:1455504212069842956><:space:1455504212069842956><:space:1455504212069842956><:space:1455504212069842956>__Total Copies:__ ${totalCopies}`,
           '',
-          groupInput && `**Groups:** ${groupInput}`,
-          nameInput && `**Names:** ${nameInput}`,
-          eraInput && `**Eras:** ${eraInput}`,
-          versionInput && `**Versions:** ${versionInput}`,
+          groupInput && `<:space:1455504212069842956><:space:1455504212069842956>࿁ **Group(s):** ${groupInput}`,
+          nameInput && `<:space:1455504212069842956><:space:1455504212069842956>࿁ **Name(s):** ${nameInput}`,
+          eraInput && `<:space:1455504212069842956><:space:1455504212069842956>࿁ **Era(s):** ${eraInput}`,
+          versionInput && `<:space:1455504212069842956><:space:1455504212069842956>࿁ **Version(s):** ${versionInput}`,
         ].filter(Boolean).join('\n'))
         .setImage('attachment://collection.png')
         .setFooter({ text: `Page ${page + 1} / ${maxPage + 1}` });

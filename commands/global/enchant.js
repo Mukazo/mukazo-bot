@@ -51,7 +51,7 @@ function buttonLabelForCard(card) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('enchant')
-    .setDescription('Spend 1 Key to choose a special card'),
+    .setDescription('Sparkles of the enchanted key creates some valuable card options!'),
 
   async execute(interaction) {
     const ownerId = interaction.user.id;
@@ -66,7 +66,7 @@ module.exports = {
         const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
             if (await cooldowns.isOnCooldown(ownerId, commandName)) {
               const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
-              return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+              return interaction.editReply({ content: `⨯ **Enchant** is on cooldown! Feel free to try again ${nextTime}.` });
             }
         
             // Now that the interaction is ACKed (by handler), it's safe to start the cooldown

@@ -10,7 +10,7 @@ module.exports = {
     .addSubcommand(sub =>
       sub
         .setName('list')
-        .setDescription('View your quests')
+        .setDescription('View all your available quests!')
         .addStringOption(o =>
           o.setName('category')
             .setDescription('Filter by category')
@@ -26,7 +26,7 @@ module.exports = {
     .addSubcommand(sub =>
       sub
         .setName('reroll')
-        .setDescription('Reroll your daily or weekly quests (costs wirlies)')
+        .setDescription('Exchange wirlies to reroll your quests!')
         .addStringOption(o =>
           o.setName('category')
             .setDescription('Which category to reroll')
@@ -46,7 +46,7 @@ module.exports = {
     .addSubcommand(sub =>
       sub
         .setName('create')
-        .setDescription('Create a quest (admin)')
+        .setDescription('Create a new quest!')
 
         .addStringOption(o => o.setName('key').setDescription('Unique quest key').setRequired(true))
         .addStringOption(o => o.setName('name').setDescription('Quest name').setRequired(true))

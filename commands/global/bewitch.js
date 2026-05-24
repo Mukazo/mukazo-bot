@@ -7,10 +7,10 @@ const handleReminders = require('../../utils/reminderHandler');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('bewitch')
-    .setDescription('Pick a number between 1 and 10 to see what you get')
+    .setDescription('Choose 1 through 10 to see what bestows you!')
     .addStringOption(opt =>
       opt.setName('choice')
-        .setDescription('Pick a number 1–10')
+        .setDescription('Choose a number 1–10')
         .setRequired(true)
         .addChoices(
           ...Array.from({ length: 10 }, (_, i) => ({
@@ -26,7 +26,7 @@ module.exports = {
         const cooldownMs = await cooldowns.getEffectiveCooldown(interaction, commandName);
             if (await cooldowns.isOnCooldown(ownerId, commandName)) {
               const nextTime = await cooldowns.getCooldownTimestamp(ownerId, commandName);
-              return interaction.editReply({ content: `Command on cooldown! Try again ${nextTime}.` });
+              return interaction.editReply({ content: `⨯ **Bewitch** is on cooldown! Feel free to try again ${nextTime}.` });
             }
         
             // Now that the interaction is ACKed (by handler), it's safe to start the cooldown

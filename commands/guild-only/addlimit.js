@@ -8,7 +8,7 @@ const User = require('../../models/User');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('addlimit')
-    .setDescription('Add temporary extra uses to brew or cast.')
+    .setDescription('Add extra uses to brew or cast.')
     .setDefaultMemberPermissions(PermissionFlagsBits.ViewAuditLog)
     .addUserOption(option =>
       option.setName('user')

@@ -49,7 +49,7 @@ const CATEGORY_LABELS = {
 const CATEGORY_DESCRIPTIONS = {
   music: '◞⸝⸝◟Asia Region Groups, Soloists, etc\n> Want to include Other Regions Music? Select **Yes** in the select menu below!',
   animanga: '◞⸝⸝◟Animes, Mangas, Donghuas, Manhwas, etc',
-  'video games': '◞⸝⸝◟Shooter, Story, Gacha, etc',
+  'video games': '◞⸝⸝ Game Genres ⎯ Shooter, Story, Gacha, etc',
   entertainment: '◞⸝⸝◟Series, Movies, Dramas, etc\n> Want to include Asia Media? Select **Yes** in the select menu below!',
 };
 
@@ -160,8 +160,9 @@ module.exports = {
             `## ${CATEGORY_LABELS[category]} Cards — ${enabled ? 'Enabled' : 'Disabled'}`,
             CATEGORY_DESCRIPTIONS[category] ?? '',
             '',
-            `> Click the **Toggle** button to enable category`,
-            `> After selecting categories, click the **__Finish__** button!`,
+            '### How To Begin Your Experience. .',
+            `> Click the ﹙**Toggle**﹚ button to enable/disable a category`,
+            `> After selecting your categories, click the ﹙**__Finish__**﹚ button!`,
             '',
             examples.length
               ? ''

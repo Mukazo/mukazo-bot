@@ -10,7 +10,7 @@ function getRandomInt(min, max) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('fortune')
-    .setDescription('Test your luck and receive random rewards.'),
+    .setDescription('Embark on the spirits trials of fortunes to see what lies ahead!'),
 
   async execute(interaction) {
     const userId = interaction.user.id;
@@ -21,7 +21,7 @@ module.exports = {
     if (await cooldowns.isOnCooldown(userId, commandName)) {
       const nextTime = await cooldowns.getCooldownTimestamp(userId, commandName);
       return interaction.editReply({
-        content: `The spirits are resting . . . Try again **${nextTime}**.`,
+        content: `⨯ **Fortune** is on cooldown! Feel free to try again **${nextTime}**.`,
       });
     }
 

@@ -12,7 +12,7 @@ module.exports = {
   ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('unblock')
-    .setDescription('Remove blocked groups, names, or exact group+name pairs.')
+    .setDescription('Remove blocked groups, names, or pairs from your experience!')
     .addStringOption(option =>
       option.setName('groups')
         .setDescription('Comma-separated blocked groups')

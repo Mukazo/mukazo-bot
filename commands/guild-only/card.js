@@ -90,6 +90,7 @@ module.exports = {
         .addStringOption(opt => opt.setName('setname').setDescription('New name'))
         .addStringOption(opt => opt.setName('setcategory').setDescription('New category'))
         .addStringOption(opt => opt.setName('setversion').setDescription('New version'))
+        .addStringOption(opt => opt.setName('setprice').setDescription('New card price'))
         .addStringOption(opt => opt.setName('setemoji').setDescription('New emoji override'))
         .addStringOption(opt => opt.setName('setnamealias').setDescription('new alternate name of card'))
         .addStringOption(opt => opt.setName('setcategoryalias').setDescription('new alternate category of card'))

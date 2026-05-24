@@ -35,7 +35,7 @@ module.exports = {
   ephemeral: true,
   data: new SlashCommandBuilder()
     .setName('reminders')
-    .setDescription('View or update your cooldown reminder settings')
+    .setDescription('View or update your command reminder settings!')
     .addStringOption(option =>
       option.setName('command')
         .setDescription('Select a command to update')
