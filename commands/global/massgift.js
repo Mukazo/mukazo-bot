@@ -69,6 +69,7 @@ module.exports = {
     .addStringOption(o =>
       o.setName('version')
         .setDescription('Version filter, e.g. 1,2,3 or 2-5')
+        .setRequired(true)
     )
     .addStringOption(o =>
       o.setName('group')
