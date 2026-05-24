@@ -39,7 +39,12 @@ const toRegexList = (arr) => arr.map(v => new RegExp(`^${escapeRegExp(v)}$`, 'i'
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('search')
-    .setDescription('Search all cards.')
+    .setDescription('Search through Mukazo card catalog!')
+    .addStringOption(o =>
+      o.setName('cardcode')
+        .setDescription('Search by card code')
+        .setAutocomplete(true)
+    )
     .addStringOption(o =>
       o.setName('name')
         .setDescription('Search by card name or alias')
@@ -47,7 +52,7 @@ module.exports = {
     )
     .addStringOption(o =>
       o.setName('group')
-        .setDescription('Filter by group')
+        .setDescription('Filter by group or alias')
         .setAutocomplete(true)
     )
     .addStringOption(o =>
@@ -100,6 +105,9 @@ module.exports = {
       } else if (focused.name === 'era') {
         const eras = await Card.distinct('era', { batch: null });
         choices = eras.filter(Boolean);
+      } else if (focused.name === 'cardcode') {
+        const cardCode = await Card.distinct('cardcode', { batch: null });
+        choices = cardCode.filter(Boolean);
       } else if (focused.name === 'name') {
         const [names, aliases] = await Promise.all([
           Card.distinct('name', { batch: null }),
@@ -158,6 +166,7 @@ const parseList = (s) => (s || '')
 
     const userId = interaction.user.id;
 
+    const cardCode = interaction.options.getString('cardcode');
     const name = interaction.options.getString('name');
     const group = interaction.options.getString('group');
     const era = interaction.options.getString('era');
@@ -202,6 +211,18 @@ if (group) {
   cardQuery.$and.push({
     $or: eras.map(e => ({
       era: { $in: toRegexList(eras)}
+    }))
+  });
+}
+
+if (cardCode) {
+  const cardCodes = parseList(cardCode);
+
+  cardQuery.$and = cardQuery.$and || [];
+
+  cardQuery.$and.push({
+    $or: cardCodes.map(e => ({
+      cardCode: { $in: toRegexList(cardCodes)}
     }))
   });
 }

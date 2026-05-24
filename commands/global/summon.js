@@ -1,10 +1,16 @@
 const {
   SlashCommandBuilder,
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   AttachmentBuilder,
+  ContainerBuilder,
+  TextDisplayBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
+  MessageFlags,
 } = require('discord.js');
 
 const Canvas = require('canvas');
@@ -171,37 +177,52 @@ module.exports = {
     /* ===========================
        EMBED
     =========================== */
-    const fields = pulls.map(card => ({
-      name: `⊹ Version — ${card.emoji || generateVersion(card)}`,
-      value: [
-        `-# **Group:** ${card.group}`,
-        card.era ? `-# **Era:** ${card.era}` : null,
-        `> **Code:** \`${card.cardCode}\``,
-      ].filter(Boolean).join('\n'),
-      inline: true,
-    }));
+    const cardInfo = pulls.map((card, i) => {
+  return [
+    `### ${i + 1}. ${card.emoji || generateVersion(card)} ${card.name}`,
+    `-# **Group:** ${card.group}`,
+    card.era ? `-# **Era:** ${card.era}` : null,
+    `> **Code:** \`${card.cardCode}\``,
+  ].filter(Boolean).join('\n');
+}).join('\n\n');
 
-    const embed = new EmbedBuilder()
-      .setDescription('## ‧˚ Summoning 3 Cards\n> Choose one of the cards below to claim, pick wisely!')
-      .addFields(fields)
-      .setImage('attachment://summon.png');
+const container = new ContainerBuilder()
+  .setAccentColor(0x2f3136)
+  .addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      [
+        `## ‧˚ Summoning 3 Cards`,
+        `> Choose one of the cards below to claim, pick wisely!`,
+      ].join('\n')
+    )
+  )
+  .addSeparatorComponents(
+    new SeparatorBuilder()
+      .setDivider(true)
+      .setSpacing(SeparatorSpacingSize.Small)
+  )
+  .addMediaGalleryComponents(
+    new MediaGalleryBuilder().addItems(
+      new MediaGalleryItemBuilder().setURL('attachment://summon.png')
+    )
+  )
+  .addSeparatorComponents(
+    new SeparatorBuilder()
+      .setDivider(true)
+      .setSpacing(SeparatorSpacingSize.Small)
+  )
+  .addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(cardInfo)
+  )
+  .addActionRowComponents(row);
 
-    const row = new ActionRowBuilder().addComponents(
-      pulls.map((card, i) =>
-        new ButtonBuilder()
-          .setCustomId(`summon:${i}`)
-          .setLabel(buttonLabelForCard(card))
-          .setStyle(ButtonStyle.Secondary)
-      )
-    );
-
-    console.time(`[summon] reply ${interaction.user.id}`);
-
-    const reply = await interaction.editReply({
-      embeds: [embed],
-      files: [attachment],
-      components: [row],
-    });
+const reply = await interaction.editReply({
+  components: [container],
+  files: [attachment],
+  flags: MessageFlags.IsComponentsV2,
+  embeds: [],
+  content: null,
+});
 
     console.timeEnd(`[summon] reply ${interaction.user.id}`);
     console.timeEnd(`[summon] total ${interaction.user.id}`);
