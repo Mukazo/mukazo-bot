@@ -24,10 +24,10 @@ module.exports = {
       fs.writeFileSync(imagePath, image.data);
 
       const VERSION_PRICES = {
-  1: '40 - 80',
+  1: '40 - 60',
   2: '80 - 120',
-  3: '120 - 160',
-  4: '160 - 200',
+  3: '120 - 180',
+  4: '160 - 240',
 };
 
 // fallback if version not found
