@@ -177,14 +177,15 @@ module.exports = {
     /* ===========================
        EMBED
     =========================== */
-    const cardInfo = pulls.map((card, i) => {
-  return [
-    `### ${i + 1}. ${card.emoji || generateVersion(card)} ${card.name}`,
-    `-# **Group:** ${card.group}`,
-    card.era ? `-# **Era:** ${card.era}` : null,
+    const cardDisplays = pulls.map((card, i) =>
+  new TextDisplayBuilder().setContent([
+    `### Card ${i + 1}`,
+    `**${card.emoji || generateVersion(card)} ${card.name}**`,
+    `> **Group:** ${card.group}`,
+    card.era ? `> **Era:** ${card.era}` : null,
     `> **Code:** \`${card.cardCode}\``,
-  ].filter(Boolean).join('\n');
-}).join('\n\n');
+  ].filter(Boolean).join('\n'))
+);
 
 const row = new ActionRowBuilder().addComponents(
   pulls.map((card, i) =>
@@ -220,9 +221,7 @@ const container = new ContainerBuilder()
       .setDivider(true)
       .setSpacing(SeparatorSpacingSize.Small)
   )
-  .addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(cardInfo)
-  )
+  .addTextDisplayComponents(...cardDisplays)
   .addActionRowComponents(row);
 
 const reply = await interaction.editReply({
@@ -264,22 +263,30 @@ const reply = await interaction.editReply({
     });
 
     setTimeout(async () => {
-      try {
-        const channel = await interaction.client.channels.fetch(reply.channel.id);
-        const message = await channel.messages.fetch(reply.id);
+  try {
+    const channel = await interaction.client.channels.fetch(reply.channel.id);
+    const message = await channel.messages.fetch(reply.id);
 
-        if (!message.editable) return;
+    if (!message.editable) return;
 
-        const disabledRow = new ActionRowBuilder().addComponents(
-          message.components[0].components.map(btn =>
-            ButtonBuilder.from(btn).setDisabled(true)
-          )
-        );
+    const updatedComponents = message.components.map(component => {
+      // Only modify action rows
+      if (component.type !== 1) return component;
 
-        await message.edit({ components: [disabledRow] });
-      } catch {
-        // message deleted, channel gone, bot restarted — safe to ignore
-      }
-    }, 180_000);
+      return ActionRowBuilder.from(component).setComponents(
+        component.components.map(button =>
+          ButtonBuilder.from(button).setDisabled(true)
+        )
+      );
+    });
+
+    await message.edit({
+      components: updatedComponents,
+    });
+
+  } catch {
+    // safe ignore
+  }
+}, 180_000);
   },
 };
