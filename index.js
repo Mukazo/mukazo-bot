@@ -210,9 +210,11 @@ client.once(Events.ClientReady, async () => {
     syncCardAvailability().catch(console.error);
   }, 60_000);
 
-  setInterval(() => {
-  updateCardLeaderboard().catch(console.error);
-}, 60 * 60 * 1000);
+  setInterval(async () => {
+  console.log('[Leaderboard] Updating...');
+  await updateCardLeaderboard();
+  console.log('[Leaderboard] Done.');
+}, 10 * 1000);
 
 updateCardLeaderboard().catch(console.error);
 

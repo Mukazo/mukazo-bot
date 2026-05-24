@@ -8,31 +8,28 @@ const { makeScopeKey, updateCardLeaderboard } = require('../../updateCardLeaderb
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('cardleaderboard')
+    .setName('leaderboard')
     .setDescription('View card inventory leaderboards')
     .addStringOption(o =>
       o.setName('type')
-        .setDescription('Leaderboard type')
+        .setDescription('Type')
         .setRequired(true)
         .addChoices(
-          { name: 'Distinct cards owned', value: 'distinct' },
-          { name: 'Version-weighted copies', value: 'copies' },
+          { name: 'Distinct', value: 'distinct' },
+          { name: 'Version-weighted', value: 'copies' },
         )
     )
     .addStringOption(o =>
       o.setName('group')
         .setDescription('Filter by group or group alias')
-        .setAutocomplete(true)
     )
     .addStringOption(o =>
       o.setName('name')
         .setDescription('Filter by name or name alias')
-        .setAutocomplete(true)
     )
     .addStringOption(o =>
       o.setName('era')
         .setDescription('Filter by era')
-        .setAutocomplete(true)
     ),
 
   async execute(interaction) {
