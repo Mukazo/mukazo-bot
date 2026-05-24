@@ -186,6 +186,15 @@ module.exports = {
   ].filter(Boolean).join('\n');
 }).join('\n\n');
 
+const row = new ActionRowBuilder().addComponents(
+  pulls.map((card, i) =>
+    new ButtonBuilder()
+      .setCustomId(`summon:${i}`) // use `enchant:${i}` inside enchant.js
+      .setLabel(buttonLabelForCard(card))
+      .setStyle(ButtonStyle.Secondary)
+  )
+);
+
 const container = new ContainerBuilder()
   .setAccentColor(0x2f3136)
   .addTextDisplayComponents(
