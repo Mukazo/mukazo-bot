@@ -177,15 +177,20 @@ module.exports = {
     /* ===========================
        EMBED
     =========================== */
-    const cardDisplays = pulls.map((card, i) =>
-  new TextDisplayBuilder().setContent([
-    `### Card ${i + 1}`,
-    `**${card.emoji || generateVersion(card)} ${card.name}**`,
-    `> **Group:** ${card.group}`,
-    card.era ? `> **Era:** ${card.era}` : null,
-    `> **Code:** \`${card.cardCode}\``,
-  ].filter(Boolean).join('\n'))
-);
+    function pad(text, size) {
+  return String(text ?? '—').length > size
+    ? String(text).slice(0, size - 1) + '…'
+    : String(text ?? '—').padEnd(size, ' ');
+}
+
+const cardInfo = [
+  '```',
+  `#  ${pad('Version', 10)} ${pad('Group', 18)} ${pad('Name', 22)} Code`,
+  pulls.map((card, i) =>
+    `${i + 1}. ${pad(card.emoji || generateVersion(card), 10)} ${pad(card.group, 18)} ${pad(card.name, 22)} ${card.cardCode}`
+  ).join('\n'),
+  '```'
+].join('\n');
 
 const row = new ActionRowBuilder().addComponents(
   pulls.map((card, i) =>
@@ -221,7 +226,9 @@ const container = new ContainerBuilder()
       .setDivider(true)
       .setSpacing(SeparatorSpacingSize.Small)
   )
-  .addTextDisplayComponents(...cardDisplays)
+  .addTextDisplayComponents(
+  new TextDisplayBuilder().setContent(cardInfo)
+)
   .addActionRowComponents(row);
 
 const reply = await interaction.editReply({
