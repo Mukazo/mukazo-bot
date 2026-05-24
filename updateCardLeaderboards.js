@@ -19,8 +19,6 @@ function makeScopeKey({ group, name, era }) {
 }
 
 async function updateCardLeaderboard({ group = null, name = null, era = null } = {}) {
-  const cardQuery = {};
-
   const and = [];
 
   if (group) {
@@ -47,7 +45,8 @@ async function updateCardLeaderboard({ group = null, name = null, era = null } =
     and.push({ era: makeRegex(era) });
   }
 
-  if (and.length) cardQuery.$and = and;
+  const cardQuery = and.length ? { $and: and } : {};
+  const scopeKey = makeScopeKey({ group, name, era });
 
   const cards = await Card.find(cardQuery)
     .select('cardCode version')
@@ -58,10 +57,9 @@ async function updateCardLeaderboard({ group = null, name = null, era = null } =
   );
 
   const cardCodes = [...versionByCode.keys()];
-  const scopeKey = makeScopeKey({ group, name, era });
 
   if (!cardCodes.length) {
-    await CardLeaderboard.deleteMany({ scopeKey });
+    await CardLeaderboard.deleteOne({ scopeKey });
     return;
   }
 
@@ -72,17 +70,11 @@ async function updateCardLeaderboard({ group = null, name = null, era = null } =
     .select('userId cardCode quantity')
     .lean();
 
-  const distinctScores = new Map();
   const copyScores = new Map();
 
   for (const item of inventory) {
     const version = versionByCode.get(item.cardCode) || 1;
     const quantity = Number(item.quantity) || 0;
-
-    distinctScores.set(
-      item.userId,
-      (distinctScores.get(item.userId) || 0) + 1
-    );
 
     copyScores.set(
       item.userId,
@@ -90,37 +82,25 @@ async function updateCardLeaderboard({ group = null, name = null, era = null } =
     );
   }
 
-  const now = new Date();
+  const rows = [...copyScores.entries()]
+    .map(([userId, score]) => ({ userId, score }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 100);
 
-  const docs = [];
+  await CardLeaderboard.updateOne(
+    { scopeKey },
+    {
+      $set: {
+        scopeKey,
+        filters: { group, name, era },
+        rows,
+        updatedAt: new Date(),
+      },
+    },
+    { upsert: true }
+  );
 
-  for (const [userId, score] of distinctScores.entries()) {
-    docs.push({
-      scopeKey,
-      type: 'distinct',
-      userId,
-      score,
-      filters: { group, name, era },
-      updatedAt: now,
-    });
-  }
-
-  for (const [userId, score] of copyScores.entries()) {
-    docs.push({
-      scopeKey,
-      type: 'copies',
-      userId,
-      score,
-      filters: { group, name, era },
-      updatedAt: now,
-    });
-  }
-
-  await CardLeaderboard.deleteMany({ scopeKey });
-
-  if (docs.length) {
-    await CardLeaderboard.insertMany(docs, { ordered: false });
-  }
+  console.log(`[Leaderboard] Updated ${scopeKey} with ${rows.length} rows`);
 }
 
 module.exports = {

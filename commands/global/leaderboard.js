@@ -11,15 +11,6 @@ module.exports = {
     .setName('leaderboard')
     .setDescription('View Mukazo card leaderboards!')
     .addStringOption(o =>
-      o.setName('type')
-        .setDescription('Type')
-        .setRequired(true)
-        .addChoices(
-          { name: 'Distinct Quantity', value: 'distinct' },
-          { name: 'Version-Weighted', value: 'copies' },
-        )
-    )
-    .addStringOption(o =>
       o.setName('group')
         .setDescription('Filter by group or group alias')
     )
@@ -33,26 +24,20 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const type = interaction.options.getString('type');
     const group = interaction.options.getString('group');
     const name = interaction.options.getString('name');
     const era = interaction.options.getString('era');
 
     const scopeKey = makeScopeKey({ group, name, era });
 
-    let rows = await CardLeaderboard.find({ scopeKey, type })
-      .sort({ score: -1 })
-      .limit(10)
-      .lean();
+    let board = await CardLeaderboard.findOne({ scopeKey }).lean();
 
-    if (!rows.length && (group || name || era)) {
+    if (!board && (group || name || era)) {
       await updateCardLeaderboard({ group, name, era });
-
-      rows = await CardLeaderboard.find({ scopeKey, type })
-        .sort({ score: -1 })
-        .limit(10)
-        .lean();
+      board = await CardLeaderboard.findOne({ scopeKey }).lean();
     }
+
+    const rows = board?.rows?.slice(0, 10) || [];
 
     if (!rows.length) {
       return interaction.editReply({
@@ -66,16 +51,16 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setAuthor({
-    name: interaction.user.username,
-    iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
-  })
+        name: interaction.user.username,
+        iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+      })
       .setDescription([
         `## ┈ Mukazo Leaderboard *!*`,
-        `-# __Type:__ ${type === 'distinct' ? 'Distinct Quantity' : 'Version-Weighted'}`,
+        `-# __Type:__ Version-Weighted Copies`,
         group ? `**Group:** ${group}` : null,
         name ? `**Name:** ${name}` : null,
         era ? `**Era:** ${era}` : null,
-        '\n',
+        '',
         desc,
       ].filter(Boolean).join('\n'));
 

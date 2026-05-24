@@ -1,16 +1,12 @@
 const mongoose = require('mongoose');
 
 const CardLeaderboardSchema = new mongoose.Schema({
-  scopeKey: { type: String, required: true, index: true },
-  type: {
+  scopeKey: {
     type: String,
-    enum: ['distinct', 'copies'],
     required: true,
+    unique: true,
     index: true,
   },
-
-  userId: { type: String, required: true, index: true },
-  score: { type: Number, required: true, default: 0 },
 
   filters: {
     group: String,
@@ -18,9 +14,24 @@ const CardLeaderboardSchema = new mongoose.Schema({
     era: String,
   },
 
-  updatedAt: { type: Date, default: Date.now },
-});
+  rows: [
+    {
+      userId: {
+        type: String,
+        required: true,
+      },
+      score: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+    },
+  ],
 
-CardLeaderboardSchema.index({ scopeKey: 1, type: 1, score: -1 });
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 module.exports = mongoose.model('CardLeaderboard', CardLeaderboardSchema);
