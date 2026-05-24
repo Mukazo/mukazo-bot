@@ -276,7 +276,7 @@ if (group) {
         : [];
 
       const embed = new EmbedBuilder()
-        .setDescription('## Searching for . . .\n> Here you can view & find all \n> Mukazo\'s cards information!')
+        .setDescription('## Searching for . . .\n> Here you can view & find all Mukazo\'s\n> cards information!')
         .setImage(imageSource)
         .setFooter({
           text: `Page ${page + 1} / ${results.length}`,
