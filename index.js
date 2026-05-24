@@ -9,6 +9,7 @@ const Maintenance = require('./models/Maintenance');
 const { startReminderPoller } = require('./utils/reminderPoller');
 const User = require('./models/User');
 const syncCardAvailability = require('./utils/syncCardAvailability');
+const { updateCardLeaderboard } = require('./updateCardLeaderboards');
 
 const MAINTENANCE_BYPASS_ROLE_ID = '1455908485425397842';
 
@@ -208,6 +209,12 @@ client.once(Events.ClientReady, async () => {
   setInterval(() => {
     syncCardAvailability().catch(console.error);
   }, 60_000);
+
+  setInterval(() => {
+  updateCardLeaderboard().catch(console.error);
+}, 60 * 60 * 1000);
+
+updateCardLeaderboard().catch(console.error);
 
   startReminderPoller();
 });
