@@ -184,12 +184,12 @@ module.exports = {
 }
 
 const cardInfo = [
-  '```',
+  '',
   `#  ${pad('Version', 10)} ${pad('Group', 18)} ${pad('Name', 22)} Code`,
   pulls.map((card, i) =>
     `${i + 1}. ${pad(card.emoji || generateVersion(card), 10)} ${pad(card.group, 18)} ${pad(card.name, 22)} ${card.cardCode}`
   ).join('\n'),
-  '```'
+  ''
 ].join('\n');
 
 const row = new ActionRowBuilder().addComponents(
