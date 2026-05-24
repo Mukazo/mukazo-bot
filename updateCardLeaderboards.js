@@ -1,6 +1,6 @@
-const Card = require('../models/Card');
-const CardInventory = require('../models/CardInventory');
-const CardLeaderboard = require('../models/CardLeaderboard');
+const Card = require('./models/Card');
+const CardInventory = require('./models/CardInventory');
+const CardLeaderboard = require('./models/CardLeaderboard');
 
 function escapeRegExp(str) {
   return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
