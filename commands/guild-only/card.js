@@ -85,7 +85,6 @@ module.exports = {
         .addStringOption(opt => opt.setName('version').setDescription('Exact version'))
         .addStringOption(opt => opt.setName('era').setDescription('Comma-separated eras'))
         .addStringOption(opt => opt.setName('group').setDescription('Comma-separated groups'))
-        .addStringOption(opt => opt.setName('batch').setDescription('Comma-separated batch codes'))
         .addStringOption(opt => opt.setName('setcardcode').setDescription('Set new card code'))
         .addStringOption(opt => opt.setName('setname').setDescription('New name'))
         .addStringOption(opt => opt.setName('setcategory').setDescription('New category'))
