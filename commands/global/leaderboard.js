@@ -28,6 +28,12 @@ module.exports = {
     const name = interaction.options.getString('name');
     const era = interaction.options.getString('era');
 
+    if (!group && !name && !era) {
+  return interaction.editReply({
+    content: '。You must provide at least one filter : **Group**, **Name**, or **Era**.',
+  });
+}
+
     const scopeKey = makeScopeKey({ group, name, era });
 
     let board = await CardLeaderboard.findOne({ scopeKey }).lean();
@@ -56,12 +62,11 @@ module.exports = {
       })
       .setDescription([
         `## ┈ Mukazo Leaderboard *!*`,
-        `-# __Type:__ Version-Weighted Copies`,
+        `-# __Method:__ Version-Weighted Copies`,
+        group ? `<:space:1455504212069842956>**Group:** ${group}` : null,
+        name ? `<:space:1455504212069842956>**Name:** ${name}` : null,
+        era ? `<:space:1455504212069842956>**Era:** ${era}` : null,
         '\n',
-        group ? `**Group:** ${group}` : null,
-        name ? `**Name:** ${name}` : null,
-        era ? `**Era:** ${era}` : null,
-        '',
         desc,
       ].filter(Boolean).join('\n'));
 
