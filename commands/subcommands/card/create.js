@@ -101,7 +101,7 @@ module.exports = {
     { name: 'Batch', value: payload.batch ?? 'No Batch', inline: true },
     { name: 'Name Alias', value: payload.namealias ?? '—', inline: true },
     { name: 'Category Alias', value: payload.categoryalias ?? '—', inline: true },
-    { name: 'Group Alias', value: payload.categoryalias ?? '—', inline: true },
+    { name: 'Group Alias', value: payload.groupalias ?? '—', inline: true },
     {
       name: 'Designers',
       value: payload.designerIds.length

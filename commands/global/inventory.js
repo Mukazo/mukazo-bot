@@ -209,14 +209,18 @@ const names = parseList(interaction.options.getString('name'));
     }
 
     let results = cards.filter(card => {
-      const targetQty = targetMap.get(card.cardCode) || 0;
+  const targetQty = targetMap.get(card.cardCode) || 0;
+  const isCustom = String(card.era || '').toUpperCase() === 'CUSTOM';
 
-      if (view === 'owned' && targetQty <= 0) return false;
-      if (view === 'missing' && targetQty > 0) return false;
-      if (view === 'duplicates' && targetQty <= 1) return false;
+  // CUSTOM cards only show if the target owns them
+  if (isCustom && targetQty <= 0) return false;
 
-      return true;
-    });
+  if (view === 'owned' && targetQty <= 0) return false;
+  if (view === 'missing' && targetQty > 0) return false;
+  if (view === 'duplicates' && targetQty <= 1) return false;
+
+  return true;
+});
 
     const defaultSort = () => {
       results.sort((a, b) => {

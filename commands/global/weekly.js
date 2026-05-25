@@ -130,6 +130,7 @@ module.exports = {
 
     const BLOCKED_WEEKLY_ERAS = [
   'Pola Pairs',
+  'Sakura Fubuki',
   // add more eras here whenever you want
 ];
 
