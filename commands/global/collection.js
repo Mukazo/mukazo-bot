@@ -72,9 +72,14 @@ const eraFilter = parseList(eraInput);
       ? versionInput.split(',').map(v => Number(v.trim())).filter(n => Number.isFinite(n))
       : [1, 2, 3, 4, 5];
       const cardQuery = {
-      batch: null,
-      version: { $in: versionFilter },
-    };
+  batch: null,
+  version: { $in: versionFilter },
+
+  // Hide CUSTOM era cards
+  era: {
+    $not: /^CUSTOM$/i
+  },
+};
 
     if (groupFilter.length) {
   cardQuery.$and = cardQuery.$and || [];

@@ -174,8 +174,13 @@ const parseList = (s) => (s || '')
     const version = interaction.options.getInteger('version');
 
     const cardQuery = {
-      batch: null,
-    };
+  batch: null,
+
+  // Hide CUSTOM era cards
+  era: {
+    $not: /^CUSTOM$/i
+  },
+};
 
     if (name) {
   const names = parseList(name);
