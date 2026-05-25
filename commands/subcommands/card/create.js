@@ -185,13 +185,10 @@ module.exports = {
         }
 
         // show batch picker
-        const versionDisplay = generateVersion({
-  version: payload.version,
-  overrideEmoji: payload.emoji ?? undefined
-});
+        const emoji = payload.emoji || generateVersion(payload);
 
         await interaction.editReply({
-          content: `## Card Created . . \n⚞ ${versionDisplay} • \`${result.cardCode}\`${payload.batch ? ` in batch \`${payload.batch}\`` : ''}`,
+          content: `## Card Created . . \n⚞ ${emoji} • \`${result.cardCode}\`${payload.batch ? ` in batch \`${payload.batch}\`` : ''}`,
         });
       });
     });

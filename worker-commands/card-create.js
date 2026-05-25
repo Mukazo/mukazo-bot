@@ -41,6 +41,7 @@ const price = VERSION_PRICES[data.version] || '50';
         categoryalias: data.categoryalias,
         version: data.version,
         emoji: data.emoji,
+        batch: data.batch,
         group: data.group,
         groupalias: data.groupalias,
         era: data.era,
