@@ -33,6 +33,13 @@ module.exports = {
 // fallback if version not found
 const price = VERSION_PRICES[data.version] || '50';
 
+const rawBatch = typeof data.batch === 'string' ? data.batch.trim() : data.batch;
+
+const batch =
+  rawBatch && !['null', 'no batch', 'none'].includes(String(rawBatch).toLowerCase())
+    ? rawBatch
+    : null;
+
       await Card.create({
         cardCode: data.cardCode,
         name: data.name,
@@ -41,7 +48,7 @@ const price = VERSION_PRICES[data.version] || '50';
         categoryalias: data.categoryalias,
         version: data.version,
         emoji: data.emoji,
-        batch: data.batch,
+        batch,
         group: data.group,
         groupalias: data.groupalias,
         era: data.era,

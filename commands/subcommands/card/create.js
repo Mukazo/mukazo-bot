@@ -62,6 +62,12 @@ module.exports = {
 
     const opts = interaction.options;
     const selectedBatch = opts.getString('batch');
+const normalizedBatch = selectedBatch?.trim().toLowerCase();
+
+const batch =
+  selectedBatch && !['null', 'no batch', 'none'].includes(normalizedBatch)
+    ? selectedBatch.trim()
+    : null;
 
     const payload = {
       cardCode: opts.getString('cardcode'),
@@ -71,7 +77,7 @@ module.exports = {
       group: opts.getString('group'),
       namealias: opts.getString('namealias'),
       groupalias: opts.getString('groupalias'),
-      batch: selectedBatch && selectedBatch !== 'null' ? selectedBatch : null,
+      batch,
       categoryalias: opts.getString('categoryalias'),
       era: opts.getString('era'),
       emoji: opts.getString('emoji'),
