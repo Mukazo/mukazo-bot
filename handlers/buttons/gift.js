@@ -129,7 +129,7 @@ if (session.keys !== 0) {
 
     const embed = new EmbedBuilder()
       .setTitle('Confirm Gift')
-      .setDescription(descriptionLines.filter(Boolean).join('\n'))
+      .setDescription(descriptionLines.filter(Boolean).join('\n') || 'No gifted cards displayed')
       .setFooter({
         text: `Page ${page + 1} / ${Math.ceil(session.cards.length / PAGE_SIZE)}`,
       });
@@ -200,7 +200,7 @@ if (session.keys !== 0) {
   const embed = new EmbedBuilder()
     .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
     .setTitle('Gift Summary')
-    .setDescription(description)
+    .setDescription(description || 'No gifted cards displayed')
     .setFooter({ text: `Page ${page + 1} / ${Math.ceil(session.cards.length / PAGE_SIZE)}` });
 
   if (session.wirlies !== 0 && page === 0) {
