@@ -83,7 +83,10 @@ if (user.brewData.used >= effectiveLimit) {
           cardCode: codeInput,
           version: 5,
           active: false,
-          batch: null
+          batch: null,
+          era: {
+    $not: /^CUSTOM$/i
+  },
         });
     
         if (!targetCard) {
