@@ -214,7 +214,7 @@ client.once(Events.ClientReady, async () => {
   console.log('[Leaderboard] Updating...');
   await updateCardLeaderboard();
   console.log('[Leaderboard] Done.');
-}, 15 * 60 * 1000);
+}, 45 * 60 * 1000);
 
 updateCardLeaderboard().catch(console.error);
 
