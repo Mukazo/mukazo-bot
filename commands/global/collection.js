@@ -165,7 +165,15 @@ const eraFilter = parseList(eraInput);
         const y = Math.floor(i / perRow) * (cardH + padding);
         try {
           const img = await Canvas.loadImage(card.localImagePath);
-          ctx.drawImage(img, x, y, cardW, cardH);
+          const scale = Math.min(cardW / img.width, cardH / img.height);
+
+const drawW = img.width * scale;
+const drawH = img.height * scale;
+
+const offsetX = x + (cardW - drawW) / 2;
+const offsetY = y + (cardH - drawH) / 2;
+
+ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
 
           if (!ownedMap.has(card.cardCode)) {
             const imgData = ctx.getImageData(x, y, cardW, cardH);

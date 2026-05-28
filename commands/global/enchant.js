@@ -37,6 +37,21 @@ function grayscaleRegion(ctx, x, y, w, h) {
   ctx.putImageData(imgData, x, y);
 }
 
+function drawImageContain(ctx, img, x, y, w, h) {
+  const scale = Math.min(w / img.width, h / img.height);
+
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+
+  const offsetX = x + (w - drawW) / 2;
+  const offsetY = y + (h - drawH) / 2;
+
+  ctx.fillStyle = '#111';
+  ctx.fillRect(x, y, w, h);
+
+  ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+}
+
 function buttonLabelForCard(card) {
   const MAX = 80;
   let name = card.name;
@@ -165,7 +180,7 @@ const pulls = shuffled.slice(0, 3);
 
       try {
         const img = await Canvas.loadImage(card.localImagePath);
-        ctx.drawImage(img, x, 0, CARD_WIDTH, CARD_HEIGHT);
+        drawImageContain(ctx, img, x, 0, CARD_WIDTH, CARD_HEIGHT);
 
         if (!ownedSet.has(card.cardCode)) {
           grayscaleRegion(ctx, x, 0, CARD_WIDTH, CARD_HEIGHT);
