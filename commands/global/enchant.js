@@ -46,9 +46,6 @@ function drawImageContain(ctx, img, x, y, w, h) {
   const offsetX = x + (w - drawW) / 2;
   const offsetY = y + (h - drawH) / 2;
 
-  ctx.fillStyle = '#111';
-  ctx.fillRect(x, y, w, h);
-
   ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
 }
 
