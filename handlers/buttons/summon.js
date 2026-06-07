@@ -97,6 +97,17 @@ module.exports = async function summonButtonHandler(interaction) {
     });
   }
 
+  const alreadyClaimedInThisSummon = session.cards.some(
+  c => c.claimedBy === interaction.user.id
+);
+
+if (alreadyClaimedInThisSummon) {
+  return interaction.followUp({
+    content: 'You already claimed a card from this summon.',
+    ephemeral: true,
+  });
+}
+
   const result = await SummonSession.updateOne(
     {
       _id: session._id,

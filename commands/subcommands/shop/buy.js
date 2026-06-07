@@ -22,8 +22,8 @@ const PACK_CONFIG = {
 
 const eraByPack = {
   events: ['Mukazo Style', 'The Corrupted City'],
-  monthlies: ['April 2026', 'May 2026', 'June 2026', 'July 2026'],
-  snippets: ['Pola Pairs', 'Sakura Fubuki']
+  monthlies: ['April 2026', 'May 2026', 'June 2026', 'July 2026', 'August 2026'],
+  snippets: ['Pola Pairs', 'Sakura Fubuki', 'Collaboration']
 };
 
 function parseCsv(input) {

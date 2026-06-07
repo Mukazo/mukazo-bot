@@ -106,6 +106,7 @@ const enabled = user.enabledCategories || [];
 const BLOCKED_ERAS = [
   'Pola Pairs',
   'Sakura Fubuki',
+  'Collaboration',
   // add whatever you want here
 ];
 
